@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puntal Agro · Programa de Siembra 25/26</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--v:#3d5e35;--vl:#5c8a4a;--vm:#eef4ea;--d:#d4693a;--t:#1e2d1a;--g:#f4f6f1;--b:#c5d3bc;--ts:#587050;--r:#c0392b;--az:#2980b9;--ogl:#e8845a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--g);color:var(--t);font-size:13px}
+.hdr{background:linear-gradient(135deg,#243d1e,var(--v));color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;gap:12px}
+.logo{font-size:24px;font-weight:800;letter-spacing:3px;color:var(--d)}
+.htitle{flex:1;text-align:center}
+.htitle h1{font-size:18px;font-weight:700}
+.htitle p{font-size:11px;color:#aed6a5;margin-top:2px}
+.hstats{display:flex;background:rgba(0,0,0,.2)}
+.hs{padding:7px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.1)}
+.hs:last-child{border-right:none}
+.hs-val{font-size:16px;font-weight:700;color:var(--d)}
+.hs-lbl{font-size:10px;color:#aed6a5;text-transform:uppercase;letter-spacing:.4px}
+.tabs{background:var(--v);display:flex;padding:0 22px}
+.tab{padding:10px 20px;cursor:pointer;color:#aed6a5;font-size:13px;font-weight:600;border-bottom:3px solid transparent;transition:.15s;white-space:nowrap}
+.tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab.active{color:#fff;border-bottom-color:#d4693a;background:rgba(255,255,255,.1)}
+.main{padding:16px 22px;max-width:1800px;margin:0 auto}
+.tp{display:none}.tp.active{display:block}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid var(--b);margin-bottom:14px;overflow:hidden}
+.ch{background:var(--vm);border-bottom:2px solid #b8d8b0;padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
+.ch h3{font-size:12px;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.5px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--v);color:#fff;padding:7px 9px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;position:sticky;top:0;z-index:2}th[onclick]:hover{background:var(--vl);}
+td{padding:6px 9px;border-bottom:1px solid #edf2e8;vertical-align:middle}
+tr:hover td{background:#f5faf3}
+tr.grp td{background:var(--v);color:#fff;font-weight:700;font-size:11px;padding:5px 9px}
+tr.tot td{background:#243d1e!important;color:#fff!important;font-weight:700}
+.num{text-align:right;font-family:monospace}
+.ctr{text-align:center}
+.badge{display:inline-block;padding:2px 7px;border-radius:9px;font-size:10px;font-weight:700;white-space:nowrap}
+.btn{padding:7px 13px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-p{background:var(--v);color:#fff}.btn-p:hover{background:var(--vl)}
+.btn-d{background:var(--d);color:#fff}.btn-d:hover{background:var(--ogl)}
+.btn-r{background:var(--r);color:#fff}.btn-r:hover{background:#a93226}
+.btn-az{background:var(--az);color:#fff}.btn-az:hover{background:#2471a3}
+.btn-o{background:#fff;color:var(--v);border:1px solid var(--b)}.btn-o:hover{background:var(--vm)}
+.btn-sm{padding:3px 8px;font-size:11px}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.ov.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:560px;box-shadow:0 8px 32px rgba(0,0,0,.3);margin:auto}
+.modal.wide{max-width:900px}
+.mh{background:linear-gradient(135deg,#243d1e,var(--v));color:#fff;padding:13px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.mh h2{font-size:15px;font-weight:700}
+.mb{padding:18px;max-height:80vh;overflow-y:auto}
+.mf{padding:10px 18px;border-top:1px solid var(--b);display:flex;justify-content:flex-end;gap:8px;background:#f9fdf8;border-radius:0 0 12px 12px}
+.fg{display:grid;gap:11px 14px}
+.fg2{grid-template-columns:1fr 1fr}
+.fg3{grid-template-columns:1fr 1fr 1fr}
+.fg4{grid-template-columns:1fr 1fr 1fr 1fr}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.fld input,.fld select{width:100%;padding:8px 10px;border:1px solid var(--b);border-radius:6px;font-size:13px;color:var(--t);background:#fafcf9;transition:.15s}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--vl);box-shadow:0 0 0 2px rgba(74,158,63,.15)}
+.fld input[readonly]{background:#f0f4ee;color:#555;cursor:default}
+.sep{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--v);grid-column:1/-1;border-top:1px solid var(--b);padding-top:10px;margin-top:4px}
+.calc{background:linear-gradient(135deg,#f0faf0,#e8f5e4);border:1px solid #b0d0a8;border-radius:8px;padding:12px 14px;margin:10px 0;grid-column:1/-1}
+.calc h4{font-size:11px;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cv{text-align:center}
+.cv .nb{font-size:20px;font-weight:800;color:var(--v)}
+.cv .nu{font-size:10px;color:var(--ts);text-transform:uppercase}
+.cv .nl{font-size:11px;color:#666;margin-top:2px}
+.filtros{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--b);margin-bottom:12px}
+.filtros select,.filtros input{padding:6px 9px;border:1px solid var(--b);border-radius:6px;font-size:12px;background:#fafcf9}
+.rcards{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.rcard{background:#fff;border-radius:10px;border:1px solid var(--b);padding:14px;text-align:center}
+.rcard .rv{font-size:20px;font-weight:800;color:var(--v)}
+.rcard .ru{font-size:10px;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.rcard .rl{font-size:11px;color:#666;margin-top:5px;font-weight:600}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:5px}
+.ri{background:#fff;border:1px solid var(--b);border-radius:6px;padding:6px 8px;text-align:center}
+.ri .rc{font-weight:800;color:var(--v);font-size:13px}.ri .rd{font-size:10px;color:#666;margin-top:1px}
+.ri.inv{border-left:3px solid #4a90d9}.ri.pri{border-left:3px solid #e8a020}.ri.ver{border-left:3px solid #d94a4a}
+.empty{text-align:center;padding:36px 20px;color:#aaa}
+.empty-icon{font-size:36px;margin-bottom:8px}
+.empty h3{font-size:14px;font-weight:700;color:#888;margin-bottom:4px}
+.empty p{font-size:12px}
+.tag-amb{background:var(--vm);color:var(--v);padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700;border:1px solid #b0d0a8}
+@media(max-width:768px){.rcards{grid-template-columns:repeat(2,1fr)}.fg4,.fg3{grid-template-columns:1fr 1fr}.fg2{grid-template-columns:1fr}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+
+
+<div style="background:var(--v);padding:7px 18px;display:flex;align-items:center;gap:12px">
+  <span style="color:#fff;font-size:12px;font-weight:600;letter-spacing:.5px">CAMPAÑA:</span>
+  <select id="sel-campana" onchange="onCampanaChange()" style="font-size:13px;font-weight:700;padding:4px 10px;border-radius:5px;border:none;background:#fff;color:var(--t);min-width:120px">
+    <option value="">— Todas —</option>
+  </select>
+
+  <span style="margin-left:auto;border-left:1px solid rgba(255,255,255,.2);padding-left:12px">
+    <button class="btn btn-sm" onclick="resetearTodo()" style="background:rgba(180,40,40,.5);color:#fff;border:1px solid rgba(255,100,100,.3);font-size:11px">Borrar todos los datos</button>
+  </span>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="showTab('listas',this)">Listas</div>
+  <div class="tab" onclick="showTab('insumos',this)">Insumos</div>
+  <div class="tab" onclick="showTab('datos',this)">Datos — Programación</div>
+  <div class="tab" onclick="showTab('resumen',this)">Resumen</div>
+</div>
+
+<div class="main">
+
+<!-- ===== LISTAS ===== -->
+<div id="tp-listas" class="tp active">
+
+  <!-- CAMPANAS -->
+  <div class="card">
+    <div class="ch"><h3>Campañas</h3><div style="display:flex;gap:6px"><button class="btn btn-d btn-sm" onclick="addCampana()">+ Nueva campaña</button><button class="btn btn-r btn-sm" onclick="delCampana()">Eliminar seleccionada</button></div></div>
+    <p style="font-size:12px;color:var(--ts);margin:0 0 8px 0">La campaña activa se selecciona en la barra superior.</p>
+  </div>
+
+  <!-- CAMPOS -->
+  <div class="card">
+    <div class="ch"><h3>Campos del Establecimiento</h3><button class="btn btn-d btn-sm" onclick="openModal('campo')">+ Agregar Campo</button></div>
+    <div class="tw"><table>
+      <thead><tr><th>Campo</th><th style="width:90px">Acciones</th></tr></thead>
+      <tbody id="tb-campos"></tbody>
+    </table></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <!-- AMBIENTES -->
+    <div class="card">
+      <div class="ch"><h3>Ambientes</h3><button class="btn btn-d btn-sm" onclick="openModal('amb')">+ Agregar</button></div>
+      <div class="tw"><table>
+        <thead><tr><th>Código</th><th>Descripción</th><th style="width:80px">Acciones</th></tr></thead>
+        <tbody id="tb-ambs"></tbody>
+      </table></div>
+    </div>
+    <!-- CULTIVOS -->
+    <div class="card">
+      <div class="ch"><h3>Cultivos</h3><button class="btn btn-d btn-sm" onclick="openModal('cultivo')">+ Agregar</button></div>
+      <div class="tw"><table>
+        <thead><tr><th>Cultivo</th><th style="width:90px">Acciones</th></tr></thead>
+        <tbody id="tb-cultivos"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- LOTES (central) -->
+  <div class="card">
+    <div class="ch">
+      <h3>Lotes</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="f-lotes-campo" onchange="renderLotes()" style="padding:5px 9px;border:1px solid var(--b);border-radius:6px;font-size:12px;background:#fafcf9">
+          <option value="">Todos los campos</option>
+        </select>
+        <button class="btn btn-d btn-sm" onclick="openModal('lote')">+ Agregar Lote</button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Campo</th><th>Lote</th><th class="num">Superficie (ha)</th><th>Ambiente</th><th style="width:90px">Acciones</th></tr></thead>
+      <tbody id="tb-lotes"></tbody>
+    </table></div>
+  </div>
+
+  <!-- RANGOS -->
+  <div class="card">
+    <div class="ch"><h3>Rangos de Siembra</h3><button class="btn btn-d btn-sm" onclick="openModal('rango')">+ Agregar</button></div>
+    <div style="padding:12px 14px">
+    <div class="rgrid" id="list-rangos"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INSUMOS ===== -->
+<div id="tp-insumos" class="tp">
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><h3>Genotipos / Partidas de Semilla</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="f-geno-cultivo" onchange="renderGenos()" style="font-size:12px;padding:4px 8px;border-radius:5px;border:1px solid var(--b)"><option value="">Todos los cultivos</option></select>
+        <button class="btn btn-d btn-sm" onclick="openModal('geno')">+ Agregar Genotipo</button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Genotipo / Variedad</th><th>Cultivo</th><th>Unidad</th><th class="num">Sem/Bolsa · P1000</th><th class="num">Pureza %</th><th class="num">PG S/C %</th><th class="num">PG Cur %</th><th class="num">Vigor %</th><th>Fungicida</th><th class="num">VC %</th><th style="width:80px">Acciones</th></tr></thead>
+      <tbody id="tb-genos"></tbody>
+    </table></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+    <div class="card"><div class="ch"><h3>Curasemillas</h3><button class="btn btn-d btn-sm" onclick="openModal('cura')">+ Agregar</button></div><div class="tw"><table><thead><tr><th>Producto</th><th>Dosificación</th><th>U. Producto</th><th style="width:120px">Acciones</th></tr></thead><tbody id="tb-curas"></tbody></table></div></div>
+    <div class="card"><div class="ch"><h3>Inoculantes</h3><button class="btn btn-d btn-sm" onclick="openModal('inoc')">+ Agregar</button></div><div class="tw"><table><thead><tr><th>Producto</th><th>Dosificación</th><th>U. Producto</th><th style="width:120px">Acciones</th></tr></thead><tbody id="tb-inocs"></tbody></table></div></div>
+    <div class="card"><div class="ch"><h3>Fertilizantes</h3><button class="btn btn-d btn-sm" onclick="openModal('fert')">+ Agregar</button></div><div class="tw"><table><thead><tr><th>Producto</th><th>Dosificación</th><th>U. Producto</th><th style="width:120px">Acciones</th></tr></thead><tbody id="tb-ferts"></tbody></table></div></div>
+  </div>
+</div>
+
+<!-- ===== DATOS ===== -->
+<div id="tp-datos" class="tp">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div class="filtros" style="margin-bottom:0;flex:1;min-width:0">
+      <select id="f-d-campana" onchange="renderDatos()" style="font-weight:600;color:var(--v)"><option value="">Todas las campañas</option></select>
+      <select id="f-d-campo" onchange="renderDatos()"><option value="">Todos los campos</option></select>
+      <select id="f-d-cultivo" onchange="renderDatos()"><option value="">Todos los cultivos</option></select>
+      <select id="f-d-rango" onchange="renderDatos()"><option value="">Todos los rangos</option></select>
+      <input id="f-d-buscar" placeholder=" Buscar lote..." oninput="renderDatos()" style="width:150px">
+      <span id="f-cnt" style="font-size:11px;color:var(--ts);font-weight:600"></span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-o" onclick="exportCSV()"> CSV</button>
+      <button class="btn btn-o" onclick="exportarProgExcel()" style="background:#2e7d32;color:#fff"> Excel Programación</button>
+      <button class="btn btn-d" onclick="openModal('prog')">+ Programar Lote</button>
+    </div>
+  </div>
+  <div id="empty-prog" class="card"><div class="empty"><div class="empty-icon"></div><h3>Sin programación cargada</h3><p>Primero cargá tus <b>Listas</b> (campos, lotes, cultivos) e <b>Insumos</b>, luego usá <b>"+ Programar Lote"</b>.</p></div></div>
+  <div class="card" id="card-datos" style="display:none"><div class="tw"><table><thead><tr>
+    <th onclick="sortDatos('campo')" style="cursor:pointer">Campo <span id="si-campo"></span></th>
+    <th onclick="sortDatos('lote')" style="cursor:pointer">Lote <span id="si-lote"></span></th>
+    <th class="num">Sup (ha)</th>
+    <th onclick="sortDatos('amb')" style="cursor:pointer">Ambiente <span id="si-amb"></span></th>
+    <th onclick="sortDatos('cultivo')" style="cursor:pointer">Especie <span id="si-cultivo"></span></th>
+    <th onclick="sortDatos('genotipo')" style="cursor:pointer">Genotipo <span id="si-genotipo"></span></th>
+    <th onclick="sortDatos('rango')" style="cursor:pointer">Rango <span id="si-rango"></span></th>
+    <th onclick="sortDatos('orden')" style="cursor:pointer" class="ctr">Orden <span id="si-orden"></span></th>
+    <th class="num">D.E.S.</th><th class="num">Obj pl/m²</th><th class="num">VC%</th><th class="num">Pérd%</th>
+    <th onclick="sortDatos('semML')" style="cursor:pointer" class="num">Sem/m lin. <span id="si-semML"></span></th>
+    <th class="num">sem/m²</th><th class="num">Kg o Bolsa/ha</th>
+    <th onclick="sortDatos('densLote')" style="cursor:pointer" class="num">Kg o Bolsas/Lote <span id="si-densLote"></span></th>
+    <th style="border-left:3px solid #b0c8a0">Curasemilla</th><th class="num">Dosis cura</th><th style="border-left:3px solid #b0c8a0">Inoculante</th><th class="num">Dosis inoc.</th><th style="border-left:3px solid #b0c8a0">Fertilizante</th><th class="num">Dosis fert.</th>
+    <th style="border-left:3px solid #b0c8a0">Acc.</th>
+  </tr></thead><tbody id="tbody-datos"></tbody></table></div></div>
+</div>
+
+<!-- ===== RESUMEN ===== -->
+<div id="tp-resumen" class="tp">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--g);border-radius:8px;border:1px solid #dde">
+    <span style="font-size:12px;font-weight:600;color:var(--ts)">Filtrar:</span>
+    <select id="f-r-campana" onchange="renderResumen()" style="font-size:12px;padding:4px 8px;border-radius:5px;border:1px solid #ccc"><option value="">Todas las campañas</option></select>
+    <select id="f-r-campo" onchange="renderResumen()" style="font-size:12px;padding:4px 8px;border-radius:5px;border:1px solid #ccc"><option value="">Todos los campos</option></select>
+    <select id="f-r-cultivo" onchange="renderResumen()" style="font-size:12px;padding:4px 8px;border-radius:5px;border:1px solid #ccc"><option value="">Todos los cultivos</option></select>
+    <button onclick="limpiarFiltrosResumen()" style="font-size:11px;padding:3px 10px;border-radius:5px;border:1px solid #ccc;background:#fff;cursor:pointer;color:#666">Limpiar filtros</button>
+  </div>
+  <div class="rcards">
+    <div class="rcard"><div class="rv" id="r-ha">0</div><div class="ru">ha</div><div class="rl">Hectáreas Totales</div></div>
+    <div class="rcard"><div class="rv" id="r-sem-kg" style="font-size:18px">—</div><div class="ru">kg</div><div class="rl">Semilla (Kg)</div></div>
+    <div class="rcard"><div class="rv" id="r-sem-bol" style="font-size:18px">—</div><div class="ru">bolsas</div><div class="rl">Semilla (Bolsas)</div></div>
+    <div class="rcard"><div class="rv" id="r-tot-cura">0</div><div class="ru" id="r-unit-cura">—</div><div class="rl">Total Curasemillas</div></div>
+    <div class="rcard"><div class="rv" id="r-tot-inoc">0</div><div class="ru" id="r-unit-inoc">—</div><div class="rl">Total Inoculantes</div></div>
+    <div class="rcard"><div class="rv" id="r-tot-fert">0</div><div class="ru" id="r-unit-fert">—</div><div class="rl">Total Fertilizantes</div></div>
+  </div>
+  <!-- INFORME DE INSUMOS -->
+  <div class="card">
+    <div class="ch"><h3>Plan de Insumos</h3>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn btn-o" onclick="exportarInformeExcel()" style="font-size:12px;padding:5px 14px">Descargar Excel</button>
+        <button class="btn btn-o" onclick="exportarPDF()" style="font-size:12px;padding:5px 14px;background:#c0392b;color:#fff"> Descargar PDF</button>
+      </div>
+    </div>
+    <div style="padding:14px;display:grid;gap:18px">
+
+      <!-- Detalle por Lote -->
+      <div>
+        <div class="tw"><table style="font-size:11px">
+          <thead><tr>
+            <th>Campo</th><th>Lote</th><th class="num">Sup (ha)</th>
+            <th>Especie</th><th>Genotipo</th>
+            <th class="num">Orden</th><th>F. Mínima</th><th>F. Máxima</th>
+            <th>D.E.S.</th><th class="num">Obj pl/m²</th>
+            <th class="num">Kg/ha</th><th class="num">Kg o Bolsas</th>
+            <th>Curasemillas</th><th>Inoculantes</th><th>Fertilizantes</th>
+          </tr></thead>
+          <tbody id="ri-det-lote"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Semillas -->
+      <div>
+        <h4 style="color:var(--v);margin-bottom:8px;font-size:13px;border-bottom:2px solid var(--b);padding-bottom:4px">Semillas</h4>
+        <div class="tw"><table>
+          <thead><tr><th>Campo</th><th>Cultivo</th><th>Genotipo / Partida</th><th class="num">Total</th><th>U. Producto</th></tr></thead>
+          <tbody id="ri-det-sem"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Curasemillas -->
+      <div>
+        <h4 style="color:var(--v);margin-bottom:8px;font-size:13px;border-bottom:2px solid var(--b);padding-bottom:4px">Curasemillas</h4>
+        <div class="tw"><table>
+          <thead><tr><th>Campo</th><th>Cultivo</th><th>Genotipo / Partida</th><th>Curasemilla</th><th class="num">Total</th><th>U. Producto</th></tr></thead>
+          <tbody id="ri-det-cura"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Inoculantes -->
+      <div>
+        <h4 style="color:var(--v);margin-bottom:8px;font-size:13px;border-bottom:2px solid var(--b);padding-bottom:4px">Inoculantes</h4>
+        <div class="tw"><table>
+          <thead><tr><th>Campo</th><th>Cultivo</th><th>Genotipo / Partida</th><th>Inoculante</th><th class="num">Total</th><th>U. Producto</th></tr></thead>
+          <tbody id="ri-det-inoc"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Fertilizantes -->
+      <div>
+        <h4 style="color:var(--v);margin-bottom:8px;font-size:13px;border-bottom:2px solid var(--b);padding-bottom:4px">Fertilizantes</h4>
+        <div class="tw"><table>
+          <thead><tr><th>Campo</th><th>Cultivo</th><th>Genotipo / Partida</th><th>Fertilizante</th><th class="num">Total</th><th>U. Producto</th></tr></thead>
+          <tbody id="ri-det-fert"></tbody>
+        </table></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /main -->
+
+<!-- MODAL -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal">
+    <div class="mh"><h2 id="m-title">—</h2><button class="btn btn-sm" onclick="closeModal()" style="color:#fff;background:transparent;border:1px solid rgba(255,255,255,.4);font-size:18px;line-height:1;padding:2px 9px;border-radius:5px">&times;</button></div>
+    <div class="mb" id="m-body"></div>
+    <div class="mf"><button class="btn btn-o" onclick="closeModal()">Cancelar</button><button class="btn btn-p" onclick="saveModal()"> Guardar</button></div>
+  </div>
+</div>
+
+<script>
+// ====== DB ======
+const K={campanas:'edj_campanas',campos:'edj_campos',ambs:'edj_ambs',cultivos:'edj_cultivos',rangos:'edj_rangos',lotes:'edj_lotes',genos:'edj_genos',curas:'edj_curas',inocs:'edj_inocs',ferts:'edj_ferts',prog:'edj_prog'};
+function ld(k){try{return JSON.parse(localStorage.getItem(K[k])||'[]');}catch{return[];}}
+function sv(k){localStorage.setItem(K[k],JSON.stringify(DB[k]));}
+function migrateProg(arr){
+  return (arr||[]).map(p=>{
+    if(!p.curas) p.curas = p.cura ? [{n:p.cura,dosis:p.curaDosis||0,unit:p.curaUnit||'',uProd:p.curaUProd||''}] : [];
+    if(!p.inocs) p.inocs = p.inoc ? [{n:p.inoc,dosis:p.inocDosis||0,unit:p.inocUnit||'',uProd:p.inocUProd||''}] : [];
+    if(!p.ferts) p.ferts = p.fert ? [{n:p.fert,dosis:p.fertDosis||0,unit:p.fertUnit||'',uProd:p.fertUProd||''}] : [];
+    return p;
+  });
+}
+let DB={campanas:ld('campanas'),campos:ld('campos'),ambs:ld('ambs'),cultivos:ld('cultivos'),rangos:ld('rangos'),lotes:ld('lotes'),genos:ld('genos'),curas:ld('curas'),inocs:ld('inocs'),ferts:ld('ferts'),prog:migrateProg(ld('prog'))};
+
+// ====== UTILS ======
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function v(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function fmt(n,d=2){if(n===null||n===undefined||isNaN(n)||n==='')return'—';return(+n).toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtI(n){if(!n&&n!==0)return'—';return Math.round(+n).toLocaleString('es-AR');}
+function badgeStyle(c){return '';}
+function emptyRow(msg,cols=10){return`<tr><td colspan="${cols}" style="text-align:center;padding:20px;color:#bbb;font-style:italic">${msg}</td></tr>`;}
+
+// ====== MODAL ENGINE ======
+let mMode='', mIdx=-1;
+
+const DEFS={
+  campo:{
+    title:i=>(i<0?' Nuevo Campo':' Editar Campo'),
+    html:d=>`<div class="fg"><div class="fld"><label>Nombre del Campo *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: San Martín"></div></div>`,
+    validate:()=>{const n=v('fi-n');if(!n){alert('El nombre es obligatorio.');return null;}return{n};},
+    key:'campos', after:()=>{renderCampos();refreshLoteFiltro();refreshDatosFiltros();}
+  },
+  lote:{
+    title:i=>(i<0?' Nuevo Lote':' Editar Lote'),
+    html:d=>{
+      const co=DB.campos.map(c=>`<option${d.campo===c.n?' selected':''}>${esc(c.n)}</option>`).join('');
+      const ao=`<option value="">— Sin ambiente —</option>`+DB.ambs.map(a=>`<option value="${esc(a.c)}"${d.amb===a.c?' selected':''}>${esc(a.c)} — ${esc(a.d)}</option>`).join('');
+      return`<div class="fg fg2">
+        <div class="fld"><label>Campo *</label><select id="fi-campo"><option value="">-- Seleccionar --</option>${co}</select></div>
+        <div class="fld"><label>Nombre del Lote *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: SM 5 loma"></div>
+        <div class="fld"><label>Superficie (ha)</label><input id="fi-sup" type="number" step="0.1" min="0" value="${d.sup||''}" placeholder="0.0"></div>
+        <div class="fld"><label>Ambiente</label><select id="fi-amb">${ao}</select></div>
+      </div>`;
+    },
+    validate:()=>{const campo=v('fi-campo'),n=v('fi-n');if(!campo||!n){alert('Campo y nombre son obligatorios.');return null;}return{campo,n,sup:parseFloat(v('fi-sup'))||0,amb:v('fi-amb')};},
+    key:'lotes', after:()=>{renderLotes();refreshProgLoteOpts();}
+  },
+  amb:{
+    title:i=>(i<0?' Nuevo Ambiente':' Editar Ambiente'),
+    html:d=>`<div class="fg fg2"><div class="fld"><label>Código *</label><input id="fi-c" value="${esc(d.c||'')}" placeholder="FAP"></div><div class="fld"><label>Descripción *</label><input id="fi-d" value="${esc(d.d||'')}" placeholder="Franco alto potencial"></div></div>`,
+    validate:()=>{const c=v('fi-c').toUpperCase(),d=v('fi-d');if(!c||!d){alert('Código y descripción son obligatorios.');return null;}return{c,d};},
+    key:'ambs', after:renderAmbs
+  },
+  cultivo:{
+    title:i=>(i<0?'Nuevo Cultivo':'Editar Cultivo'),
+    html:d=>`<div class="fg fg2">
+      <div class="fld" style="grid-column:1/-1"><label>Nombre *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: Trigo" style="max-width:320px"></div>
+    </div>`,
+    validate:()=>{const n=v('fi-n');if(!n){alert('El nombre es obligatorio.');return null;}return{n};},
+    key:'cultivos', after:()=>{renderCultivos();refreshDatosFiltros();}
+  },
+  rango:{
+    title:i=>(i<0?' Nuevo Rango':' Editar Rango'),
+    html:d=>`<div class="fg fg3">
+      <div class="fld" style="grid-column:1/-1"><label>Código *</label><input id="fi-c" value="${esc(d.c||'')}" placeholder="F1, R1, Temprana..."></div>
+      <div class="fld"><label>Fecha desde *</label><input id="fi-mn" type="date" value="${esc(d.min||'')}" style="cursor:pointer"></div>
+      <div class="fld"><label>Fecha hasta *</label><input id="fi-mx" type="date" value="${esc(d.max||'')}" style="cursor:pointer"></div>
+    </div>`,
+    validate:()=>{const c=v('fi-c').toUpperCase(),mn=v('fi-mn'),mx=v('fi-mx');if(!c||!mn||!mx){alert('Código y fechas son obligatorios.');return null;}if(mx<mn){alert('La fecha hasta debe ser igual o posterior a la fecha desde.');return null;}return{c,min:mn,max:mx};},
+    key:'rangos', after:()=>{renderRangos();refreshDatosFiltros();}
+  },
+  geno:{
+    title:i=>(i<0?'Nuevo Genotipo / Partida':'Editar Genotipo'),
+    wide:true,
+    html:d=>`<div style="display:flex;flex-direction:column;gap:12px">
+      <div class="fg fg2">
+        <div class="fld"><label>Nombre / Variedad *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: DM Catalpa"></div>
+        <div class="fld"><label>Cultivo *</label><select id="fi-c"><option value="">-- Seleccionar --</option>${DB.cultivos.map(c=>`<option${d.c===c.n?' selected':''}>${esc(c.n)}</option>`).join('')}</select></div>
+      </div>
+      <div class="fg fg3">
+        <div class="fld"><label>Unidad *</label><select id="fi-u" onchange="toggleGenoFields()"><option${(d.u||'Kg')==='Kg'?' selected':''}>Kg</option><option${d.u==='Bolsa'?' selected':''}>Bolsa</option></select></div>
+        <div class="fld" id="fld-sb"><label id="lbl-sb">Semillas / Bolsa</label><input id="fi-sb" type="number" value="${d.sb||''}" placeholder="80000"></div>
+        <div class="fld" id="fld-p1"><label id="lbl-p1">P1000 (g / 1000 sem)</label><input id="fi-p1" type="number" step="0.1" value="${d.p1000||''}" placeholder="40.4"></div>
+      </div>
+      <div style="border-top:1px solid #e8edf3;padding-top:10px">
+        <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Analisis de Calidad</div>
+        <div class="fg fg3">
+          <div class="fld"><label>Pureza (%)</label><input id="fi-pur" type="number" min="0" max="100" step="0.1" value="${d.pur||''}" placeholder="99.5" oninput="calcVC()"></div>
+          <div class="fld"><label>PG Sin Curar (%)</label><input id="fi-pgSC" type="number" min="0" max="100" value="${d.pgSC||''}" placeholder="95"></div>
+          <div class="fld"><label>PG Curado (%)</label><input id="fi-pg" type="number" min="0" max="100" value="${d.pg||''}" placeholder="97" oninput="calcVC()"></div>
+        </div>
+        <div class="fg fg3" style="margin-top:10px">
+          <div class="fld"><label>EG Sin Curar (%)</label><input id="fi-egSC" type="number" min="0" max="100" value="${d.egSC||''}" placeholder="88"></div>
+          <div class="fld"><label>EG Curado (%)</label><input id="fi-egC" type="number" min="0" max="100" value="${d.egC||''}" placeholder="90"></div>
+          <div class="fld"><label>Vigor / Cold Test (%)</label><input id="fi-vigor" type="number" min="0" max="100" value="${d.vigor||''}" placeholder="85"></div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="fld"><label>Fungicida aplicado en el curado</label><input id="fi-fung" value="${esc(d.fung||'')}" placeholder="Ej: Dividend Extreme 3.0 l/t + Maxim Advance"></div>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,#e8f4fd,#f0f9ff);border:2px solid #3a7bd5;border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:16px">
+        <div style="flex:1">
+          <div style="font-size:11px;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Valor Cultural (VC)</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">PG Curado x Pureza / 100</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span id="fi-vc-display" style="font-size:32px;font-weight:800;color:#3a7bd5">—</span>
+          <span style="font-size:16px;color:#3a7bd5;font-weight:600">%</span>
+        </div>
+      </div>
+    </div>`,
+    validate:()=>{
+      const n=v('fi-n'),c=v('fi-c'),u=v('fi-u')||'Kg';
+      if(!n||!c){alert('Nombre y cultivo son obligatorios.');return null;}
+      const sb=parseFloat(v('fi-sb'))||null;
+      const p1=parseFloat(v('fi-p1'))||null;
+      if(u==='Bolsa'&&!sb){alert('Semillas/Bolsa es obligatorio cuando la unidad es Bolsa.');return null;}
+      if(u==='Kg'&&!p1){alert('P1000 (g) es obligatorio cuando la unidad es Kg.');return null;}
+      const pg=parseFloat(v('fi-pg'))||null;
+      const pur=parseFloat(v('fi-pur'))||null;
+      const vc=(pg&&pur)?parseFloat((pg*pur/100).toFixed(1)):null;
+      return{n,c,u,sb,p1000:p1,pur,pgSC:parseFloat(v('fi-pgSC'))||null,pg,egSC:parseFloat(v('fi-egSC'))||null,egC:parseFloat(v('fi-egC'))||null,vigor:parseFloat(v('fi-vigor'))||null,fung:v('fi-fung')||null,vc};
+    },
+    key:'genos', after:renderGenos
+  },
+  cura:{
+    title:i=>(i<0?' Nuevo Curasemilla':' Editar'),
+    html:d=>`<div class="fg fg3">
+      <div class="fld" style="grid-column:1/-1"><label>Producto *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: Compinche SX"></div>
+      <div class="fld"><label>Dosis referencia</label><input id="fi-d" type="number" step="0.01" min="0" value="${d.dosis||''}" placeholder="0.20"></div>
+      <div class="fld"><label>Unidad dosificación <span style="font-size:10px;color:#999">(ej: cc/100 kg)</span></label><input id="fi-u" value="${esc(d.u||'')}" placeholder="cc/100 kg semilla"></div>
+      <div class="fld"><label>Unidad del producto <span style="font-size:10px;color:#999">(ej: litro, kg)</span></label><input id="fi-up" value="${esc(d.up||'')}" placeholder="litro"></div>
+    </div>`,
+    validate:()=>{const n=v('fi-n');if(!n){alert('El nombre es obligatorio.');return null;}return{n,dosis:parseFloat(v('fi-d'))||0,u:v('fi-u'),up:v('fi-up')};},
+    key:'curas', after:renderCuras
+  },
+  inoc:{
+    title:i=>(i<0?' Nuevo Inoculante':' Editar'),
+    html:d=>`<div class="fg fg3">
+      <div class="fld" style="grid-column:1/-1"><label>Producto *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: Rilegum Top"></div>
+      <div class="fld"><label>Dosis referencia</label><input id="fi-d" type="number" step="0.01" min="0" value="${d.dosis||''}" placeholder="0.50"></div>
+      <div class="fld"><label>Unidad dosificación <span style="font-size:10px;color:#999">(ej: cc/100 kg)</span></label><input id="fi-u" value="${esc(d.u||'')}" placeholder="cc/100 kg semilla"></div>
+      <div class="fld"><label>Unidad del producto <span style="font-size:10px;color:#999">(ej: litro, kg)</span></label><input id="fi-up" value="${esc(d.up||'')}" placeholder="litro"></div>
+    </div>`,
+    validate:()=>{const n=v('fi-n');if(!n){alert('El nombre es obligatorio.');return null;}return{n,dosis:parseFloat(v('fi-d'))||0,u:v('fi-u'),up:v('fi-up')};},
+    key:'inocs', after:renderInocs
+  },
+  fert:{
+    title:i=>(i<0?' Nuevo Fertilizante':' Editar'),
+    html:d=>`<div class="fg fg3">
+      <div class="fld" style="grid-column:1/-1"><label>Producto *</label><input id="fi-n" value="${esc(d.n||'')}" placeholder="Ej: MAP 11-52-0"></div>
+      <div class="fld"><label>Dosis referencia</label><input id="fi-d" type="number" step="0.5" min="0" value="${d.dosis||''}" placeholder="60"></div>
+      <div class="fld"><label>Unidad dosificación <span style="font-size:10px;color:#999">(ej: kg/ha)</span></label><input id="fi-u" value="${esc(d.u||'')}" placeholder="kg/ha"></div>
+      <div class="fld"><label>Unidad del producto <span style="font-size:10px;color:#999">(ej: kg bolsa 50 kg)</span></label><input id="fi-up" value="${esc(d.up||'')}" placeholder="kg"></div>
+    </div>`,
+    validate:()=>{const n=v('fi-n');if(!n){alert('El nombre es obligatorio.');return null;}return{n,dosis:parseFloat(v('fi-d'))||0,u:v('fi-u')||'kg/ha',up:v('fi-up')};},
+    key:'ferts', after:renderFerts
+  },
+  prog:{
+    title:i=>(i<0?' Programar Lote':' Editar Programación'),
+    html:buildProgForm, validate:validateProg,
+    key:'prog', wide:true,
+    after:()=>{renderDatos();renderResumen();actualizarStats();}
+  }
+};
+
+function calcVC(){
+  const pg=parseFloat(document.getElementById('fi-pg')?.value)||null;
+  const pur=parseFloat(document.getElementById('fi-pur')?.value)||null;
+  const el=document.getElementById('fi-vc-display');
+  if(!el) return;
+  if(pg&&pur){const vc=(pg*pur/100).toFixed(1);el.textContent=vc;el.style.color=vc>=85?'#2e7d32':vc>=70?'#e65100':'#c62828';}
+  else el.textContent='—';
+}
+function toggleGenoFields(){
+  const u=document.getElementById('fi-u')?.value||'Kg';
+  const fldSb=document.getElementById('fld-sb');
+  const fldP1=document.getElementById('fld-p1');
+  const lblSb=document.getElementById('lbl-sb');
+  const lblP1=document.getElementById('lbl-p1');
+  if(!fldSb||!fldP1) return;
+  if(u==='Kg'){
+    fldSb.style.display='none'; fldP1.style.display='';
+    if(lblP1) lblP1.innerHTML='P1000 (g / 1000 sem) <span style="color:#e53;font-weight:700">*</span>';
+    if(lblSb) lblSb.textContent='Semillas / Bolsa';
+  } else {
+    fldSb.style.display=''; fldP1.style.display='none';
+    if(lblSb) lblSb.innerHTML='Semillas / Bolsa <span style="color:#e53;font-weight:700">*</span>';
+    if(lblP1) lblP1.textContent='P1000 (g / 1000 sem)';
+  }
+}
+function openModal(mode, idx=-1){
+  mMode=mode; mIdx=idx;
+  const def=DEFS[mode];
+  const d=idx>=0?DB[def.key][idx]:{};
+  document.getElementById('m-title').textContent=def.title(idx);
+  document.getElementById('m-body').innerHTML=def.html(d);
+  document.getElementById('modal').className=def.wide?'modal wide':'modal';
+  if(mode==='prog') { if(window._progFormTimer) clearTimeout(window._progFormTimer); window._progFormTimer=setTimeout(()=>initProgForm(d),10); }
+  if(mode==='geno') setTimeout(()=>{toggleGenoFields();calcVC();},10);
+  document.getElementById('ov').classList.add('open');
+}
+function closeModal(){document.getElementById('ov').classList.remove('open');mMode='';mIdx=-1;}
+function saveModal(){
+  const def=DEFS[mMode];
+  let res;
+  try { res=def.validate(); } catch(e){ console.error('validate error:',e); return; }
+  if(!res) return;
+  if(mIdx>=0) DB[def.key][mIdx]=res; else DB[def.key].push(res);
+  sv(def.key);
+  closeModal();
+  try { def.after(); } catch(e){ console.error('after error:',e); }
+  try { actualizarStats(); } catch(e){ console.error('stats error:',e); }
+}
+function delItem(key,idx){
+  if(!confirm('¿Eliminar este registro?')) return;
+  DB[key].splice(idx,1); sv(key);
+  const afterMap={campos:()=>{renderCampos();refreshLoteFiltro();},ambs:renderAmbs,cultivos:renderCultivos,rangos:renderRangos,lotes:()=>{renderLotes();refreshProgLoteOpts();},genos:renderGenos,curas:renderCuras,inocs:renderInocs,ferts:renderFerts,prog:()=>{renderDatos();renderResumen();}};
+  if(afterMap[key]) afterMap[key]();
+  refreshDatosFiltros(); refreshResumenFiltros(); actualizarStats();
+}
+
+// ====== CAMPANAS ======
+function renderCampanas(){
+  const sel=document.getElementById('sel-campana');
+  if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">— Todas —</option>';
+  DB.campanas.forEach(c=>sel.innerHTML+=`<option value="${esc(c.n)}"${prev===c.n?' selected':''}>${esc(c.n)}</option>`);
+}
+function addCampana(){
+  const n=prompt('Nombre de la campaña (ej: 2025/26):');
+  if(!n||!n.trim()) return;
+  const nombre=n.trim();
+  if(DB.campanas.find(c=>c.n===nombre)){alert('Ya existe esa campaña.');return;}
+  DB.campanas.push({n:nombre});
+  sv('campanas');
+  renderCampanas();
+  document.getElementById('sel-campana').value=nombre;
+  refreshDatosFiltros(); refreshResumenFiltros(); actualizarStats();
+}
+function delCampana(){
+  const sel=document.getElementById('sel-campana');
+  const nombre=sel?.value;
+  if(!nombre){alert('Primero seleccioná una campaña para eliminar.');return;}
+  if(!confirm(`¿Eliminar la campaña "${nombre}"? No borra los lotes programados con esa campaña.`)) return;
+  DB.campanas=DB.campanas.filter(c=>c.n!==nombre);
+  sv('campanas');
+  renderCampanas();
+  refreshDatosFiltros(); refreshResumenFiltros(); actualizarStats();
+}
+function onCampanaChange(){
+  refreshDatosFiltros(); refreshResumenFiltros(); renderDatos(); renderResumen(); actualizarStats();
+}
+
+// ====== PROG FORM ======
+function buildProgForm(d){
+  const lo=`<option value="">-- Seleccionar lote --</option>`+DB.lotes.map((l,i)=>`<option value="${i}"${d._li===i?' selected':''}>${esc(l.campo)} › ${esc(l.n)} (${l.sup||'?'} ha)</option>`).join('');
+  const ro=`<option value="">-- Sin rango --</option>`+[...DB.rangos].sort((a,b)=>a.c.localeCompare(b.c,undefined,{numeric:true})).map(r=>`<option value="${esc(r.c)}"${d.rango===r.c?' selected':''}>${esc(r.c)} — ${fmtDate(r.min)} al ${fmtDate(r.max)}</option>`).join('');
+  const co=`<option value="">-- Seleccionar --</option>`+DB.cultivos.map(c=>`<option${d.cultivo===c.n?' selected':''}>${esc(c.n)}</option>`).join('');
+  return`<div class="fg fg2">
+    <div class="sep"> Campaña</div>
+    <div class="fld" style="grid-column:1/-1"><label>Campaña *</label><select id="pi-campana">${DB.campanas.map(c=>`<option${d.campana===c.n?' selected':''}>${esc(c.n)}</option>`).join('')}</select></div>
+    <div class="sep"> Selección de Lote</div>
+    <div class="fld" style="grid-column:1/-1"><label>Lote *</label><select id="pi-lote" onchange="onProgLote()">${lo}</select></div>
+    <div class="fld"><label>Campo</label><input id="pi-campo" readonly value="${esc(d.campo||'')}"></div>
+    <div class="fld"><label>Superficie (ha)</label><input id="pi-sup" readonly value="${d.sup||''}"></div>
+    <div class="fld"><label>Ambiente</label><input id="pi-amb" readonly value="${esc(d.amb||'')}"></div>
+
+    <div class="sep"> Cultivo y Genotipo</div>
+    <div class="fld"><label>Especie / Cultivo *</label><select id="pi-cult" onchange="onProgCult()">${co}</select></div>
+    <div class="fld"><label>Genotipo / Partida *</label><select id="pi-geno" onchange="onProgGeno()"><option value="">-- Seleccionar cultivo primero --</option></select></div>
+    <div class="fld"><label>Rango de Fecha de Siembra</label><select id="pi-rango" onchange="onProgRango()">${ro}</select></div>
+
+    <div class="sep"> Densidad de Siembra</div>
+    <div class="fld"><label>D.E.S. — Entresurcos (m) *</label><input id="pi-des" type="number" step="0.025" min="0.05" max="1.5" value="${d.des||''}" placeholder="0.175" oninput="calcProg()"></div>
+    <div class="fld"><label>Objetivo plantas/m² *</label><input id="pi-obj" type="number" min="1" value="${d.obj||''}" placeholder="260" oninput="calcProg()"></div>
+    <div class="fld"><label>Valor Cultural (%)</label><input id="pi-vc" type="number" value="${d.vc||''}" placeholder="—" readonly style="background:var(--g);color:var(--ts);cursor:not-allowed" title="Se completa automáticamente al seleccionar el genotipo"></div>
+    <div class="fld"><label>Coef. Pérdida (%)</label><input id="pi-perc" type="number" step="1" min="0" max="50" value="${d.perc||''}" placeholder="15" oninput="calcProg()"></div>
+
+    <div class="calc">
+      <h4> Cálculo automático de densidad</h4>
+      <div class="cg">
+        <div class="cv"><div class="nb" id="c-m2">—</div><div class="nu">sem/m²</div><div class="nl">Densidad siembra</div></div>
+        <div class="cv"><div class="nb" id="c-ml">—</div><div class="nu">sem/m lineal</div><div class="nl">En el surco</div></div>
+        <div class="cv"><div class="nb" id="c-ha" style="color:#c9a84c">—</div><div class="nu" id="c-hau">por ha</div><div class="nl">Dens. por hectárea</div></div>
+        <div class="cv"><div class="nb" id="c-lt" style="color:#c0392b">—</div><div class="nu" id="c-ltu">por lote</div><div class="nl">Total del lote</div></div>
+      </div>
+      <div id="c-warn" style="display:none;margin-top:8px;font-size:11px;color:#856404;background:#fff3cd;padding:6px 10px;border-radius:5px"></div>
+    </div>
+
+    <div class="sep" style="grid-column:1/-1"> Insumos</div>
+
+    <div style="grid-column:1/-1">
+      <div style="font-size:12px;font-weight:700;color:var(--v);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Curasemillas</div>
+      <div id="pi-curas-list"></div>
+      <button type="button" onclick="addInsumoRow('pi-curas-list','curas')" style="margin-top:4px;padding:4px 12px;font-size:12px;background:var(--b);color:#fff;border:none;border-radius:5px;cursor:pointer">+ Agregar curasemilla</button>
+    </div>
+
+    <div style="grid-column:1/-1">
+      <div style="font-size:12px;font-weight:700;color:var(--v);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Inoculantes</div>
+      <div id="pi-inocs-list"></div>
+      <button type="button" onclick="addInsumoRow('pi-inocs-list','inocs')" style="margin-top:4px;padding:4px 12px;font-size:12px;background:var(--b);color:#fff;border:none;border-radius:5px;cursor:pointer">+ Agregar inoculante</button>
+    </div>
+
+    <div style="grid-column:1/-1">
+      <div style="font-size:12px;font-weight:700;color:var(--v);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Fertilizantes a la siembra</div>
+      <div id="pi-ferts-list"></div>
+      <button type="button" onclick="addInsumoRow('pi-ferts-list','ferts')" style="margin-top:4px;padding:4px 12px;font-size:12px;background:var(--b);color:#fff;border:none;border-radius:5px;cursor:pointer">+ Agregar fertilizante</button>
+    </div>
+
+  </div>`;
+}
+
+function initProgForm(d){
+  if(typeof d._li==='number') document.getElementById('pi-lote').value=d._li;
+  onProgLote(true);
+  if(d.cultivo){document.getElementById('pi-cult').value=d.cultivo;onProgCult(true);}
+  if(d.genotipo){document.getElementById('pi-geno').value=d.genotipo;onProgGeno(true);}
+  if(d.rango){document.getElementById('pi-rango').value=d.rango;}
+  // Poblar listas dinámicas de insumos — limpiar primero para evitar duplicados
+  ['pi-curas-list','pi-inocs-list','pi-ferts-list'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
+  const _curas=d.curas||(d.cura?[{n:d.cura,dosis:d.curaDosis||0,unit:d.curaUnit||'',uProd:d.curaUProd||''}]:[]);
+  const _inocs=d.inocs||(d.inoc?[{n:d.inoc,dosis:d.inocDosis||0,unit:d.inocUnit||'',uProd:d.inocUProd||''}]:[]);
+  const _ferts=d.ferts||(d.fert?[{n:d.fert,dosis:d.fertDosis||0,unit:d.fertUnit||'',uProd:d.fertUProd||''}]:[]);
+  if(!_curas.length) addInsumoRow('pi-curas-list','curas'); else _curas.forEach(c=>addInsumoRow('pi-curas-list','curas',c));
+  if(!_inocs.length) addInsumoRow('pi-inocs-list','inocs'); else _inocs.forEach(c=>addInsumoRow('pi-inocs-list','inocs',c));
+  if(!_ferts.length) addInsumoRow('pi-ferts-list','ferts'); else _ferts.forEach(c=>addInsumoRow('pi-ferts-list','ferts',c));
+  calcProg();
+}
+
+function onProgLote(silent){
+  const idx=parseInt(document.getElementById('pi-lote')?.value);
+  if(isNaN(idx)){document.getElementById('pi-campo').value='';document.getElementById('pi-sup').value='';document.getElementById('pi-amb').value='';return;}
+  const lt=DB.lotes[idx];
+  if(!lt) return;
+  document.getElementById('pi-campo').value=lt.campo||'';
+  document.getElementById('pi-sup').value=lt.sup||'';
+  document.getElementById('pi-amb').value=lt.amb||'';
+  calcProg();
+}
+function onProgCult(silent){
+  const c=document.getElementById('pi-cult')?.value;
+  const sel=document.getElementById('pi-geno');
+  if(!sel) return;
+  sel.innerHTML='<option value="">-- Seleccionar --</option>';
+  DB.genos.filter(g=>g.c===c).forEach(g=>sel.innerHTML+=`<option>${esc(g.n)}</option>`);
+  const ci=DB.cultivos.find(x=>x.n===c);
+  const de=document.getElementById('pi-des');
+  if(ci&&ci.des&&(!de.value||!silent)) de.value=ci.des;
+  if(!silent){document.getElementById('pi-geno').value='';onProgGeno();}
+}
+function onProgGeno(silent){
+  const gn=document.getElementById('pi-geno')?.value;
+  const g=DB.genos.find(x=>x.n===gn);
+  const ve=document.getElementById('pi-vc');
+  if(ve){
+    if(g&&g.vc) ve.value=g.vc;
+    else if(!silent) ve.value='';
+  }
+  calcProg();
+}
+function onProgRango(){
+  // el campo fs se calcula en validateProg desde el rango seleccionado
+}
+function addInsumoRow(listId, dbKey, data){
+  const list=document.getElementById(listId);if(!list)return;
+  const opts=DB[dbKey].map(x=>`<option value="${esc(x.n)}">${esc(x.n)}</option>`).join('');
+  const row=document.createElement('div');
+  row.className='insumo-row';
+  row.style.cssText='display:grid;grid-template-columns:1fr 100px 1fr 30px;gap:6px;align-items:end;margin-bottom:6px';
+  row.innerHTML=`<div class="fld" style="margin:0"><label style="font-size:10px">Producto</label><select onchange="onInsumoRowChange(this,'${dbKey}',this.closest('.insumo-row'))" style="width:100%"><option value="">— Sin seleccionar —</option>${opts}</select></div><div class="fld" style="margin:0"><label style="font-size:10px">Dosis</label><input type="number" step="0.001" placeholder="0" style="width:100%"></div><div class="fld" style="margin:0"><label style="font-size:10px">Unidad dosificación</label><input readonly placeholder="—" style="background:var(--g);cursor:not-allowed;width:100%"></div><div style="display:flex;align-items:flex-end;padding-bottom:1px"><button type="button" onclick="this.closest('.insumo-row').remove()" style="width:30px;height:32px;border-radius:5px;border:none;background:#e74c3c;color:#fff;cursor:pointer;font-size:18px;line-height:1">×</button></div>`;
+  if(data&&data.n){const sel=row.querySelector('select');sel.value=data.n;const x=DB[dbKey].find(i=>i.n===data.n)||{};const ins=row.querySelectorAll('input');if(ins[0])ins[0].value=data.dosis||'';if(ins[1])ins[1].value=x.u||data.unit||'';}
+  list.appendChild(row);
+}
+function onInsumoRowChange(sel,dbKey,row){
+  const x=DB[dbKey].find(i=>i.n===sel.value)||{};
+  const ins=row.querySelectorAll('input');
+  if(x.dosis&&ins[0])ins[0].value=x.dosis;
+  if(ins[1])ins[1].value=x.u||'';
+}
+function getInsumoRows(listId,dbKey){
+  return [...(document.querySelectorAll('#'+listId+' .insumo-row')||[])].map(row=>{
+    const sel=row.querySelector('select');
+    const ins=row.querySelectorAll('input');
+    const n=sel?.value||'';if(!n)return null;
+    const x=DB[dbKey].find(i=>i.n===n)||{};
+    return{n,dosis:parseFloat(ins[0]?.value)||0,unit:x.u||'',uProd:x.up||''};
+  }).filter(Boolean);
+}
+
+function calcProg(){
+  const obj=parseFloat(v('pi-obj'))||0, vc=parseFloat(v('pi-vc'))||0, perc=parseFloat(v('pi-perc'))||0, des=parseFloat(v('pi-des'))||0;
+  const supEl=document.getElementById('pi-sup');
+  const sup=supEl?parseFloat(supEl.value)||0:0;
+  const gn=v('pi-geno'), g=DB.genos.find(x=>x.n===gn);
+  const warn=document.getElementById('c-warn');
+  if(!obj||!vc||!des){['c-m2','c-ml','c-ha','c-lt'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—';});if(warn)warn.style.display='none';return;}
+  const semM2=obj/((vc/100)*(1-perc/100));
+  const semMl=semM2*des;
+  const em=document.getElementById('c-m2'),el=document.getElementById('c-ml');
+  if(em)em.textContent=semM2.toFixed(1);if(el)el.textContent=semMl.toFixed(2);
+  let densHa=null,densLote=null;
+  const eha=document.getElementById('c-ha'),elt=document.getElementById('c-lt'),ehau=document.getElementById('c-hau'),eltu=document.getElementById('c-ltu');
+  if(g){
+    if(g.u==='Kg'&&g.p1000){densHa=semM2*g.p1000/100;if(ehau)ehau.textContent='kg/ha';if(eltu)eltu.textContent='kg/lote';}
+    else if(g.u==='Bolsa'&&g.sb){densHa=semM2*10000/g.sb;if(ehau)ehau.textContent='bol/ha';if(eltu)eltu.textContent='bol/lote';}
+    if(densHa!==null&&sup>0)densLote=densHa*sup;
+  }
+  if(eha)eha.textContent=densHa!==null?densHa.toFixed(g&&g.u==='Bolsa'?3:1):'—';
+  if(elt)elt.textContent=densLote!==null?densLote.toFixed(g&&g.u==='Bolsa'?2:0):(densHa!==null?'(sin sup.)':'—');
+  const warns=[];
+  if(g&&g.u==='Kg'&&!g.p1000)warns.push(' P1000 no definido para este genotipo.');
+  if(semM2>800)warns.push(' Densidad muy alta ('+semM2.toFixed(0)+' sem/m²). Verificar parámetros.');
+  if(warn){warn.style.display=warns.length?'block':'none';warn.innerHTML=warns.join('<br>');}
+}
+
+function validateProg(){
+  const li=parseInt(v('pi-lote')||document.getElementById('pi-lote')?.value);
+  const cult=v('pi-cult'),geno=v('pi-geno');
+  if(isNaN(li)||!cult||!geno){alert('Obligatorios: Lote, Cultivo y Genotipo.');return null;}
+  const lt=DB.lotes[li];
+  const obj=parseFloat(v('pi-obj'))||0,vc=parseFloat(v('pi-vc'))||0,perc=parseFloat(v('pi-perc'))||0,des=parseFloat(v('pi-des'))||0;
+  const g=DB.genos.find(x=>x.n===geno);
+  let semM2=0,semML=0,densHa=0,densLote=0;
+  if(obj&&vc&&des){semM2=obj/((vc/100)*(1-perc/100));semML=parseFloat((semM2*des).toFixed(2));if(g){if(g.u==='Kg'&&g.p1000)densHa=semM2*g.p1000/100;else if(g.u==='Bolsa'&&g.sb)densHa=semM2*10000/g.sb;densLote=densHa*(lt?lt.sup:0);}}
+  const rango=v('pi-rango'),ri=DB.rangos.find(x=>x.c===rango);
+  const campana=v('pi-campana');
+  const curas=getInsumoRows('pi-curas-list','curas');
+  const inocs=getInsumoRows('pi-inocs-list','inocs');
+  const ferts=getInsumoRows('pi-ferts-list','ferts');
+  return{_li:li,campana,campo:lt?lt.campo:'',lote:lt?lt.n:'',sup:lt?lt.sup:0,amb:lt?lt.amb:'',cultivo:cult,genotipo:geno,rango,fs:ri?`${fmtDate(ri.min)}–${fmtDate(ri.max)}`:'A confirmar',orden:mIdx>=0&&DB.prog[mIdx]?DB.prog[mIdx].orden||0:0,des,obj,vc,perc,semM2,semML,densHa,densLote,unidad:g?g.u:'Kg',curas,inocs,ferts};
+}
+
+// ====== RENDERS LISTAS ======
+function renderCampos(){
+  const tb=document.getElementById('tb-campos');tb.innerHTML='';
+  if(!DB.campos.length){tb.innerHTML=emptyRow('Sin campos cargados');return;}
+  DB.campos.forEach((c,i)=>tb.innerHTML+=`<tr><td><b>${esc(c.n)}</b></td><td><div style="display:flex;gap:4px"><button class="btn btn-az btn-sm" onclick="openModal('campo',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('campos',${i})">Borrar</button></div></td></tr>`);
+}
+function renderLotes(){
+  const filtro=document.getElementById('f-lotes-campo')?.value||'';
+  const tb=document.getElementById('tb-lotes');tb.innerHTML='';
+  const lista=filtro?DB.lotes.filter(l=>l.campo===filtro):DB.lotes;
+  if(!lista.length){tb.innerHTML=emptyRow(DB.lotes.length?'Sin lotes para este campo':'Sin lotes cargados');return;}
+  lista.forEach((l)=>{
+    const i=DB.lotes.indexOf(l);
+    tb.innerHTML+=`<tr><td>${esc(l.campo)}</td><td><b>${esc(l.n)}</b></td><td class="num">${l.sup?fmt(l.sup,1):'—'} ha</td><td>${l.amb?`<span class="tag-amb">${esc(l.amb)}</span>`:'<span style="color:#bbb">—</span>'}</td><td><div style="display:flex;gap:4px"><button class="btn btn-az btn-sm" onclick="openModal('lote',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('lotes',${i})">Borrar</button></div></td></tr>`;
+  });
+}
+function renderAmbs(){
+  const tb=document.getElementById('tb-ambs');tb.innerHTML='';
+  if(!DB.ambs.length){tb.innerHTML=emptyRow('Sin ambientes');return;}
+  DB.ambs.forEach((a,i)=>tb.innerHTML+=`<tr><td><b style="background:var(--v);color:#fff;padding:2px 7px;border-radius:4px;font-size:11px">${esc(a.c)}</b></td><td>${esc(a.d)}</td><td><div style="display:flex;gap:4px"><button class="btn btn-az btn-sm" onclick="openModal('amb',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('ambs',${i})">Borrar</button></div></td></tr>`);
+}
+function renderCultivos(){
+  const tb=document.getElementById('tb-cultivos');tb.innerHTML='';
+  if(!DB.cultivos.length){tb.innerHTML=emptyRow('Sin cultivos');return;}
+  DB.cultivos.forEach((c,i)=>tb.innerHTML+=`<tr><td><b>${esc(c.n)}</b></td><td><div style="display:flex;gap:4px"><button class="btn btn-az btn-sm" onclick="openModal('cultivo',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('cultivos',${i})">Borrar</button></div></td></tr>`);
+}
+function fmtDate(iso){
+  // "2025-06-01" → "01/06/2025"  |  legacy "dd/mm" → pasa tal cual
+  if(!iso) return '';
+  if(iso.includes('-')&&iso.length===10){const [y,m,d]=iso.split('-');return `${d}/${m}/${y}`;}
+  return iso;
+}
+function renderRangos(){
+  const ct=document.getElementById('list-rangos');ct.innerHTML='';
+  if(!DB.rangos.length){ct.innerHTML='<p style="color:#bbb;font-style:italic;font-size:12px">Sin rangos cargados.</p>';return;}
+  [...DB.rangos].sort((a,b)=>a.c.localeCompare(b.c,undefined,{numeric:true})).forEach(r=>{
+    const i=DB.rangos.indexOf(r);
+    ct.innerHTML+=`<div class="ri">
+      <div class="rc">${esc(r.c)}</div><div class="rd">${fmtDate(r.min)} — ${fmtDate(r.max)}</div>
+      <div style="display:flex;gap:3px;justify-content:center;margin-top:4px">
+        <button class="btn btn-az btn-sm" onclick="openModal('rango',${i})" style="padding:2px 5px;font-size:10px">Editar</button>
+        <button class="btn btn-r btn-sm" onclick="delItem('rangos',${i})" style="padding:2px 5px;font-size:10px">Borrar</button>
+      </div>
+    </div>`;
+  });
+}
+function renderGenos(){
+  const tb=document.getElementById('tb-genos');tb.innerHTML='';
+  const fcu=(document.getElementById('f-geno-cultivo')?.value)||'';
+  // Actualizar opciones del filtro
+  const fsel=document.getElementById('f-geno-cultivo');
+  if(fsel){const prev=fsel.value;fsel.innerHTML='<option value="">Todos los cultivos</option>';DB.cultivos.forEach(c=>fsel.innerHTML+=`<option${prev===c.n?' selected':''}>${esc(c.n)}</option>`);}
+  const lista=DB.genos.map((g,i)=>({...g,_i:i})).filter(g=>!fcu||g.c===fcu);
+  if(!lista.length){tb.innerHTML=emptyRow('Sin genotipos cargados');return;}
+  lista.forEach(g=>{
+    const semBol=g.u==='Bolsa'?(g.sb?g.sb.toLocaleString('es-AR'):'—'):'—';
+    const p1k=g.u==='Kg'?(g.p1000||'—'):'—';
+    const celda=g.u==='Bolsa'?`${semBol} sem/bol`:`${p1k} g/1000`;
+    const vcVal=g.vc?`<b>${g.vc}%</b>`:'—';
+    tb.innerHTML+=`<tr>
+      <td>${g._i+1}</td>
+      <td><b>${esc(g.n)}</b></td>
+      <td><b>${esc(g.c)}</b></td>
+      <td>${esc(g.u)}</td>
+      <td class="num" style="font-size:11px">${celda}</td>
+      <td class="num">${g.pur?g.pur+'%':'—'}</td>
+      <td class="num">${g.pgSC?g.pgSC+'%':'—'}</td>
+      <td class="num">${g.pg?g.pg+'%':'—'}</td>
+      <td class="num">${g.vigor?g.vigor+'%':'—'}</td>
+      <td style="font-size:11px">${esc(g.fung||'—')}</td>
+      <td class="num"><b>${g.vc?g.vc+'%':'—'}</b></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-az btn-sm" onclick="openModal('geno',${g._i})">Editar</button>
+        <button class="btn btn-r btn-sm" onclick="delItem('genos',${g._i})">Borrar</button>
+      </div></td></tr>`;
+  });
+}
+function renderCuras(){const tb=document.getElementById('tb-curas');tb.innerHTML='';if(!DB.curas.length){tb.innerHTML=emptyRow('—');return;}DB.curas.forEach((x,i)=>tb.innerHTML+=`<tr><td><b>${esc(x.n)}</b></td><td style="font-size:11px">${x.dosis||'—'} ${esc(x.u)}</td><td style="font-size:11px;color:#333">${esc(x.up||'—')}</td><td><div style="display:flex;gap:3px"><button class="btn btn-az btn-sm" onclick="openModal('cura',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('curas',${i})">Borrar</button></div></td></tr>`);}
+function renderInocs(){const tb=document.getElementById('tb-inocs');tb.innerHTML='';if(!DB.inocs.length){tb.innerHTML=emptyRow('—');return;}DB.inocs.forEach((x,i)=>tb.innerHTML+=`<tr><td><b>${esc(x.n)}</b></td><td style="font-size:11px">${x.dosis||'—'} ${esc(x.u)}</td><td style="font-size:11px;color:#333">${esc(x.up||'—')}</td><td><div style="display:flex;gap:3px"><button class="btn btn-az btn-sm" onclick="openModal('inoc',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('inocs',${i})">Borrar</button></div></td></tr>`);}
+function renderFerts(){const tb=document.getElementById('tb-ferts');tb.innerHTML='';if(!DB.ferts.length){tb.innerHTML=emptyRow('—');return;}DB.ferts.forEach((x,i)=>tb.innerHTML+=`<tr><td><b>${esc(x.n)}</b></td><td style="font-size:11px">${x.dosis||'—'} ${esc(x.u)}</td><td style="font-size:11px;color:#333">${esc(x.up||'—')}</td><td><div style="display:flex;gap:3px"><button class="btn btn-az btn-sm" onclick="openModal('fert',${i})">Editar</button><button class="btn btn-r btn-sm" onclick="delItem('ferts',${i})">Borrar</button></div></td></tr>`);}
+
+// ====== FILTROS HELPER ======
+function refreshLoteFiltro(){
+  const sel=document.getElementById('f-lotes-campo');if(!sel)return;
+  const prev=sel.value;sel.innerHTML='<option value="">Todos los campos</option>';
+  DB.campos.forEach(c=>sel.innerHTML+=`<option${prev===c.n?' selected':''}>${esc(c.n)}</option>`);
+  renderLotes();
+}
+function refreshProgLoteOpts(){/* updated dynamically in buildProgForm */}
+function refreshDatosFiltros(){
+  // Actualizar filtro campaña
+  const fca=document.getElementById('f-d-campana');
+  if(fca){const prev=fca.value;fca.innerHTML='<option value="">Todas las campañas</option>';DB.campanas.forEach(c=>fca.innerHTML+=`<option${prev===c.n?' selected':''}>${esc(c.n)}</option>`);}
+  ['f-d-campo','f-d-cultivo','f-d-rango'].forEach(id=>{const e=document.getElementById(id);if(!e)return;const prev=e.value;e.innerHTML='';if(id==='f-d-campo'){e.innerHTML='<option value="">Todos los campos</option>';DB.campos.forEach(c=>e.innerHTML+=`<option${prev===c.n?' selected':''}>${esc(c.n)}</option>`);}else if(id==='f-d-cultivo'){e.innerHTML='<option value="">Todos los cultivos</option>';DB.cultivos.forEach(c=>e.innerHTML+=`<option${prev===c.n?' selected':''}>${esc(c.n)}</option>`);}else if(id==='f-d-rango'){e.innerHTML='<option value="">Todos los rangos</option>';[...DB.rangos].sort((a,b)=>a.c.localeCompare(b.c,undefined,{numeric:true})).forEach(r=>e.innerHTML+=`<option value="${esc(r.c)}"${prev===r.c?' selected':''}>${esc(r.c)}</option>`);}});
+}
+
+// ====== RENDER DATOS ======
+function renderDatos(){
+  const fca_d=document.getElementById('f-d-campana')?.value||'';
+  const fc=document.getElementById('f-d-campo')?.value||'';
+  const fcu=document.getElementById('f-d-cultivo')?.value||'';
+  const fr=document.getElementById('f-d-rango')?.value||'';
+  const fb=(document.getElementById('f-d-buscar')?.value||'').toLowerCase();
+  const fl=DB.prog.map((p,i)=>({...p,_i:i})).filter(p=>(!fca_d||p.campana===fca_d)&&(!fc||p.campo===fc)&&(!fcu||p.cultivo===fcu)&&(!fr||p.rango===fr)&&(!fb||p.lote.toLowerCase().includes(fb)||p.genotipo.toLowerCase().includes(fb)));
+  const tbody=document.getElementById('tbody-datos');
+  const emptyDiv=document.getElementById('empty-prog');
+  const cardDiv=document.getElementById('card-datos');
+  if(!DB.prog.length){if(emptyDiv)emptyDiv.style.display='block';if(cardDiv)cardDiv.style.display='none';if(document.getElementById('f-cnt'))document.getElementById('f-cnt').textContent='';return;}
+  if(emptyDiv)emptyDiv.style.display='none';if(cardDiv)cardDiv.style.display='block';
+  if(document.getElementById('f-cnt'))document.getElementById('f-cnt').textContent=`${fl.length} de ${DB.prog.length}`;
+  if(!tbody)return;tbody.innerHTML='';
+  // Ordenamiento dinámico
+  const _sc=window._datosSort||{col:'cultivo',dir:1};
+  fl.sort((a,b)=>{
+    let va=a[_sc.col]||'',vb=b[_sc.col]||'';
+    if(typeof va==='number'||!isNaN(parseFloat(va))){va=parseFloat(va)||0;vb=parseFloat(vb)||0;return _sc.dir*(va-vb);}
+    return _sc.dir*String(va).localeCompare(String(vb));
+  });
+  // Actualizar flechas
+  ['campo','lote','amb','cultivo','genotipo','rango','orden','semML','densLote'].forEach(k=>{
+    const el=document.getElementById('si-'+k);
+    if(el) el.textContent=k===_sc.col?(_sc.dir===1?' ▲':' ▼'):'';
+  });
+  let pc=null;
+  fl.forEach(p=>{
+    
+    tbody.innerHTML+=`<tr>
+      <td>${esc(p.campo)}</td><td><b>${esc(p.lote)}</b></td>
+      <td class="num">${p.sup>0?fmt(p.sup,1):'<span style="color:#bbb">—</span>'}</td>
+      <td>${p.amb?`<span class="tag-amb">${esc(p.amb)}</span>`:'<span style="color:#bbb">—</span>'}</td>
+      <td><b>${esc(p.cultivo)}</b></td>
+      <td>${esc(p.genotipo)}</td>
+      <td style="min-width:140px">
+        ${(()=>{
+          const rangoOpts=DB.rangos.sort((a,b)=>a.c.localeCompare(b.c,undefined,{numeric:true}));
+          const ri=rangoOpts.find(r=>r.c===p.rango);
+          const opts='<option value="">— Sin rango —</option>'+rangoOpts.map(r=>`<option value="${esc(r.c)}"${p.rango===r.c?' selected':''}>${esc(r.c)} (${fmtDate(r.min)}-${fmtDate(r.max)})</option>`).join('');
+          return `<select style="font-size:11px;font-weight:700;color:var(--v);border:1px solid var(--b);border-radius:4px;padding:2px 4px;background:var(--g);max-width:170px" onchange="setRango(${p._i},this.value)">${opts}</select>`;
+        })()}
+      </td>
+      <td class="ctr" style="padding:2px 4px">
+        <input type="number" min="0" value="${p.orden||''}" placeholder="—"
+          style="width:48px;text-align:center;border:1px solid var(--b);border-radius:4px;padding:2px 4px;font-size:12px;background:var(--g)"
+          onchange="setOrden(${p._i},this.value)"
+          title="Número de orden de siembra">
+      </td>
+      <td class="num">${p.des||'—'}</td>
+      <td class="num">${p.obj||'—'}</td>
+      <td class="num">${p.vc?p.vc+'%':'—'}</td>
+      <td class="num">${p.perc?p.perc+'%':'—'}</td>
+      <td class="num">${(p.semML||(p.semM2&&p.des?p.semM2*p.des:0))?fmt(p.semML||(p.semM2*p.des),2):'<span style="color:#bbb">—</span>'}</td>
+      <td class="num">${fmt(p.semM2,1)}</td>
+      <td class="num">${fmt(p.densHa,p.unidad==='Bolsa'?3:1)} <span style="font-size:10px;color:#888">${p.unidad==='Bolsa'?'bol/ha':'kg/ha'}</span></td>
+      <td class="num"><b>${p.densLote>0?fmt(p.densLote,p.unidad==='Bolsa'?2:0):'<span style="color:#bbb">0</span>'}</b> <span style="font-size:10px;color:#888">${p.unidad==='Bolsa'?'bol':'kg'}</span></td>
+      <td style="font-size:11px;border-left:3px solid #b0c8a0">${(p.curas||[]).length?p.curas.map(c=>esc(c.n)).join('<br>'):'<span style="color:#bbb">—</span>'}</td>
+      <td class="num" style="font-size:11px">${(p.curas||[]).length?p.curas.map(c=>`${c.dosis} <span style='color:#888;font-size:10px'>${esc(c.unit)}</span>`).join('<br>'):'<span style="color:#bbb">—</span>'}</td>
+      <td style="font-size:11px;border-left:3px solid #b0c8a0">${(p.inocs||[]).length?p.inocs.map(c=>esc(c.n)).join('<br>'):'<span style="color:#bbb">—</span>'}</td>
+      <td class="num" style="font-size:11px">${(p.inocs||[]).length?p.inocs.map(c=>`${c.dosis} <span style='color:#888;font-size:10px'>${esc(c.unit)}</span>`).join('<br>'):'<span style="color:#bbb">—</span>'}</td>
+      <td style="font-size:11px;border-left:3px solid #b0c8a0">${(p.ferts||[]).length?p.ferts.map(c=>esc(c.n)).join('<br>'):'<span style="color:#bbb">—</span>'}</td>
+      <td class="num">${(p.ferts||[]).length?p.ferts.map(c=>`${c.dosis} <span style='color:#888;font-size:10px'>${esc(c.unit)}</span>`).join('<br>'):'<span style="color:#bbb">—</span>'}</td>
+      <td style="border-left:3px solid #b0c8a0"><div style="display:flex;gap:3px">
+        <button class="btn btn-az btn-sm" onclick="openModal('prog',${p._i})" title="Editar">Editar</button>
+        <button class="btn btn-p btn-sm" onclick="duplicarProg(${p._i})" title="Duplicar fila" style="background:#587050">Copiar</button>
+        <button class="btn btn-r btn-sm" onclick="delItem('prog',${p._i})" title="Eliminar">Borrar</button>
+      </div></td>
+    </tr>`;
+  });
+}
+
+// ====== RESUMEN ======
+function refreshResumenFiltros(){
+  const fca=document.getElementById('f-r-campana');
+  const fc=document.getElementById('f-r-campo');
+  const fcu=document.getElementById('f-r-cultivo');
+  if(!fca||!fc||!fcu) return;
+  const prevCa=fca.value, prevC=fc.value, prevCu=fcu.value;
+  fca.innerHTML='<option value="">Todas las campañas</option>';
+  DB.campanas.forEach(c=>fca.innerHTML+=`<option${prevCa===c.n?' selected':''}>${esc(c.n)}</option>`);
+  const base=prevCa?DB.prog.filter(p=>p.campana===prevCa):DB.prog;
+  fc.innerHTML='<option value="">Todos los campos</option>';
+  fcu.innerHTML='<option value="">Todos los cultivos</option>';
+  [...new Set(base.map(p=>p.campo))].sort().forEach(c=>fc.innerHTML+=`<option${prevC===c?' selected':''}>${esc(c)}</option>`);
+  [...new Set(base.map(p=>p.cultivo))].sort().forEach(c=>fcu.innerHTML+=`<option${prevCu===c?' selected':''}>${esc(c)}</option>`);
+}
+function limpiarFiltrosResumen(){
+  const fca=document.getElementById('f-r-campana');
+  const fc=document.getElementById('f-r-campo');
+  const fcu=document.getElementById('f-r-cultivo');
+  if(fca) fca.value='';
+  if(fc) fc.value='';
+  if(fcu) fcu.value='';
+  renderResumen();
+}
+function renderResumen(){
+  const campana=document.getElementById('f-r-campana')?.value||'';
+  const fc=document.getElementById('f-r-campo')?.value||'';
+  const fcu=document.getElementById('f-r-cultivo')?.value||'';
+  refreshResumenFiltros();
+  const P=DB.prog.filter(p=>
+    (!campana||p.campana===campana)&&
+    (!fc||p.campo===fc)&&
+    (!fcu||p.cultivo===fcu)
+  );
+  const tHa=P.reduce((s,p)=>s+p.sup,0);
+  const tKg=P.filter(p=>p.unidad!=='Bolsa').reduce((s,p)=>s+(p.densLote||0),0);
+  const tBol=P.filter(p=>p.unidad==='Bolsa').reduce((s,p)=>s+(p.densLote||0),0);
+  const tFert=P.reduce((s,p)=>s+p.fertDosis*p.sup,0);
+  document.getElementById('r-ha').textContent=fmt(tHa,1);
+  document.getElementById('r-sem-kg').textContent=tKg>0?fmtI(tKg):'—';
+  document.getElementById('r-sem-bol').textContent=tBol>0?fmt(tBol,2):'—';
+  // Totales e unidades de producto
+  let tCura=0, tInoc=0, tFertTotal=0;
+  const uCuraSet=new Set(), uInocSet=new Set(), uFertSet=new Set();
+  P.forEach(p=>{
+    (p.curas||[]).forEach(c=>{
+      const cU=(c.unit||'').toLowerCase();
+      tCura += c.dosis&&p.densLote ? (cU.includes('bolsa')?c.dosis*p.densLote:c.dosis*p.densLote/100) : 0;
+      const up=(DB.curas.find(x=>x.n===c.n)||{}).up||c.uProd||'';
+      if(up) uCuraSet.add(up);
+    });
+    (p.inocs||[]).forEach(c=>{
+      const iU=(c.unit||'').toLowerCase();
+      tInoc += c.dosis&&p.densLote ? (iU.includes('bolsa')?c.dosis*p.densLote:c.dosis*p.densLote/100) : 0;
+      const up=(DB.inocs.find(x=>x.n===c.n)||{}).up||c.uProd||'';
+      if(up) uInocSet.add(up);
+    });
+    (p.ferts||[]).forEach(f=>{
+      tFertTotal += (f.dosis||0)*(p.sup||0);
+      const up=(DB.ferts.find(x=>x.n===f.n)||{}).up||f.uProd||'';
+      if(up) uFertSet.add(up);
+    });
+  });
+  const joinU=s=>[...s].join(' / ')||'—';
+  document.getElementById('r-tot-cura').textContent=fmt(tCura,2);
+  document.getElementById('r-unit-cura').textContent=joinU(uCuraSet);
+  document.getElementById('r-tot-inoc').textContent=fmt(tInoc,2);
+  document.getElementById('r-unit-inoc').textContent=joinU(uInocSet);
+  document.getElementById('r-tot-fert').textContent=fmt(tFertTotal,1);
+  document.getElementById('r-unit-fert').textContent=joinU(uFertSet);
+
+  // ====== INFORME DE INSUMOS ======
+  const P_inf = P;
+
+  // --- DETALLE POR LOTE ---
+  const riDetLote = document.getElementById('ri-det-lote');
+  if(riDetLote){
+    riDetLote.innerHTML = '';
+    const sortedL = [...P_inf].sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote));
+    if(!sortedL.length){ riDetLote.innerHTML = emptyRow('Sin datos',15); }
+    else {
+      const fmtInsumos = arr => arr&&arr.length&&arr.some(x=>x.n)
+        ? arr.filter(x=>x.n).map(x=>`<b>${esc(x.n)}</b> ${x.dosis||''}${x.unit?' '+esc(x.unit):''}`).join('<br>')
+        : '—';
+      sortedL.forEach(p=>{
+        const rng = DB.rangos.find(r=>r.c===p.rango);
+        const fMin = rng ? fmtDate(rng.min) : '—';
+        const fMax = rng ? fmtDate(rng.max) : '—';
+        const decHa = p.unidad==='Bolsa'?3:1;
+        const decLote = p.unidad==='Bolsa'?2:0;
+        riDetLote.innerHTML += `<tr>
+          <td>${esc(p.campo)}</td>
+          <td><b>${esc(p.lote)}</b></td>
+          <td class="num">${fmt(p.sup,1)}</td>
+          <td>${esc(p.cultivo)}</td>
+          <td>${esc(p.genotipo)}</td>
+          <td class="num">${p.orden||'—'}</td>
+          <td>${fMin}</td>
+          <td>${fMax}</td>
+          <td>${esc(p.des||'—')}</td>
+          <td class="num">${p.obj||'—'}</td>
+          <td class="num">${fmt(p.densHa,decHa)}</td>
+          <td class="num"><b>${fmt(p.densLote,decLote)}</b></td>
+          <td>${fmtInsumos(p.curas)}</td>
+          <td>${fmtInsumos(p.inocs)}</td>
+          <td>${fmtInsumos(p.ferts)}</td>
+        </tr>`;
+      });
+    }
+  }
+
+  // --- SEMILLAS: agrupar por genotipo ---
+
+
+  // --- SEMILLAS (agrupado por campo+cultivo+genotipo) ---
+  const semAgg = {};
+  P_inf.forEach(p=>{
+    if(!p.genotipo) return;
+    const k = `${p.campo}||${p.cultivo}||${p.genotipo}`;
+    if(!semAgg[k]) semAgg[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,total:0,unidad:p.unidad};
+    semAgg[k].total += p.densLote||0;
+  });
+  const riDetSem = document.getElementById('ri-det-sem');
+  if(riDetSem){
+    riDetSem.innerHTML='';
+    const semRows=Object.values(semAgg).sort((a,b)=>a.campo.localeCompare(b.campo)||a.cultivo.localeCompare(b.cultivo)||a.genotipo.localeCompare(b.genotipo));
+    if(!semRows.length){ riDetSem.innerHTML=emptyRow('Sin datos',5); }
+    else {
+      semRows.forEach(r=>{
+        const dec=r.unidad==='Bolsa'?2:0;
+        riDetSem.innerHTML+=`<tr>
+          <td>${esc(r.campo)}</td>
+          <td>${esc(r.cultivo)}</td>
+          <td style="font-size:11px">${esc(r.genotipo)}</td>
+          <td class="num"><b>${fmt(r.total,dec)}</b></td>
+          <td style="font-size:11px;color:#333"><b>${esc(r.unidad||'—')}</b></td>
+        </tr>`;
+      });
+    }
+  }
+
+  // --- DETALLE CURASEMILLAS (agrupado por campo+cultivo+genotipo+producto) ---
+  const riDetCura = document.getElementById('ri-det-cura');
+  if(riDetCura){
+    riDetCura.innerHTML = '';
+    const curaAgg = {};
+    P_inf.forEach(p=>{
+      (p.curas||[]).forEach(c=>{
+        if(!c.n) return;
+        const k = `${p.campo}||${p.cultivo}||${p.genotipo}||${c.n}`;
+        const cU = (c.unit||'').toLowerCase();
+        const tot = c.dosis&&p.densLote
+          ? (cU.includes('bolsa') ? c.dosis*p.densLote : c.dosis*p.densLote/100)
+          : 0;
+        if(!curaAgg[k]) curaAgg[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,prod:c.n,total:0,uProd:(DB.curas.find(x=>x.n===c.n)||{}).up||c.uProd||'—'};
+        curaAgg[k].total += tot;
+      });
+    });
+    const curaRows = Object.values(curaAgg).sort((a,b)=>a.campo.localeCompare(b.campo)||a.cultivo.localeCompare(b.cultivo)||a.genotipo.localeCompare(b.genotipo));
+    if(!curaRows.length){ riDetCura.innerHTML = emptyRow('Sin datos',6); }
+    else {
+      curaRows.forEach(r=>{
+        riDetCura.innerHTML += `<tr>
+          <td>${esc(r.campo)}</td>
+          <td>${esc(r.cultivo)}</td>
+          <td style="font-size:11px">${esc(r.genotipo)}</td>
+          <td style="font-size:11px"><b>${esc(r.prod)}</b></td>
+          <td class="num"><b>${r.total>0?fmt(r.total,2):'—'}</b></td>
+          <td style="font-size:11px;color:#333"><b>${esc(r.uProd)}</b></td>
+        </tr>`;
+      });
+    }
+  }
+
+  // --- DETALLE INOCULANTES (agrupado por campo+cultivo+genotipo+producto) ---
+  const riDetInoc = document.getElementById('ri-det-inoc');
+  if(riDetInoc){
+    riDetInoc.innerHTML = '';
+    const inocAgg = {};
+    P_inf.forEach(p=>{
+      (p.inocs||[]).forEach(c=>{
+        if(!c.n) return;
+        const k = `${p.campo}||${p.cultivo}||${p.genotipo}||${c.n}`;
+        const iU = (c.unit||'').toLowerCase();
+        const tot = c.dosis&&p.densLote
+          ? (iU.includes('bolsa') ? c.dosis*p.densLote : c.dosis*p.densLote/100)
+          : 0;
+        if(!inocAgg[k]) inocAgg[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,prod:c.n,total:0,uProd:(DB.inocs.find(x=>x.n===c.n)||{}).up||c.uProd||'—'};
+        inocAgg[k].total += tot;
+      });
+    });
+    const inocRows = Object.values(inocAgg).sort((a,b)=>a.campo.localeCompare(b.campo)||a.cultivo.localeCompare(b.cultivo)||a.genotipo.localeCompare(b.genotipo));
+    if(!inocRows.length){ riDetInoc.innerHTML = emptyRow('Sin datos',6); }
+    else {
+      inocRows.forEach(r=>{
+        riDetInoc.innerHTML += `<tr>
+          <td>${esc(r.campo)}</td>
+          <td>${esc(r.cultivo)}</td>
+          <td style="font-size:11px">${esc(r.genotipo)}</td>
+          <td style="font-size:11px"><b>${esc(r.prod)}</b></td>
+          <td class="num"><b>${r.total>0?fmt(r.total,2):'—'}</b></td>
+          <td style="font-size:11px;color:#333"><b>${esc(r.uProd)}</b></td>
+        </tr>`;
+      });
+    }
+  }
+
+  // --- DETALLE FERTILIZANTES (agrupado por campo+cultivo+genotipo+producto) ---
+  const riDetFert = document.getElementById('ri-det-fert');
+  if(riDetFert){
+    riDetFert.innerHTML = '';
+    const fertAgg = {};
+    P_inf.forEach(p=>{
+      (p.ferts||[]).forEach(f=>{
+        if(!f.n) return;
+        const k = `${p.campo}||${p.cultivo}||${p.genotipo}||${f.n}`;
+        const tot = (f.dosis||0)*(p.sup||0);
+        if(!fertAgg[k]) fertAgg[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,prod:f.n,total:0,uProd:(DB.ferts.find(x=>x.n===f.n)||{}).up||f.uProd||'—'};
+        fertAgg[k].total += tot;
+      });
+    });
+    const fertRows = Object.values(fertAgg).sort((a,b)=>a.campo.localeCompare(b.campo)||a.cultivo.localeCompare(b.cultivo)||a.genotipo.localeCompare(b.genotipo));
+    if(!fertRows.length){ riDetFert.innerHTML = emptyRow('Sin datos',6); }
+    else {
+      fertRows.forEach(r=>{
+        riDetFert.innerHTML += `<tr>
+          <td>${esc(r.campo)}</td>
+          <td>${esc(r.cultivo)}</td>
+          <td style="font-size:11px">${esc(r.genotipo)}</td>
+          <td style="font-size:11px"><b>${esc(r.prod)}</b></td>
+          <td class="num"><b>${r.total>0?fmt(r.total,1):'—'}</b></td>
+          <td style="font-size:11px;color:#333"><b>${esc(r.uProd)}</b></td>
+        </tr>`;
+      });
+    }
+  }
+
+}
+
+function actualizarStats(){
+  const P=DB.prog;
+  document.getElementById('s-ha').textContent=fmt(P.reduce((s,p)=>s+p.sup,0),1);
+  document.getElementById('s-prog').textContent=P.length;
+  document.getElementById('s-cult').textContent=new Set(P.map(p=>p.cultivo)).size;
+  document.getElementById('s-kg').textContent=fmtI(P.reduce((s,p)=>s+p.densLote,0));
+}
+
+function exportCSV(){
+  if(!DB.prog.length){alert('No hay programación para exportar.');return;}
+  const cols=['Campo','Lote','Sup (ha)','Ambiente','Cultivo','Genotipo','Rango','Fecha','Orden','DES','Obj pl/m2','VC%','Pérd%','sem/m2','dens/ha','dens/lote','Unidad','Curasemilla(s)','Dosis cura','Inoculante(s)','Fertilizante(s)','Dosis fert','Fert total (kg)'];
+  const rows=DB.prog.map(p=>[p.campo,p.lote,p.sup,p.amb,p.cultivo,p.genotipo,p.rango,p.fs,p.orden,p.des,p.obj,p.vc,p.perc,(p.semM2||0).toFixed(2),(p.densHa||0).toFixed(3),(p.densLote||0).toFixed(2),p.unidad,(p.curas||[]).map(c=>c.n).join('|'),(p.curas||[]).map(c=>c.dosis).join('|'),(p.inocs||[]).map(c=>c.n).join('|'),(p.ferts||[]).map(f=>f.n).join('|'),(p.ferts||[]).map(f=>f.dosis).join('|'),(p.ferts||[]).reduce((s,f)=>(f.dosis||0)*(p.sup||0)+s,0).toFixed(0)].join(';'));
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([cols.join(';'),...rows].join('\n'));a.download='ProgramaSiembra_2526.csv';a.click();
+}
+
+
+function sortDatos(col){
+  const cur=window._datosSort||{col:'cultivo',dir:1};
+  window._datosSort={col, dir: cur.col===col ? -cur.dir : 1};
+  renderDatos();
+}
+
+function duplicarProg(idx){
+  const orig=DB.prog[idx];
+  if(!orig) return;
+  const copia={...orig};
+  // Insertar justo después del original
+  DB.prog.splice(idx+1,0,copia);
+  sv('prog');
+  renderDatos();
+  renderResumen();
+  actualizarStats();
+  // Marcar la fila copiada visualmente brevemente
+  setTimeout(()=>{
+    const rows=document.querySelectorAll('#tbody-datos tr:not(.grp)');
+    // Contar cuántas filas de datos hay hasta idx+1
+    let cnt=0;
+    for(const r of rows){
+      if(cnt===idx+1){r.style.background='#fffbe6';setTimeout(()=>r.style.background='',1200);break;}
+      cnt++;
+    }
+  },50);
+}
+
+function showTab(n,el){
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tp-'+n).classList.add('active');
+  el.classList.add('active');
+}
+
+// ====== EXPORT EXCEL ======
+function exportarProgExcel(){
+  if(typeof XLSX==='undefined'){alert('La librería Excel no cargó. Verificá tu conexión a internet.');return;}
+  if(!DB.prog.length){alert('No hay datos en la programación.');return;}
+  const campana=document.getElementById('sel-campana')?.value||'Todas';
+  const fechaHoy=new Date().toLocaleDateString('es-AR');
+  const wb=XLSX.utils.book_new();
+  const cols=['Campo','Lote','Sup (ha)','Ambiente','Especie','Genotipo','Rango','Orden','D.E.S.','Obj pl/m²','VC%','Pérd%','sem/m²','Kg o Bolsa/ha','Sem/m lin.','Kg o Bolsas/Lote','Unidad semilla','Curasemilla(s)','Dosis cura','Inoculante(s)','Dosis inoc.','Fertilizante(s)','Dosis fert.','Total fert. lote'];
+  const rows=[cols];
+  [...DB.prog].sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote)).forEach(p=>{
+    const dec=p.unidad==='Bolsa'?3:1;
+    const decTot=p.unidad==='Bolsa'?2:0;
+    rows.push([
+      p.campo, p.lote, p.sup||0, p.amb||'', p.cultivo, p.genotipo,
+      p.rango||'', p.orden||'',
+      p.des||'', p.obj||'', p.vc||'', p.perc||'',
+      parseFloat((p.semM2||0).toFixed(2)),
+      parseFloat((p.densHa||0).toFixed(dec)),
+      parseFloat((p.semML||0).toFixed(2)),
+      parseFloat((p.densLote||0).toFixed(decTot)),
+      p.unidad||'',
+      (p.curas||[]).map(c=>c.n).join(' / '),
+      (p.curas||[]).map(c=>`${c.dosis} ${c.unit}`.trim()).join(' / '),
+      (p.inocs||[]).map(c=>c.n).join(' / '),
+      (p.inocs||[]).map(c=>`${c.dosis} ${c.unit}`.trim()).join(' / '),
+      (p.ferts||[]).map(f=>f.n).join(' / '),
+      (p.ferts||[]).map(f=>`${f.dosis} ${f.unit}`.trim()).join(' / '),
+      parseFloat(((p.ferts||[]).reduce((s,f)=>(f.dosis||0)*(p.sup||0)+s,0)).toFixed(1))
+    ]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:16},{wch:10},{wch:10},{wch:12},{wch:10},{wch:30},{wch:10},{wch:7},{wch:8},{wch:10},{wch:6},{wch:7},{wch:8},{wch:12},{wch:10},{wch:14},{wch:8},{wch:22},{wch:16},{wch:22},{wch:16},{wch:22},{wch:16},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Programación');
+  XLSX.writeFile(wb,`Programacion_${campana.replace('/','_')}_${fechaHoy.replace(/\//g,'-')}.xlsx`);
+}
+
+function exportarInformeExcel(){
+  if(typeof XLSX === 'undefined'){alert('La librería Excel no cargó. Verificá tu conexión a internet.');return;}
+  const P = DB.prog;
+  if(!P.length){alert('No hay datos en la programación.');return;}
+  const wb = XLSX.utils.book_new();
+  const campana = document.getElementById('sel-campana')?.value || 'Todas';
+  const fechaHoy = new Date().toLocaleDateString('es-AR');
+
+  // ---- Hoja 1: SEMILLAS ----
+  const semMap = {};
+  P.forEach(p=>{
+    if(!p.genotipo) return;
+    if(!semMap[p.genotipo]) semMap[p.genotipo]={cultivo:p.cultivo,unidad:p.unidad,total:0};
+    semMap[p.genotipo].total += p.densLote||0;
+  });
+  const semRows = [['Genotipo / Partida','Cultivo','Unidad','Total necesario']];
+  Object.entries(semMap).sort((a,b)=>a[1].cultivo.localeCompare(b[1].cultivo)).forEach(([g,v])=>{
+    semRows.push([g, v.cultivo, v.unidad, parseFloat(v.total.toFixed(v.unidad==='Bolsa'?2:0))]);
+  });
+  const totKg=Object.values(semMap).filter(v=>v.unidad==='Kg').reduce((s,v)=>s+v.total,0);
+  const totBol=Object.values(semMap).filter(v=>v.unidad==='Bolsa').reduce((s,v)=>s+v.total,0);
+  if(totKg>0) semRows.push(['','','TOTAL Kg', parseFloat(totKg.toFixed(0))]);
+  if(totBol>0) semRows.push(['','','TOTAL Bolsas', parseFloat(totBol.toFixed(2))]);
+  const wsSem = XLSX.utils.aoa_to_sheet(semRows);
+  wsSem['!cols']=[{wch:40},{wch:14},{wch:10},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsSem, 'Semillas');
+
+  // ---- Hoja 2: FERTILIZANTES ----
+  const fertRows = [['Producto','Ha totales','Unidad','Total']];
+  const exFertMap2 = {};
+  P.forEach(p=>{
+    (p.ferts||[]).forEach(f=>{
+      if(!f.n) return;
+      const fu2 = (DB.ferts.find(x=>x.n===f.n)||{}).u || f.unit || 'kg/ha';
+      if(!exFertMap2[f.n]) exFertMap2[f.n]={ha:0,total:0,unit:fu2};
+      exFertMap2[f.n].ha += p.sup||0;
+      exFertMap2[f.n].total += (f.dosis||0)*(p.sup||0);
+    });
+  });
+  Object.entries(exFertMap2).forEach(([prod,v])=>{
+    fertRows.push([prod, parseFloat(v.ha.toFixed(1)), v.unit, parseFloat(v.total.toFixed(1))]);
+  });
+  if(Object.keys(exFertMap2).length>1){
+    const tFHa=Object.values(exFertMap2).reduce((s,v)=>s+v.ha,0);
+    const tFKg=Object.values(exFertMap2).reduce((s,v)=>s+v.total,0);
+    fertRows.push(['TOTAL', parseFloat(tFHa.toFixed(1)), '', parseFloat(tFKg.toFixed(1))]);
+  }
+  const wsFert = XLSX.utils.aoa_to_sheet(fertRows);
+  wsFert['!cols']=[{wch:30},{wch:12},{wch:16},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsFert, 'Fertilizantes');
+
+  // ---- Hoja 3: CURASEMILLAS ----
+  const exCuraMap = {};
+  P.forEach(p=>{
+    (p.curas||[]).forEach(c=>{
+      if(!c.n||!c.dosis) return;
+      const unit=(DB.curas.find(x=>x.n===c.n)||{}).u||c.unit||'';
+      if(!exCuraMap[c.n]) exCuraMap[c.n]={semBase:0,dosisTot:0,unit};
+      exCuraMap[c.n].semBase += p.densLote||0;
+      const cU=unit.toLowerCase();
+      exCuraMap[c.n].dosisTot += cU.includes('bolsa') ? (p.densLote||0)*(c.dosis||0) : (p.densLote||0)*(c.dosis||0)/100;
+    });
+  });
+  const curaRows = [['Producto','Semilla base (kg)','Dosis total','Unidad']];
+  Object.entries(exCuraMap).forEach(([prod,v])=>{
+    curaRows.push([prod, parseFloat(v.semBase.toFixed(1)), parseFloat(v.dosisTot.toFixed(1)), v.unit]);
+  });
+  const wsCura = XLSX.utils.aoa_to_sheet(curaRows);
+  wsCura['!cols']=[{wch:30},{wch:18},{wch:14},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsCura, 'Curasemillas');
+
+  // ---- Hoja 4: INOCULANTES ----
+  const exInocMap = {};
+  P.forEach(p=>{
+    (p.inocs||[]).forEach(c=>{
+      if(!c.n||!c.dosis) return;
+      const unit=(DB.inocs.find(x=>x.n===c.n)||{}).u||c.unit||'';
+      if(!exInocMap[c.n]) exInocMap[c.n]={semBase:0,dosisTot:0,unit};
+      exInocMap[c.n].semBase += p.densLote||0;
+      const iU=unit.toLowerCase();
+      exInocMap[c.n].dosisTot += iU.includes('bolsa') ? (p.densLote||0)*(c.dosis||0) : (p.densLote||0)*(c.dosis||0)/100;
+    });
+  });
+  const inocRows = [['Producto','Semilla base','Dosis total','Unidad']];
+  Object.entries(exInocMap).forEach(([prod,v])=>{
+    inocRows.push([prod, parseFloat(v.semBase.toFixed(2)), parseFloat(v.dosisTot.toFixed(2)), v.unit]);
+  });
+  const wsInoc = XLSX.utils.aoa_to_sheet(inocRows);
+  wsInoc['!cols']=[{wch:30},{wch:14},{wch:14},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsInoc, 'Inoculantes');
+
+  // ---- Hoja 5: DETALLE SEMILLAS POR LOTE ----
+  const detSemRows = [['Campo','Lote','Sup (ha)','Genotipo / Partida','Cultivo','Dens/ha','Sem/m lin.','Total lote','Unidad']];
+  [...P].filter(p=>p.genotipo).sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote)).forEach(p=>{
+    detSemRows.push([
+      p.campo, p.lote, p.sup||0,
+      p.genotipo, p.cultivo,
+      parseFloat((p.densHa||0).toFixed(p.unidad==='Bolsa'?3:1)),
+      parseFloat((p.semML||0).toFixed(2)),
+      parseFloat((p.densLote||0).toFixed(p.unidad==='Bolsa'?2:0)),
+      p.unidad
+    ]);
+  });
+  const wsDetSem = XLSX.utils.aoa_to_sheet(detSemRows);
+  wsDetSem['!cols']=[{wch:18},{wch:10},{wch:10},{wch:36},{wch:12},{wch:10},{wch:12},{wch:12},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, wsDetSem, 'Det. Semillas');
+
+  // ---- Hoja 6: DETALLE CURASEMILLAS POR LOTE ----
+  const detCuraRows = [['Campo','Lote','Sup (ha)','Genotipo / Partida','Curasemilla','Dosificación','Total/lote','U. Producto']];
+  [...P].filter(p=>(p.curas||[]).length).sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote)).forEach(p=>{
+    (p.curas||[]).forEach(c=>{
+      const cU=(c.unit||'').toLowerCase();
+      const curaTot=c.dosis&&p.densLote
+        ? (cU.includes('bolsa') ? c.dosis*p.densLote : c.dosis*p.densLote/100) : 0;
+      const _xc2=DB.curas.find(x=>x.n===c.n)||{};
+      detCuraRows.push([
+        p.campo, p.lote, p.sup||0,
+        p.genotipo||'', c.n||'',
+        `${c.dosis||0} ${c.unit||''}`.trim(),
+        parseFloat(curaTot.toFixed(2)), _xc2.up||c.uProd||''
+      ]);
+    });
+  });
+  const wsDetCura = XLSX.utils.aoa_to_sheet(detCuraRows);
+  wsDetCura['!cols']=[{wch:18},{wch:10},{wch:10},{wch:36},{wch:22},{wch:10},{wch:16},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsDetCura, 'Det. Curasemillas');
+
+  // ---- Hoja 7: DETALLE INOCULANTES POR LOTE ----
+  const detInocRows = [['Campo','Lote','Sup (ha)','Genotipo / Partida','Inoculante','Dosificación','Total/lote','U. Producto']];
+  [...P].filter(p=>(p.inocs||[]).length).sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote)).forEach(p=>{
+    (p.inocs||[]).forEach(c=>{
+      const iU=(c.unit||'').toLowerCase();
+      const inocTot=c.dosis&&p.densLote
+        ? (iU.includes('bolsa') ? c.dosis*p.densLote : c.dosis*p.densLote/100) : 0;
+      const _xi2=DB.inocs.find(x=>x.n===c.n)||{};
+      detInocRows.push([
+        p.campo, p.lote, p.sup||0,
+        p.genotipo||'', c.n||'',
+        `${c.dosis||0} ${c.unit||''}`.trim(),
+        parseFloat(inocTot.toFixed(2)), _xi2.up||c.uProd||''
+      ]);
+    });
+  });
+  const wsDetInoc = XLSX.utils.aoa_to_sheet(detInocRows);
+  wsDetInoc['!cols']=[{wch:18},{wch:10},{wch:10},{wch:36},{wch:22},{wch:10},{wch:16},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsDetInoc, 'Det. Inoculantes');
+
+  // ---- Hoja 8: DETALLE FERTILIZANTES POR LOTE ----
+  const detFertRows = [['Campo','Lote','Sup (ha)','Fertilizante','Dosificación','Total lote','U. Producto']];
+  [...P].filter(p=>(p.ferts||[]).length).sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote)).forEach(p=>{
+    (p.ferts||[]).forEach(f=>{
+      const fertTot=(f.dosis||0)*(p.sup||0);
+      const _xf2=DB.ferts.find(x=>x.n===f.n)||{};
+      detFertRows.push([
+        p.campo, p.lote, p.sup||0,
+        f.n||'',
+        `${f.dosis||0} ${f.unit||'kg/ha'}`.trim(),
+        parseFloat(fertTot.toFixed(1)), _xf2.up||f.uProd||''
+      ]);
+    });
+  });
+  const wsDetFert = XLSX.utils.aoa_to_sheet(detFertRows);
+  wsDetFert['!cols']=[{wch:18},{wch:10},{wch:10},{wch:22},{wch:10},{wch:16},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsDetFert, 'Det. Fertilizantes');
+
+  // ---- Descargar ----
+  const nombre = `Informe_Insumos_${campana.replace('/','_')}_${fechaHoy.replace(/\//g,'-')}.xlsx`;
+  XLSX.writeFile(wb, nombre);
+}
+
+// ====== EXPORTAR PDF ======
+function exportarPDF(){
+  if(typeof window.jspdf==='undefined'){alert('La librería PDF no cargó.');return;}
+  const {jsPDF}=window.jspdf;
+  const campana=document.getElementById('sel-campana')?.value||'';
+  const fc=document.getElementById('f-r-campo')?.value||'';
+  const fcu=document.getElementById('f-r-cultivo')?.value||'';
+  const P=DB.prog.filter(p=>(!campana||p.campana===campana)&&(!fc||p.campo===fc)&&(!fcu||p.cultivo===fcu));
+  if(!P.length){alert('No hay datos con los filtros actuales.');return;}
+
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const W=doc.internal.pageSize.getWidth(); // 297mm
+  const H=doc.internal.pageSize.getHeight(); // 210mm
+  const hoy=new Date().toLocaleDateString('es-AR');
+  const VG=[46,125,50]; const LG=[232,245,233]; const GR=[245,245,245];
+  const M=6; // margen lateral
+
+  // ─── HEADER compacto ─────────────────────────────────────
+  const campanaLabel = campana ? 'Campaña: ' + campana : '';
+  const titulo = [campanaLabel, fcu].filter(Boolean).join('   |   ') || 'Programa de Siembra';
+  const hdrH = 13;
+  doc.setFillColor(...VG); doc.rect(0,0,W,hdrH,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text(titulo, W/2, 8, {align:'center'});
+  doc.setFontSize(7); doc.setFont('helvetica','normal');
+  doc.text('Programa de Siembra', M, 11.5);
+  if(fc) doc.text('Campo: '+fc, W/2, 11.5, {align:'center'});
+  doc.text(hoy, W-M, 11.5, {align:'right'});
+  doc.setTextColor(0,0,0);
+  let curY = hdrH + 2;
+
+  // ─── TARJETONES compactos ────────────────────────────────
+  const tHa = P.reduce((s,p)=>s+(p.sup||0),0);
+  const tSemKg  = P.filter(p=>p.unidad!=='Bolsa').reduce((s,p)=>s+(p.densLote||0),0);
+  const tSemBol = P.filter(p=>p.unidad==='Bolsa').reduce((s,p)=>s+(p.densLote||0),0);
+  let tCura=0,tInoc=0,tFertT=0;
+  const uCur=new Set(),uIno=new Set(),uFer=new Set();
+  P.forEach(p=>{
+    (p.curas||[]).forEach(c=>{
+      const cU=(c.unit||'').toLowerCase();
+      tCura+=c.dosis&&p.densLote?(cU.includes('bolsa')?c.dosis*p.densLote:c.dosis*p.densLote/100):0;
+      const up=(DB.curas.find(x=>x.n===c.n)||{}).up||c.uProd||''; if(up)uCur.add(up);
+    });
+    (p.inocs||[]).forEach(c=>{
+      const iU=(c.unit||'').toLowerCase();
+      tInoc+=c.dosis&&p.densLote?(iU.includes('bolsa')?c.dosis*p.densLote:c.dosis*p.densLote/100):0;
+      const up=(DB.inocs.find(x=>x.n===c.n)||{}).up||c.uProd||''; if(up)uIno.add(up);
+    });
+    (p.ferts||[]).forEach(f=>{
+      tFertT+=(f.dosis||0)*(p.sup||0);
+      const up=(DB.ferts.find(x=>x.n===f.n)||{}).up||f.uProd||''; if(up)uFer.add(up);
+    });
+  });
+  const joinU = s=>[...s].join('/') || '—';
+  const semVal = [tSemKg>0?fmtI(tSemKg)+' kg':null, tSemBol>0?fmt(tSemBol,2)+' bol':null].filter(Boolean).join(' / ') || '—';
+  const cards=[
+    {l:'Hectáreas', v:fmt(tHa,1), u:'ha'},
+    {l:'Semilla', v:semVal, u:''},
+    {l:'Curasemillas', v:fmt(tCura,2), u:joinU(uCur)},
+    {l:'Inoculantes', v:fmt(tInoc,2), u:joinU(uIno)},
+    {l:'Fertilizantes', v:fmt(tFertT,1), u:joinU(uFer)},
+  ];
+  const cardH=11; const cW=(W-M*2-4)/cards.length-1;
+  cards.forEach((c,i)=>{
+    const cx=M+i*(cW+1.2);
+    doc.setFillColor(...LG); doc.roundedRect(cx,curY,cW,cardH,1,1,'F');
+    doc.setFontSize(6); doc.setTextColor(90,90,90); doc.setFont('helvetica','normal');
+    doc.text(c.l, cx+cW/2, curY+3.5, {align:'center'});
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...VG);
+    doc.text(String(c.v), cx+cW/2, curY+8, {align:'center'});
+    if(c.u){ doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(110,110,110);
+      doc.text(c.u, cx+cW/2, curY+10.5, {align:'center'}); }
+    doc.setTextColor(0,0,0);
+  });
+  curY += cardH + 2;
+
+  // ─── helper: repeat header on new pages ──────────────────
+  const pageHdr = () => {
+    doc.setFillColor(...VG); doc.rect(0,0,W,hdrH,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text(titulo, W/2, 8, {align:'center'});
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('Programa de Siembra',M,11.5);
+    doc.text(hoy,W-M,11.5,{align:'right'});
+    doc.setTextColor(0,0,0);
+  };
+
+  // ─── TABLA PRINCIPAL: Detalle por Lote ───────────────────
+  const fmtIns = arr => arr&&arr.filter(x=>x.n).length
+    ? arr.filter(x=>x.n).map(x=>`${x.n} ${x.dosis||''}${x.unit?' '+x.unit:''}`).join('\n') : '—';
+  const loteRows=[...P].sort((a,b)=>a.campo.localeCompare(b.campo)||a.lote.localeCompare(b.lote)).map(p=>{
+    const rng=DB.rangos.find(r=>r.c===p.rango);
+    const decHa=p.unidad==='Bolsa'?3:1; const decLote=p.unidad==='Bolsa'?2:0;
+    return[p.campo,p.lote,fmt(p.sup,1),p.cultivo,p.genotipo||'—',p.orden||'—',
+      rng?fmtDate(rng.min):'—', rng?fmtDate(rng.max):'—',
+      p.des||'—',p.obj||'—',
+      fmt(p.densHa,decHa)+(p.unidad==='Bolsa'?' bol':' kg'),
+      fmt(p.densLote,decLote)+(p.unidad==='Bolsa'?' bol':' kg'),
+      fmtIns(p.curas),fmtIns(p.inocs),fmtIns(p.ferts)];
+  });
+  // Columnas distribuidas para llenar exactamente W - 2*M = 285mm
+  doc.autoTable({
+    startY: curY,
+    theme:'grid',
+    head:[['Campo','Lote','Sup.','Especie','Genotipo','Ord.','F.Mín.','F.Máx.','D.E.S.','Obj/m²','Kg/ha','Kg o Bol.','Curasemillas','Inoculantes','Fertilizantes']],
+    body: loteRows,
+    headStyles:{fillColor:VG, textColor:255, fontStyle:'bold', fontSize:6, cellPadding:1},
+    bodyStyles:{fontSize:6, cellPadding:1},
+    alternateRowStyles:{fillColor:GR},
+    columnStyles:{
+      0:{cellWidth:21},1:{cellWidth:14},2:{cellWidth:11},
+      3:{cellWidth:17},4:{cellWidth:27},
+      5:{cellWidth:9}, 6:{cellWidth:16},7:{cellWidth:16},
+      8:{cellWidth:9}, 9:{cellWidth:10},
+      10:{cellWidth:16},11:{cellWidth:16},
+      12:{cellWidth:35},13:{cellWidth:35},14:{cellWidth:33}
+    },
+    styles:{overflow:'linebreak'},
+    margin:{left:M, right:M},
+    tableWidth: W-M*2,
+    didDrawPage: d=>{ if(d.pageNumber>1){ pageHdr(); } },
+  });
+  curY = doc.lastAutoTable.finalY + 4;
+
+  // ─── 4 TABLAS DE INSUMOS — fila completa ─────────────────
+  const gap2=3; const colW2=(W-M*2-gap2*3)/4;
+
+  const semAgg2={};
+  P.forEach(p=>{ if(!p.genotipo)return;
+    const k=`${p.campo}||${p.cultivo}||${p.genotipo}`;
+    if(!semAgg2[k])semAgg2[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,total:0,unidad:p.unidad};
+    semAgg2[k].total+=p.densLote||0; });
+  const semR2=Object.values(semAgg2).sort((a,b)=>a.campo.localeCompare(b.campo)).map(r=>[r.campo,r.cultivo,r.genotipo,fmt(r.total,r.unidad==='Bolsa'?2:0),r.unidad||'—']);
+
+  const cAgg2={};
+  P.forEach(p=>{(p.curas||[]).forEach(c=>{ if(!c.n)return;
+    const k=`${p.campo}||${p.cultivo}||${p.genotipo}||${c.n}`;
+    const cU=(c.unit||'').toLowerCase();
+    const tot=c.dosis&&p.densLote?(cU.includes('bolsa')?c.dosis*p.densLote:c.dosis*p.densLote/100):0;
+    if(!cAgg2[k])cAgg2[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,prod:c.n,total:0,uProd:(DB.curas.find(x=>x.n===c.n)||{}).up||c.uProd||'—'};
+    cAgg2[k].total+=tot; });});
+  const cR2=Object.values(cAgg2).sort((a,b)=>a.campo.localeCompare(b.campo)).map(r=>[r.campo,r.cultivo,r.genotipo,r.prod,fmt(r.total,2),r.uProd]);
+
+  const iAgg2={};
+  P.forEach(p=>{(p.inocs||[]).forEach(c=>{ if(!c.n)return;
+    const k=`${p.campo}||${p.cultivo}||${p.genotipo}||${c.n}`;
+    const iU=(c.unit||'').toLowerCase();
+    const tot=c.dosis&&p.densLote?(iU.includes('bolsa')?c.dosis*p.densLote:c.dosis*p.densLote/100):0;
+    if(!iAgg2[k])iAgg2[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,prod:c.n,total:0,uProd:(DB.inocs.find(x=>x.n===c.n)||{}).up||c.uProd||'—'};
+    iAgg2[k].total+=tot; });});
+  const iR2=Object.values(iAgg2).sort((a,b)=>a.campo.localeCompare(b.campo)).map(r=>[r.campo,r.cultivo,r.genotipo,r.prod,fmt(r.total,2),r.uProd]);
+
+  const fAgg2={};
+  P.forEach(p=>{(p.ferts||[]).forEach(f=>{ if(!f.n)return;
+    const k=`${p.campo}||${p.cultivo}||${p.genotipo}||${f.n}`;
+    if(!fAgg2[k])fAgg2[k]={campo:p.campo,cultivo:p.cultivo,genotipo:p.genotipo,prod:f.n,total:0,uProd:(DB.ferts.find(x=>x.n===f.n)||{}).up||f.uProd||'—'};
+    fAgg2[k].total+=(f.dosis||0)*(p.sup||0); });});
+  const fR2=Object.values(fAgg2).sort((a,b)=>a.campo.localeCompare(b.campo)).map(r=>[r.campo,r.cultivo,r.genotipo,r.prod,fmt(r.total,1),r.uProd]);
+
+  const subTables=[
+    {title:'Semillas',     head:['Campo','Cultivo','Genotipo','Total','U.Prod.'], rows:semR2, hc:[27,94,32]},
+    {title:'Curasemillas', head:['Campo','Cultivo','Genotipo','Producto','Total','U.Prod.'], rows:cR2, hc:[69,90,100]},
+    {title:'Inoculantes',  head:['Campo','Cultivo','Genotipo','Producto','Total','U.Prod.'], rows:iR2, hc:[38,50,56]},
+    {title:'Fertilizantes',head:['Campo','Cultivo','Genotipo','Producto','Total','U.Prod.'], rows:fR2, hc:[130,100,23]},
+  ];
+
+  subTables.forEach((t,i)=>{
+    const x=M+i*(colW2+gap2);
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...t.hc);
+    doc.text(t.title, x, curY+4);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal');
+    doc.autoTable({
+      theme:'grid', startY:curY+5,
+      head:[t.head],
+      body:t.rows.length?t.rows:[Array(t.head.length).fill('Sin datos')],
+      headStyles:{fillColor:t.hc,textColor:255,fontStyle:'bold',fontSize:5.5,cellPadding:0.8},
+      bodyStyles:{fontSize:5.5,cellPadding:0.8},
+      alternateRowStyles:{fillColor:GR},
+      margin:{left:x, right:W-x-colW2},
+      tableWidth:colW2,
+    });
+  });
+
+  const fs=campana?campana.replace('/','_'):'Todas';
+  doc.save('ProgramaSiembra_'+fs+'_'+hoy.replace(/\//g,'-')+'.pdf');
+}
+
+// ====== CAMPANAS ======
+function renderCampanas(){
+  const sel=document.getElementById('sel-campana');if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">\u2014 Todas \u2014</option>';
+  DB.campanas.forEach(c=>sel.innerHTML+=`<option value="${esc(c.n)}"${prev===c.n?' selected':''}>${esc(c.n)}</option>`);
+}
+function addCampana(){
+  const n=prompt('Nombre de la campana (ej: 2025/26):');
+  if(!n||!n.trim())return;
+  const nombre=n.trim();
+  if(DB.campanas.find(c=>c.n===nombre)){alert('Ya existe esa campana.');return;}
+  DB.campanas.push({n:nombre});sv('campanas');
+  renderCampanas();
+  document.getElementById('sel-campana').value=nombre;
+  refreshDatosFiltros();refreshResumenFiltros();actualizarStats();
+}
+function delCampana(){
+  const sel=document.getElementById('sel-campana');
+  const nombre=sel?.value;
+  if(!nombre){alert('Primero selecciona una campana para eliminar.');return;}
+  if(!confirm('Eliminar campana "'+nombre+'"? No borra los lotes programados con esa campana.'))return;
+  DB.campanas=DB.campanas.filter(c=>c.n!==nombre);sv('campanas');
+  renderCampanas();refreshDatosFiltros();refreshResumenFiltros();actualizarStats();
+}
+function onCampanaChange(){
+  refreshDatosFiltros();refreshResumenFiltros();renderDatos();renderResumen();actualizarStats();
+}
+
+// ====== ORDEN INLINE ======
+function setOrden(idx,val){
+  if(!DB.prog[idx])return;
+  DB.prog[idx].orden=parseInt(val)||0;sv('prog');
+  renderResumen();actualizarStats();
+}
+function setRango(idx,val){
+  if(!DB.prog[idx])return;
+  const r=DB.rangos.find(x=>x.c===val);
+  DB.prog[idx].rango=val;
+  DB.prog[idx].fs=r?`${fmtDate(r.min)}–${fmtDate(r.max)}`:' A confirmar';
+  sv('prog');renderResumen();
+}
+
+// ====== RESET ======
+function resetearTodo(){
+  if(!confirm('Esto borrara TODOS los datos cargados. Esta accion no se puede deshacer. Confirmas?'))return;
+  localStorage.clear();location.reload();
+}
+
+// ====== INIT ======
+function initApp(){
+  try{renderCampanas();}catch(e){console.error('renderCampanas',e);}
+  try{renderCampos();}catch(e){console.error('renderCampos',e);}
+  try{refreshLoteFiltro();}catch(e){console.error('refreshLoteFiltro',e);}
+  try{renderAmbs();}catch(e){console.error('renderAmbs',e);}
+  try{renderCultivos();}catch(e){console.error('renderCultivos',e);}
+  try{renderRangos();}catch(e){console.error('renderRangos',e);}
+  try{renderGenos();}catch(e){console.error('renderGenos',e);}
+  try{renderCuras();}catch(e){console.error('renderCuras',e);}
+  try{renderInocs();}catch(e){console.error('renderInocs',e);}
+  try{renderFerts();}catch(e){console.error('renderFerts',e);}
+  try{refreshDatosFiltros();}catch(e){console.error('refreshDatosFiltros',e);}
+  try{refreshResumenFiltros();}catch(e){console.error('refreshResumenFiltros',e);}
+  try{renderDatos();}catch(e){console.error('renderDatos',e);}
+  try{renderResumen();}catch(e){console.error('renderResumen',e);}
+  try{actualizarStats();}catch(e){console.error('actualizarStats',e);}
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+</script>
+</body>
+</html>

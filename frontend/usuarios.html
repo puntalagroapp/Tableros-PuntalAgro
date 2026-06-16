@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usuarios y permisos · Puntal Agro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0F2F5;--card:#fff;--border:#E4E8EE;--text:#0F1923;--muted:#7A8899;--olive:#4A6533;--ochre:#A86A1F;--terra:#C8642D;--radius:12px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo-title{font-size:13px;font-weight:600}.logo-sub{font-size:11px;color:var(--muted)}
+.h-actions{display:flex;gap:8px}
+.lnk{font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:20px;padding:5px 12px;cursor:pointer;text-decoration:none}
+.lnk:hover{color:var(--olive);border-color:var(--olive)}
+main{padding:20px 24px;display:flex;flex-direction:column;gap:18px;flex:1;max-width:1000px;width:100%;margin:0 auto}
+h1{font-size:20px;font-weight:600;letter-spacing:-.3px}
+.sub{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.panel h2{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:11px;font-weight:600;color:var(--muted)}
+.fld input,.fld select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:var(--sans);font-size:13px;min-width:160px}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--olive)}
+.btn{background:var(--olive);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{background:#3c5429}
+.btn-sm{font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer}
+.btn-sm:hover{color:var(--terra);border-color:var(--terra)}
+.checklist{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.checklist label{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:background .1s,border-color .1s}
+.checklist label.on{border-color:var(--olive);background:#EEF3E8;color:#3A5128}
+.checklist label.disabled{opacity:.55;cursor:default;background:var(--bg)}
+.checklist label.disabled.on{background:#EEF3E8}
+.sel-acc{display:flex;gap:10px;margin:2px 0 6px}
+.sel-acc button{background:none;border:none;color:var(--olive);font-size:11px;font-weight:600;cursor:pointer;padding:0;font-family:var(--sans);text-decoration:underline}
+.sel-acc button:hover{color:#3c5429}
+.checklist input{width:auto;min-width:0}
+.bdg{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:10px;background:var(--bg);border:1px solid var(--border)}
+.note{font-size:11px;color:var(--muted);background:#FBF1E0;border:1px solid #EAD9B8;border-radius:8px;padding:10px 12px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-title">Usuarios y permisos · Puntal Agro</div>
+    <div class="logo-sub">Administración (modo demo)</div>
+  </div>
+  <div class="h-actions">
+    <a class="lnk" href="index.html">← Volver al menú</a>
+    <button class="lnk" onclick="resetDemo()">Reiniciar demo</button>
+  </div>
+</header>
+
+<main>
+  <div>
+    <h1>Usuarios y permisos</h1>
+    <p class="sub">Alta de usuarios y asignación de permisos por empresa (herramientas + nivel). En modo demo todo se guarda en localStorage; al conectar el backend, esta pantalla usará las mismas funciones contra el servidor.</p>
+    <p class="sub" id="alcance" style="color:var(--olive);font-weight:600;margin-top:6px"></p>
+  </div>
+
+  <div class="note">El permiso es <strong>por empresa</strong>: un usuario puede tener distinto conjunto de herramientas y nivel en cada empresa. El permiso llega hasta nivel campo (acá, en demo, se asignan todas).</div>
+
+  <div class="panel">
+    <h2>Nuevo usuario</h2>
+    <div class="row">
+      <div class="fld"><label>Nombre</label><input id="u-nombre" placeholder="Nombre y apellido"></div>
+      <div class="fld"><label>Email (login)</label><input id="u-email" placeholder="usuario@empresa.com"></div>
+      <div class="fld"><label>Rol</label>
+        <select id="u-rol"></select>
+      </div>
+      <button class="btn" onclick="crearUsuario()">Crear usuario</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Usuarios</h2>
+    <table id="tbl-usuarios"><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Permisos</th><th></th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="panel">
+    <h2>Asignar / editar permiso</h2>
+    <div class="row">
+      <div class="fld"><label>Usuario</label><select id="p-usuario" onchange="precargar()"></select></div>
+      <div class="fld"><label>Empresa</label><select id="p-empresa" onchange="precargar()"></select></div>
+      <div class="fld"><label>Nivel</label>
+        <select id="p-nivel"><option value="ver">ver</option><option value="cargar">cargar</option><option value="administrar">administrar</option></select>
+      </div>
+    </div>
+    <div class="fld" style="margin-top:14px"><label>Campos habilitados</label>
+      <label class="chk" style="margin:2px 0 6px"><input type="checkbox" id="p-todos-campos" checked onchange="toggleTodosCampos()"> Todos los campos de la empresa</label>
+      <div class="checklist" id="p-campos"></div>
+    </div>
+    <div class="fld" style="margin-top:14px"><label>Herramientas habilitadas</label>
+      <div class="sel-acc">
+        <button type="button" onclick="selHerramientas(true)">Seleccionar todas</button>
+        <button type="button" onclick="selHerramientas(false)">Ninguna</button>
+      </div>
+      <div class="checklist" id="p-herramientas"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" onclick="asignarPermiso()">Guardar permiso</button>
+      <button class="btn-sm" id="btn-borrar" style="display:none" onclick="borrarPermisoActual()">Quitar acceso a esta empresa</button>
+      <span id="p-estado" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+  </div>
+</main>
+
+<script src="pa-core.js"></script>
+<script>
+var CTX = null;  // contexto del admin logueado
+
+// llena el desplegable de rol con los roles que el usuario logueado puede crear:
+// - admin_general: admin_general, admin_cliente, usuario
+// - admin_cliente: admin_cliente (de su cliente), usuario
+function renderRoles(){
+  var sel = document.getElementById('u-rol');
+  if (!sel) return;
+  var roles;
+  if (CTX && CTX.usuario.rol === 'admin_cliente') {
+    roles = ['usuario', 'admin_cliente'];
+  } else {
+    roles = ['usuario', 'admin_cliente', 'admin_general'];
+  }
+  sel.innerHTML = '';
+  for (var i=0;i<roles.length;i++){
+    var o = document.createElement('option');
+    o.value = roles[i]; o.textContent = roles[i];
+    sel.appendChild(o);
+  }
+}
+
+function renderUsuarios(){
+  var us = PA.demo.usuariosVisibles();
+  var ps = PA.demo.listarPermisos();
+  var emp = PA.demo.empresasVisibles();
+  var nombreEmp = {};
+  for (var e=0;e<emp.length;e++) nombreEmp[emp[e].id]=emp[e].razonSocial;
+  var tb = document.querySelector('#tbl-usuarios tbody');
+  tb.innerHTML='';
+  for (var i=0;i<us.length;i++){
+    var u=us[i];
+    var permisosTxt='';
+    if (u.rol==='admin_general'){ permisosTxt='<span class="bdg">acceso total</span>'; }
+    else {
+      for (var j=0;j<ps.length;j++){
+        if (ps[j].usuarioId===u.id){
+          permisosTxt += '<div style="margin-bottom:3px"><span class="bdg">'+(nombreEmp[ps[j].empresaId]||ps[j].empresaId)+'</span> '+ps[j].nivel+' · '+ps[j].herramientas.length+' herr.</div>';
+        }
+      }
+      if(!permisosTxt) permisosTxt='<span style="color:var(--muted)">sin permisos</span>';
+    }
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+u.nombre+'</td><td>'+u.email+'</td><td><span class="bdg">'+u.rol+'</span></td><td>'+permisosTxt+'</td>'+
+      '<td><button class="btn-sm" onclick="borrarUsuario(\''+u.id+'\')">Borrar</button></td>';
+    tb.appendChild(tr);
+  }
+  // refrescar selects (solo usuarios y empresas visibles)
+  var su=document.getElementById('p-usuario'); su.innerHTML='';
+  for (var k=0;k<us.length;k++){ if(us[k].rol==='admin_general')continue; var o=document.createElement('option');o.value=us[k].id;o.textContent=us[k].nombre;su.appendChild(o); }
+  var se=document.getElementById('p-empresa'); se.innerHTML='';
+  for (var m=0;m<emp.length;m++){ var oe=document.createElement('option');oe.value=emp[m].id;oe.textContent=emp[m].razonSocial;se.appendChild(oe); }
+}
+
+// dibuja la checklist; marca las que están en 'habilitadas' (array de ids)
+function renderChecklist(habilitadas){
+  habilitadas = habilitadas || [];
+  var cont=document.getElementById('p-herramientas'); cont.innerHTML='';
+  var hs=PA.demo.herramientasPropias();
+  for (var i=0;i<hs.length;i++){
+    (function(h){
+      var marcada = habilitadas.indexOf(h.id) >= 0;
+      var lab=document.createElement('label');
+      lab.className = marcada ? 'on' : '';
+      var cb=document.createElement('input'); cb.type='checkbox'; cb.value=h.id; cb.checked=marcada;
+      cb.onchange=function(){ lab.className = cb.checked ? 'on' : ''; };
+      var sp=document.createElement('span'); sp.textContent=h.nombre;
+      lab.appendChild(cb); lab.appendChild(sp);
+      cont.appendChild(lab);
+    })(hs[i]);
+  }
+}
+
+// marca o desmarca todas las herramientas
+function selHerramientas(marcar){
+  var labs = document.querySelectorAll('#p-herramientas label');
+  for (var i=0;i<labs.length;i++){
+    var cb = labs[i].querySelector('input[type=checkbox]');
+    cb.checked = marcar;
+    labs[i].className = marcar ? 'on' : '';
+  }
+}
+
+// dibuja la lista de campos de la empresa. 'habilitados' = ids marcados.
+// 'deshabilitado' = modo "todos los campos": se ven todos marcados pero en gris, no editables.
+function renderCamposChecklist(empresaId, habilitados, deshabilitado){
+  habilitados = habilitados || [];
+  var cont=document.getElementById('p-campos'); cont.innerHTML='';
+  var campos = empresaId ? PA.demo.camposDeEmpresa(empresaId) : [];
+  if(!campos.length){
+    cont.innerHTML='<span style="font-size:12px;color:var(--muted)">Esta empresa no tiene campos cargados.</span>';
+    return;
+  }
+  for (var i=0;i<campos.length;i++){
+    (function(k){
+      var marcado = deshabilitado ? true : (habilitados.indexOf(k.id) >= 0);
+      var lab=document.createElement('label');
+      lab.className = (marcado ? 'on' : '') + (deshabilitado ? ' disabled' : '');
+      var cb=document.createElement('input'); cb.type='checkbox'; cb.value=k.id; cb.checked=marcado;
+      cb.disabled = !!deshabilitado;
+      cb.onchange=function(){ lab.className = cb.checked ? 'on' : ''; };
+      var sp=document.createElement('span'); sp.textContent=k.nombre + (k.haTotales?(' · '+k.haTotales+' ha'):'');
+      lab.appendChild(cb); lab.appendChild(sp);
+      cont.appendChild(lab);
+    })(campos[i]);
+  }
+}
+
+// habilita/deshabilita la lista de campos según el checkbox "Todos los campos"
+function toggleTodosCampos(){
+  var todos=document.getElementById('p-todos-campos').checked;
+  var empresaId=document.getElementById('p-empresa').value;
+  renderCamposChecklist(empresaId, [], todos);
+}
+
+// al elegir usuario+empresa, precargar el permiso existente (para editar)
+function precargar(){
+  var usuarioId=document.getElementById('p-usuario').value;
+  var empresaId=document.getElementById('p-empresa').value;
+  var estado=document.getElementById('p-estado');
+  var btnBorrar=document.getElementById('btn-borrar');
+  var todosCampos=document.getElementById('p-todos-campos');
+  if(!usuarioId||!empresaId){ renderChecklist([]); todosCampos.checked=true; renderCamposChecklist(empresaId, [], true); return; }
+  var p = PA.demo.buscarPermiso(usuarioId, empresaId);
+  if(p){
+    document.getElementById('p-nivel').value = p.nivel;
+    renderChecklist(p.herramientas);
+    // campos: [] = todos; con ids = específicos
+    var especificos = p.campoIds && p.campoIds.length > 0;
+    todosCampos.checked = !especificos;
+    renderCamposChecklist(empresaId, p.campoIds || [], !especificos);
+    estado.textContent='Editando permiso existente.';
+    btnBorrar.style.display='';
+  } else {
+    document.getElementById('p-nivel').value='ver';
+    renderChecklist([]);
+    todosCampos.checked=true;
+    renderCamposChecklist(empresaId, [], true);
+    estado.textContent='Nuevo permiso (sin acceso todavía).';
+    btnBorrar.style.display='none';
+  }
+}
+
+function crearUsuario(){
+  var nombre=document.getElementById('u-nombre').value.trim();
+  var email=document.getElementById('u-email').value.trim();
+  var rol=document.getElementById('u-rol').value;
+  if(!nombre||!email){ alert('Completá nombre y email.'); return; }
+  // clienteId del nuevo usuario:
+  // - admin_general: null (es de Puntal, no de un cliente)
+  // - resto: el cliente del admin que lo crea. Si el admin es admin_general,
+  //   por ahora (demo) toma el primer cliente disponible.
+  var clienteId = null;
+  if (rol !== 'admin_general'){
+    if (CTX && CTX.usuario.rol === 'admin_cliente'){
+      clienteId = CTX.clienteId;
+    } else {
+      var cls = PA.demo.listarClientes();
+      clienteId = cls.length ? cls[0].id : null;
+    }
+  }
+  PA.demo.guardarUsuario({ nombre:nombre, email:email, rol:rol, clienteId: clienteId });
+  document.getElementById('u-nombre').value=''; document.getElementById('u-email').value='';
+  renderUsuarios(); precargar();
+}
+function borrarUsuario(id){ if(confirm('¿Borrar este usuario y sus permisos?')){ PA.demo.borrarUsuario(id); renderUsuarios(); precargar(); } }
+
+function asignarPermiso(){
+  var usuarioId=document.getElementById('p-usuario').value;
+  var empresaId=document.getElementById('p-empresa').value;
+  var nivel=document.getElementById('p-nivel').value;
+  if(!usuarioId){ alert('No hay usuarios (que no sean admin_general) para asignar.'); return; }
+  var herr=[];
+  var cbs=document.querySelectorAll('#p-herramientas input[type=checkbox]');
+  for (var i=0;i<cbs.length;i++){ if(cbs[i].checked) herr.push(cbs[i].value); }
+  // campos: [] = todos; si "todos" está destildado, junta los campos elegidos
+  var campoIds=[];
+  if(!document.getElementById('p-todos-campos').checked){
+    var ccs=document.querySelectorAll('#p-campos input[type=checkbox]');
+    for (var j=0;j<ccs.length;j++){ if(ccs[j].checked) campoIds.push(ccs[j].value); }
+  }
+  PA.demo.guardarPermiso({ usuarioId:usuarioId, empresaId:empresaId, campoIds:campoIds, herramientas:herr, nivel:nivel });
+  var txtCampos = campoIds.length ? (campoIds.length+' campos') : 'todos los campos';
+  document.getElementById('p-estado').textContent='Permiso guardado ('+herr.length+' herramientas, '+txtCampos+', nivel '+nivel+').';
+  renderUsuarios(); precargar();
+}
+
+function borrarPermisoActual(){
+  var usuarioId=document.getElementById('p-usuario').value;
+  var empresaId=document.getElementById('p-empresa').value;
+  if(confirm('¿Quitarle a este usuario todo el acceso a esta empresa?')){
+    PA.demo.borrarPermiso(usuarioId, empresaId);
+    renderUsuarios(); precargar();
+  }
+}
+
+function resetDemo(){ if(confirm('¿Reiniciar todos los datos demo?')){ PA.demo.resetDemo(); renderUsuarios(); precargar(); } }
+
+PA.init({ modo:'demo' }, function(){
+  if (!PA.haySesion()) { location.href='login.html'; return; }
+  PA.loadContext(null, function(err, ctx){
+    if (err) { location.href='login.html'; return; }
+    CTX = ctx;
+    // un usuario común no debería entrar al ABM
+    if (ctx.usuario.rol !== 'admin_general' && ctx.usuario.rol !== 'admin_cliente'){
+      location.href='index.html'; return;
+    }
+    // mostrar el alcance de quién está gestionando
+    var alcance = document.getElementById('alcance');
+    if (alcance){
+      alcance.textContent = ctx.usuario.rol === 'admin_general'
+        ? 'Estás viendo todos los usuarios (administración general de Puntal).'
+        : 'Estás viendo solo los usuarios de tu cliente.';
+    }
+    renderUsuarios();
+    renderRoles();
+    precargar();
+  });
+});
+</script>
+
+</body>
+</html>

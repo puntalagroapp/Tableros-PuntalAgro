@@ -1,0 +1,2947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión Fitosanitaria</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --g900: #1b4332; --g800: #2d6a4f; --g700: #40916c; --g500: #52b788;
+  --g300: #95d5b2; --g100: #d8f3dc; --g50: #f0faf4;
+  --gr900: #111827; --gr700: #374151; --gr500: #6b7280;
+  --gr300: #d1d5db; --gr200: #e5e7eb; --gr100: #f3f4f6;
+  --white: #ffffff; --red: #dc2626; --amber: #d97706;
+  --sh: 0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);
+  --sh-md: 0 4px 6px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+  --sh-lg: 0 10px 15px rgba(0,0,0,.10),0 4px 6px rgba(0,0,0,.05);
+  --r: 8px; --rl: 12px;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+body { font-family: var(--font); background: var(--gr100); color: var(--gr900); min-height: 100vh; }
+
+/* HEADER */
+header { background: linear-gradient(135deg,var(--g900),var(--g800)); color: var(--white); padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 60px; box-shadow: var(--sh-md); position: sticky; top: 0; z-index: 100; }
+header h1 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
+
+.camp-banner { background:var(--g100); border:1px solid var(--g300); border-radius:8px; padding:8px 14px; margin-bottom:14px; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--g800); font-weight:600; }
+.camp-banner .cb-ico { font-size:14px; }
+
+/* TABS */
+.tabs-nav { background: var(--white); border-bottom: 1px solid var(--gr300); padding: 0 28px; display: flex; }
+.tab-btn { padding: 13px 20px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--gr500); border-bottom: 3px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.tab-btn:hover { color: var(--g700); }
+.tab-btn.active { color: var(--g800); border-bottom-color: var(--g700); font-weight: 700; }
+.cnt { background: var(--g100); color: var(--g800); border-radius: 999px; padding: 1px 7px; font-size: 11px; font-weight: 700; }
+
+/* MAIN */
+main { padding: 24px 28px; max-width: 1500px; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* TOOLBAR */
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+.toolbar h2 { font-size: 19px; font-weight: 700; }
+.toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border-radius: var(--r); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary   { background: var(--g700); color: var(--white); }
+.btn-primary:hover { background: var(--g800); }
+.btn-secondary { background: var(--white); color: var(--gr700); border: 1px solid var(--gr300); }
+.btn-secondary:hover { background: var(--gr100); }
+.btn-danger    { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-ghost     { background: transparent; color: var(--gr500); padding: 5px 7px; }
+.btn-ghost:hover { background: var(--gr100); color: var(--gr700); }
+.btn-sm  { padding: 6px 12px; font-size: 12px; }
+.btn-xs  { padding: 3px 8px; font-size: 11px; border-radius: 5px; }
+
+/* SEARCH */
+.search-wrap { position: relative; }
+.search-wrap input { padding: 7px 11px 7px 32px; border: 1px solid var(--gr300); border-radius: var(--r); font-size: 13px; width: 220px; outline: none; transition: border .15s; }
+.search-wrap input:focus { border-color: var(--g500); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+.search-wrap .si { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--gr500); font-size: 13px; pointer-events: none; }
+
+/* TABLE CARD */
+.tcard { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--g50); }
+th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--g800); border-bottom: 1px solid var(--g100); white-space: nowrap; }
+td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--gr100); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--g50); }
+.td-actions { display: flex; gap: 4px; }
+.num { text-align: right; }
+
+/* TAGS */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.tag-herb { background: #fef3c7; color: #92400e; }
+.tag-fung { background: #ede9fe; color: #5b21b6; }
+.tag-ins  { background: #fee2e2; color: #991b1b; }
+.tag-coad { background: #dbeafe; color: #1e40af; }
+.tag-fert { background: #d1fae5; color: #065f46; }
+.tag-cura { background: #fce7f3; color: #9d174d; }
+.tag-inoc { background: #e0f2fe; color: #075985; }
+.tag-banda-ia  { background: #c0392b; color: #fff; }
+.tag-banda-ib  { background: #e74c3c; color: #fff; }
+.tag-banda-ii  { background: #f39c12; color: #fff; }
+.tag-banda-iii { background: #2980b9; color: #fff; }
+.tag-banda-iv  { background: #27ae60; color: #fff; }
+.tag-banda-u   { background: #f3f4f6; color: #374151; }
+.banda-selector { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.banda-opt { padding: 6px 12px; border-radius: 6px; border: 2px solid var(--gr300); background: var(--gr100); color: var(--gr700); font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; font-family: var(--font); }
+.banda-opt.active { box-shadow: 0 0 0 3px rgba(0,0,0,0.25); transform: scale(1.05); }
+.banda-none { background: var(--white); }
+.rec-tbl { width:100%; border-collapse:collapse; }
+.rec-tbl th { background:var(--gr100); padding:8px 10px; text-align:left; font-size:12px; font-weight:700; color:var(--gr700); white-space:nowrap; }
+.rec-tbl td { padding:6px 8px; border-bottom:1px solid var(--gr100); vertical-align:middle; }
+.rec-tbl select { width:100%; padding:5px 8px; border:1px solid var(--gr300); border-radius:6px; font-size:12px; font-family:var(--font); background:var(--white); }
+.rec-tbl input[type=number] { width:80px; padding:5px 8px; border:1px solid var(--gr300); border-radius:6px; font-size:12px; font-family:var(--font); }
+.rec-ro { background:var(--gr100); border:1px solid var(--gr200); color:var(--gr600); font-size:12px; padding:4px 8px; border-radius:6px; display:inline-block; min-width:40px; white-space:nowrap; }
+.modo-row { display:flex; gap:6px; align-items:center; }
+.modo-row select { flex:1; }
+.modo-add-form { display:none; background:var(--g50); border:1px solid var(--g300); border-radius:8px; padding:10px 12px; margin-top:8px; }
+.modo-add-form .form-row { margin-bottom:0; gap:8px; }
+.prog-etapa-row { display:grid; grid-template-columns:160px 1fr auto; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--gr100); }
+.prog-etapa-row:last-child { border-bottom:none; }
+.prog-etapa-label { font-size:13px; font-weight:600; color:var(--gr700); }
+.prog-rec-summary { font-size:11px; color:var(--gr500); margin-top:3px; }
+.prog-meta { display:flex; gap:16px; background:var(--g50); border:1px solid var(--g100); border-radius:8px; padding:10px 16px; margin-bottom:16px; }
+.prog-meta-item { display:flex; flex-direction:column; }
+.prog-meta-item .pm-label { font-size:11px; color:var(--gr500); text-transform:uppercase; letter-spacing:.4px; }
+.prog-meta-item .pm-val { font-size:14px; font-weight:700; color:var(--gr900); }
+.res-filters { display:flex; flex-wrap:wrap; gap:12px; background:var(--white); border-radius:var(--rl); box-shadow:var(--sh); padding:16px 20px; margin-bottom:16px; align-items:flex-end; }
+.res-filters .form-group { margin:0; min-width:140px; flex:1; }
+.res-summary-hdr { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+.res-scard { background:var(--white); border-radius:var(--rl); box-shadow:var(--sh); padding:14px 20px; flex:1; min-width:130px; }
+.res-scard .rs-label { font-size:11px; color:var(--gr500); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+.res-scard .rs-val { font-size:22px; font-weight:800; color:var(--g800); }
+.res-tag-tipo { display:inline-block; padding:1px 7px; border-radius:999px; font-size:11px; font-weight:600; }
+
+/* EMPTY STATE */
+.empty { padding: 48px 20px; text-align: center; color: var(--gr500); font-size: 14px; }
+.empty .ei { font-size: 36px; margin-bottom: 10px; opacity: .35; }
+
+/* CAMPOS */
+.campo-card { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh); margin-bottom: 14px; overflow: hidden; }
+.campo-hdr { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-left: 5px solid var(--g700); transition: background .15s; }
+.campo-hdr:hover { background: var(--g50); }
+.campo-hdr h3 { font-size: 15px; font-weight: 700; }
+.campo-meta { font-size: 12px; color: var(--gr500); display: flex; gap: 14px; margin-top: 3px; flex-wrap: wrap; }
+.campo-hdr-right { display: flex; align-items: center; gap: 8px; }
+.chevron { font-size: 11px; color: var(--gr400); transition: transform .2s; }
+.campo-card.collapsed .chevron { transform: rotate(-90deg); }
+.campo-card.collapsed .campo-body { display: none; }
+.campo-body { border-top: 1px solid var(--gr100); }
+.lotes-tbl { width: 100%; border-collapse: collapse; }
+.lotes-tbl th { padding: 8px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--gr500); background: var(--gr100); border-bottom: 1px solid var(--gr200); }
+.lotes-tbl td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--gr100); vertical-align: middle; }
+.lotes-tbl tr:last-child td { border-bottom: none; }
+.lotes-tbl tr:hover td { background: var(--g50); }
+.campo-footer { padding: 10px 14px; background: var(--gr100); border-top: 1px dashed var(--gr200); }
+
+/* CULTIVOS */
+.cultivo-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 14px; }
+.cul-card { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh); padding: 18px; cursor: pointer; border: 2px solid transparent; transition: all .18s; position: relative; overflow: hidden; }
+.cul-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--g700); }
+.cul-card:hover { border-color: var(--g300); box-shadow: var(--sh-md); transform: translateY(-2px); }
+.cul-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+.cul-card .cmeta { font-size: 12px; color: var(--gr500); margin-bottom: 12px; }
+.etapa-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.epill { background: var(--g100); color: var(--g800); border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+.cul-card-actions { position: absolute; top: 12px; right: 10px; display: flex; gap: 3px; opacity: 0; transition: opacity .15s; }
+.cul-card:hover .cul-card-actions { opacity: 1; }
+
+/* DETAIL VIEW */
+.detail-view { display: none; }
+.detail-view.active { display: block; }
+.list-view.hidden { display: none; }
+.back-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.back-bar .crop-title { font-size: 20px; font-weight: 700; }
+.back-bar .crop-meta { font-size: 13px; color: var(--gr500); margin-top: 2px; }
+.stage-tabs { display: flex; background: var(--white); border-radius: var(--rl) var(--rl) 0 0; box-shadow: var(--sh); border-bottom: 1px solid var(--gr200); overflow-x: auto; }
+.stab { padding: 11px 16px; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gr500); white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -1px; transition: all .15s; }
+.stab:hover { color: var(--g700); background: var(--g50); }
+.stab.active { color: var(--g800); border-bottom-color: var(--g700); font-weight: 700; background: var(--g50); }
+.stage-content { background: var(--white); border-radius: 0 0 var(--rl) var(--rl); box-shadow: var(--sh); padding: 20px; }
+.spanel { display: none; }
+.spanel.active { display: block; }
+
+/* PLANTEOS */
+.planteo-list { display: flex; flex-direction: column; gap: 12px; }
+.pcard { border: 1px solid var(--gr200); border-radius: var(--r); overflow: hidden; }
+.pcard-hdr { background: var(--gr100); padding: 9px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.pcard-hdr:hover { background: var(--g50); }
+.pt-badge { background: var(--g700); color: var(--white); border-radius: 4px; padding: 1px 6px; font-size: 11px; margin-right: 8px; }
+.pcard-name { font-weight: 600; font-size: 13px; }
+.pcard-body { padding: 10px 14px; }
+.ptbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ptbl th { padding: 5px 9px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--gr500); border-bottom: 1px solid var(--gr200); }
+.ptbl td { padding: 6px 9px; border-bottom: 1px solid var(--gr100); }
+.ptbl tr:last-child td { border-bottom: none; }
+.pcard.collapsed .pcard-body { display: none; }
+.pcard.collapsed .chv { transform: rotate(-90deg); }
+.chv { transition: transform .2s; font-size: 11px; }
+
+/* REQUERIMIENTOS */
+.prog-table-wrap { overflow-x: auto; }
+.prog-card { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh); overflow: hidden; margin-bottom: 20px; }
+.prog-tbl { width: 100%; border-collapse: collapse; min-width: 700px; }
+.prog-tbl th { padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--g800); background: var(--g50); border-bottom: 1px solid var(--g100); white-space: nowrap; }
+.prog-tbl td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--gr100); vertical-align: middle; }
+.prog-tbl tr:last-child td { border-bottom: none; }
+.prog-tbl tr:hover td { background: var(--g50); }
+.recipe-pill { background: var(--g100); color: var(--g900); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+
+.section-label { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--gr900); padding-bottom: 8px; border-bottom: 2px solid var(--g100); }
+.summary-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 12px; margin-bottom: 18px; }
+.scard { background: var(--white); border-radius: var(--rl); padding: 14px 16px; box-shadow: var(--sh); border-left: 4px solid var(--g500); }
+.scard.warn { border-left-color: var(--amber); }
+.scard .sl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gr500); margin-bottom: 5px; }
+.scard .sv { font-size: 20px; font-weight: 800; }
+.scard.warn .sv { color: var(--amber); }
+
+.req-wrap { overflow-x: auto; border-radius: var(--rl); box-shadow: var(--sh); }
+.req-tbl { width: 100%; border-collapse: collapse; background: var(--white); font-size: 12px; min-width: 860px; }
+.req-tbl thead tr:first-child th { background: var(--g900); color: var(--white); padding: 9px 11px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+.req-tbl thead tr:last-child th { background: var(--g800); color: var(--g100); padding: 7px 11px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.req-tbl td { padding: 8px 11px; border-bottom: 1px solid var(--gr100); vertical-align: middle; }
+.req-tbl tr:last-child td { border-bottom: none; }
+.req-tbl tr:hover td { background: var(--g50); }
+.col-total { background: var(--g50) !important; font-weight: 700; color: var(--g900); }
+.col-compra { background: #fff7ed !important; font-weight: 700; }
+.col-compra.red  { color: var(--amber); }
+.col-compra.ok   { color: var(--g700); }
+.col-compra.zero { color: var(--gr400); }
+.req-filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.req-filters select, .req-filters input[type=text] { padding: 6px 10px; border: 1px solid var(--gr300); border-radius: var(--r); font-size: 13px; outline: none; font-family: var(--font); }
+.req-filters select:focus, .req-filters input:focus { border-color: var(--g500); }
+.chk-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gr600); cursor: pointer; }
+.chk-label input { width: auto; accent-color: var(--g700); cursor: pointer; }
+.divider { border: none; border-top: 2px solid var(--g100); margin: 24px 0; }
+
+/* MODALS */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
+.modal-backdrop.hidden { display: none; }
+.modal { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh-lg); width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; animation: su .2s ease; }
+.modal-lg { max-width: 680px; }
+.modal-xl { max-width: 800px; }
+@keyframes su { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.modal-hdr { padding: 18px 22px 14px; border-bottom: 1px solid var(--gr200); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--white); z-index: 1; }
+.modal-hdr h3 { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 18px 22px; }
+.modal-ftr { padding: 14px 22px; border-top: 1px solid var(--gr200); display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--white); }
+.x-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gr500); padding: 3px; border-radius: 4px; }
+.x-btn:hover { background: var(--gr100); }
+
+/* FORMS */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+label { display: block; font-size: 12px; font-weight: 700; color: var(--gr700); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+input, select, textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--gr300); border-radius: var(--r); font-size: 13px; font-family: var(--font); outline: none; transition: border .15s, box-shadow .15s; color: var(--gr900); background: var(--white); }
+input:focus, select:focus, textarea:focus { border-color: var(--g500); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+input[type=number] { -moz-appearance: textfield; }
+input::placeholder { color: var(--gr400); }
+.hint { font-size: 11px; color: var(--gr400); margin-top: 3px; }
+
+/* INSUMO ROWS */
+.ir-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.ir { display: grid; grid-template-columns: 1fr 70px 90px 28px; gap: 7px; align-items: center; }
+.ir select, .ir input { margin: 0; padding: 6px 9px; font-size: 12px; }
+.ir-hdr { display: grid; grid-template-columns: 1fr 70px 90px 28px; gap: 7px; padding: 0 0 4px; }
+.ir-hdr span { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--gr500); letter-spacing: .05em; }
+.rm-row { background: none; border: 1px solid var(--gr300); border-radius: 5px; cursor: pointer; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 13px; }
+.rm-row:hover { background: #fee2e2; }
+.add-ir { border: 1px dashed var(--gr300); background: var(--gr50); color: var(--gr500); border-radius: var(--r); padding: 6px; font-size: 12px; cursor: pointer; width: 100%; text-align: center; }
+.add-ir:hover { background: var(--g50); border-color: var(--g300); color: var(--g800); }
+
+/* LISTAS */
+.listas-layout { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: start; }
+.listas-nav { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh); overflow: hidden; }
+.listas-nav-btn { display: block; width: 100%; padding: 12px 16px; border: none; background: none; cursor: pointer; text-align: left; font-size: 13px; font-weight: 500; color: var(--gr700); border-left: 3px solid transparent; transition: all .15s; font-family: var(--font); }
+.listas-nav-btn:hover { background: var(--g50); color: var(--g800); }
+.listas-nav-btn.active { background: var(--g50); color: var(--g800); border-left-color: var(--g700); font-weight: 700; }
+.listas-nav-btn .lnb-cnt { float: right; background: var(--g100); color: var(--g800); border-radius: 999px; padding: 1px 7px; font-size: 11px; font-weight: 700; }
+.listas-panel { display: none; }
+.listas-panel.active { display: block; }
+.listas-card { background: var(--white); border-radius: var(--rl); box-shadow: var(--sh); overflow: hidden; }
+.listas-card-hdr { padding: 14px 18px; border-bottom: 1px solid var(--gr100); display: flex; align-items: center; justify-content: space-between; }
+.listas-card-hdr h3 { font-size: 15px; font-weight: 700; }
+.listas-card-hdr p { font-size: 12px; color: var(--gr500); margin-top: 2px; }
+
+/* TOAST */
+#toast { position: fixed; bottom: 22px; right: 22px; background: var(--g800); color: var(--white); padding: 11px 18px; border-radius: var(--r); box-shadow: var(--sh-lg); font-size: 13px; font-weight: 500; z-index: 999; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; }
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.err { background: var(--red); }
+.etapa-drag-row.drag-over { background:var(--g100); outline:2px dashed var(--g500); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Gestion Fitosanitaria</h1>
+  <button onclick="resetAllData()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:var(--font);">Borrar todos los datos</button>
+
+</header>
+
+<nav class="tabs-nav">
+  <button class="tab-btn active" onclick="showTab('listas',this)">Listas</button>
+  <button class="tab-btn" onclick="showTab('insumos',this)">Insumos <span class="cnt" id="cnt-ins">0</span></button>
+  <button class="tab-btn" onclick="showTab('recetas',this)">Recetas <span class="cnt" id="cnt-rec">0</span></button>
+  <button class="tab-btn" onclick="showTab('prog',this)">Programacion <span class="cnt" id="cnt-prog">0</span></button>
+  <button class="tab-btn" onclick="showTab('resumen',this)">Resumen</button>
+</nav>
+
+<main>
+
+<!-- ═══ LISTAS ═══ -->
+<div class="tab-panel active" id="panel-listas">
+  <div class="toolbar"><h2>Listas</h2></div>
+  <div class="listas-layout">
+
+    <!-- Sidebar nav -->
+    <div class="listas-nav">
+      <button class="listas-nav-btn active" onclick="showLista('campaña',this)">Campaña <span class="lnb-cnt" id="lcnt-campaña">0</span></button>
+      <button class="listas-nav-btn" onclick="showLista('campo',this)">Campo <span class="lnb-cnt" id="lcnt-campo">0</span></button>
+      <button class="listas-nav-btn" onclick="showLista('lote',this)">Lotes <span class="lnb-cnt" id="lcnt-lote">0</span></button>
+      <button class="listas-nav-btn" onclick="showLista('cultivo',this)">Cultivos <span class="lnb-cnt" id="lcnt-cultivo">0</span></button>
+      <button class="listas-nav-btn" onclick="showLista('etapa',this)">Etapas <span class="lnb-cnt" id="lcnt-etapa">0</span></button>
+      <button class="listas-nav-btn" onclick="showLista('unidad',this)">Unidades <span class="lnb-cnt" id="lcnt-unidad">0</span></button>
+      <button class="listas-nav-btn" onclick="showLista('modo',this)">Modos de Accion <span class="lnb-cnt" id="lcnt-modo">0</span></button>
+    </div>
+
+    <!-- Panels -->
+    <div style="min-width:0">
+
+      <!-- CAMPAÑA -->
+      <div class="listas-panel active" id="lp-campaña">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Campañas</h3><p>Periodos de siembra (ej. 25-26, 26-27)</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('campaña')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Nombre</th><th></th></tr></thead>
+          <tbody id="lt-campaña"></tbody></table>
+        </div>
+      </div>
+
+      <!-- CAMPO -->
+      <div class="listas-panel" id="lp-campo">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Campos</h3><p>Unidades productivas o establecimientos</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('campo')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Nombre</th><th></th></tr></thead>
+          <tbody id="lt-campo"></tbody></table>
+        </div>
+      </div>
+
+      <!-- LOTES -->
+      <div class="listas-panel" id="lp-lote">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Lotes</h3><p>Parcelas dentro de cada campo</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('lote')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Lote</th><th>Campo</th><th class="num">Hectareas</th><th></th></tr></thead>
+          <tbody id="lt-lote"></tbody></table>
+        </div>
+      </div>
+
+      <!-- CULTIVOS -->
+      <div class="listas-panel" id="lp-cultivo">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Cultivos</h3><p>Especies o variedades a sembrar</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('cultivo')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Nombre</th><th></th></tr></thead>
+          <tbody id="lt-cultivo"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ETAPAS -->
+      <div class="listas-panel" id="lp-etapa">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Etapas</h3><p>Momentos de aplicacion dentro del ciclo del cultivo</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('etapa')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Nombre</th><th>Orden</th><th></th></tr></thead>
+          <tbody id="lt-etapa"></tbody></table>
+        </div>
+      </div>
+
+      <!-- UNIDADES -->
+      <div class="listas-panel" id="lp-unidad">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Unidades de medida</h3><p>Unidades disponibles para los insumos (Lt, Kg, g, etc.)</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('unidad')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Unidad</th><th></th></tr></thead>
+          <tbody id="lt-unidad"></tbody></table>
+        </div>
+      </div>
+
+      <!-- MODOS DE ACCION -->
+      <div class="listas-panel" id="lp-modo">
+        <div class="listas-card">
+          <div class="listas-card-hdr">
+            <div><h3>Modos de Accion</h3><p>Mecanismos de accion por tipo de producto</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openListaModal('modo')">+ Agregar</button>
+          </div>
+          <table><thead><tr><th>#</th><th>Tipo</th><th>Sigla</th><th>Descripcion</th><th></th></tr></thead>
+          <tbody id="lt-modo"></tbody></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INSUMOS ═══ -->
+<div class="tab-panel" id="panel-insumos">
+  <div class="toolbar">
+    <h2>Insumos</h2>
+    <div class="toolbar-right">
+      <div class="search-wrap"><span class="si">&#128269;</span><input type="text" id="ins-search" oninput="renderInsumos()"></div>
+      <button class="btn btn-primary" onclick="openInsModal()">+ Agregar insumo</button>
+    </div>
+  </div>
+  <div class="tcard">
+    <table><thead><tr><th>#</th><th>Nombre</th><th>Tipo</th><th>Unidad</th><th class="num">U$S/u</th><th>Banda Toxicol.</th><th class="num">EIQ</th><th>Modo de Acción</th><th></th></tr></thead>
+    <tbody id="ins-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ═══ CAMPOS Y LOTES ═══ -->
+<div class="tab-panel" id="panel-campos">
+  <div class="toolbar">
+    <h2>Campos y Lotes</h2>
+    <button class="btn btn-primary" onclick="openCampoModal()">+ Agregar campo</button>
+  </div>
+  <div id="campos-wrap"></div>
+</div>
+
+<!-- ═══ CULTIVOS ═══ -->
+<div class="tab-panel" id="panel-cultivos">
+  <div class="list-view" id="cul-list">
+    <div class="toolbar">
+      <h2>Cultivos</h2>
+      <button class="btn btn-primary" onclick="openCultivoModal()">+ Agregar cultivo</button>
+    </div>
+    <div class="cultivo-cards" id="cul-grid"></div>
+  </div>
+  <div class="detail-view" id="cul-detail">
+    <div class="back-bar">
+      <button class="btn btn-secondary btn-sm" onclick="closeCulDetail()">← Volver</button>
+      <div><div class="crop-title" id="det-name"></div><div class="crop-meta" id="det-meta"></div></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="openCultivoModal(_curCulId)">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="delCultivo(_curCulId)">Eliminar</button>
+      </div>
+    </div>
+    <div class="stage-tabs" id="stabs"></div>
+    <div class="stage-content" id="spanels"></div>
+  </div>
+</div>
+
+
+<!-- ═══ RECETAS ═══ -->
+<div class="tab-panel" id="panel-recetas">
+
+  <!-- List view -->
+  <div id="rec-list">
+    <div id="camp-banner-recetas" class="camp-banner" style="display:none !important"><span class="cb-ico">C</span><span class="cb-txt"></span></div>
+    <div class="toolbar">
+      <h2>Recetas</h2>
+      <button class="btn btn-primary" onclick="openRecForm()">+ Nueva receta</button>
+    </div>
+    <div class="tcard">
+      <table><thead><tr>
+        <th>Título</th><th>Cultivo</th><th>Etapa</th>
+        <th class="num">Insumos</th><th class="num">U$S/ha total</th><th class="num">EIQ total</th><th></th>
+      </tr></thead>
+      <tbody id="rec-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Edit form -->
+  <div id="rec-form" style="display:none">
+    <div class="toolbar">
+      <h2 id="rec-form-title">Nueva receta</h2>
+      <button class="btn btn-secondary" onclick="closeRecForm()">Cancelar</button>
+    </div>
+    <div class="tcard" style="padding:20px">
+      <input type="hidden" id="rec-id">
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Título / Nombre de la receta</label>
+        <input type="text" id="rec-titulo">
+      </div>
+      <div class="form-row" style="margin-bottom:18px">
+        <div class="form-group"><label>Cultivo *</label><select id="rec-cultivo"></select></div>
+        <div class="form-group"><label>Etapa *</label><select id="rec-etapa"></select></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-weight:700;font-size:13px;color:var(--gr700)">Insumos de la receta</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addRecLine()">+ Agregar insumo</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="rec-tbl">
+          <thead><tr>
+            <th style="min-width:180px">Insumo</th>
+            <th>Tipo</th>
+            <th>Unidad</th>
+            <th class="num">Dosis (u/ha)</th>
+            <th class="num">U$S/ha</th>
+            <th>Banda Toxicol.</th>
+            <th class="num">EIQ insumo</th>
+            <th class="num">EIQ/ha</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="rec-lines"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:24px;padding:10px 4px 4px;font-size:13px;color:var(--gr700)">
+        <span id="rec-total-eiq"></span>
+        <span id="rec-total-row"></span>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gr200)">
+        <button class="btn btn-secondary" onclick="closeRecForm()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveReceta()">Guardar receta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ PROGRAMACION ═══ -->
+<div class="tab-panel" id="panel-prog">
+
+  <!-- List view -->
+  <div id="prog-list">
+    <div id="camp-banner-prog" class="camp-banner" style="display:none !important"><span class="cb-ico">C</span><span class="cb-txt"></span></div>
+    <div class="toolbar">
+      <h2>Programacion</h2>
+      <button class="btn btn-primary" onclick="openProgForm()">+ Nueva programacion</button>
+    </div>
+    <!-- Filtros -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;background:var(--gr100);border-radius:8px;padding:8px 12px">
+      <span style="font-size:11px;color:var(--gr500);font-weight:600;white-space:nowrap">Filtrar:</span>
+      <select id="pf-camp" onchange="renderProgramacion()" style="font-size:12px;padding:3px 6px;border:1px solid var(--gr300);border-radius:5px;flex:1;min-width:0"><option value="">Todas las campañas</option></select>
+      <select id="pf-campo" onchange="renderProgramacion()" style="font-size:12px;padding:3px 6px;border:1px solid var(--gr300);border-radius:5px;flex:1;min-width:0"><option value="">Todos los campos</option></select>
+      <select id="pf-cultivo" onchange="renderProgramacion()" style="font-size:12px;padding:3px 6px;border:1px solid var(--gr300);border-radius:5px;flex:1;min-width:0"><option value="">Todos los cultivos</option></select>
+      <button onclick="clearProgFiltros()" style="font-size:10px;padding:2px 7px;border:1px solid var(--gr300);border-radius:4px;background:var(--white);color:var(--gr500);cursor:pointer;white-space:nowrap;flex-shrink:0">x Limpiar</button>
+    </div>
+    <div class="tcard" style="overflow-x:auto">
+      <table id="prog-table" style="min-width:100%">
+        <thead id="prog-thead"></thead>
+        <tbody id="prog-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Edit form -->
+  <div id="prog-form" style="display:none">
+    <div class="toolbar">
+      <h2 id="prog-form-title">Nueva programacion</h2>
+      <button class="btn btn-secondary" onclick="closeProgForm()">Cancelar</button>
+    </div>
+    <div class="tcard" style="padding:20px">
+      <input type="hidden" id="prog-id">
+
+      <!-- Header selectors -->
+      <div class="form-row" style="margin-bottom:16px">
+        <div class="form-group">
+          <label>Campaña *</label>
+          <select id="prog-campaña" onchange="onProgCampChange()"></select>
+        </div>
+        <div class="form-group">
+          <label>Cultivo *</label>
+          <select id="prog-cultivo" onchange="onProgCulChange()"></select>
+        </div>
+        <div class="form-group">
+          <label>Campo *</label>
+          <select id="prog-campo" onchange="onProgCampoChange()"></select>
+        </div>
+        <div class="form-group">
+          <label>Lote *</label>
+          <select id="prog-lote" onchange="onProgLoteChange()"></select>
+        </div>
+      </div>
+
+      <!-- Meta info (campo + has) -->
+      <div class="prog-meta" id="prog-meta" style="display:none">
+        <div class="prog-meta-item">
+          <span class="pm-label">Campo</span>
+          <span class="pm-val" id="prog-meta-campo">—</span>
+        </div>
+        <div class="prog-meta-item">
+          <span class="pm-label">Hectareas</span>
+          <span class="pm-val" id="prog-meta-has">—</span>
+        </div>
+      </div>
+
+      <!-- Etapas -->
+      <div style="font-weight:700;font-size:13px;color:var(--gr700);margin-bottom:8px">Recetas por etapa</div>
+      <div class="listas-card" id="prog-etapas-wrap">
+        <div style="padding:16px;text-align:center;color:var(--gr400);font-size:13px">
+          Selecciona campaña y cultivo para ver las etapas disponibles
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gr200)">
+        <button class="btn btn-secondary" onclick="closeProgForm()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveProgram()">Guardar programacion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ RESUMEN ═══ -->
+<div class="tab-panel" id="panel-resumen">
+  <div id="camp-banner-resumen" class="camp-banner" style="display:none"><span class="cb-ico">C</span><span class="cb-txt"></span></div>
+  <div class="toolbar"><h2>Resumen de insumos</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" onclick="exportResumen()">Exportar CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="printResumen()">Descargar PDF</button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="res-filters">
+    <div class="form-group">
+      <label>Campaña</label>
+      <select id="res-f-camp" onchange="renderResumen()">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Campo</label>
+      <select id="res-f-campo" onchange="renderResumen()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Cultivo</label>
+      <select id="res-f-cultivo" onchange="renderResumen()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Etapa</label>
+      <select id="res-f-etapa" onchange="renderResumen()">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="clearResFilters()" style="align-self:flex-end">Limpiar</button>
+  </div>
+
+  <!-- Cards resumen -->
+  <div class="res-summary-hdr" id="res-cards"></div>
+
+  <!-- Breakdown por cultivo -->
+  <div id="res-cultivo-wrap" style="margin-bottom:16px"></div>
+
+  <!-- Tabla -->
+  <div class="tcard">
+    <table><thead><tr>
+      <th>#</th>
+      <th>Insumo</th>
+      <th>Tipo</th>
+      <th>Unidad</th>
+      <th class="num" style="color:var(--g700)">Total requerimiento</th>
+      <th class="num" style="color:#0891b2">Stock disponible</th>
+      <th class="num" style="color:#ea7c00">Necesidad compra</th>
+      <th class="num">Total U$S</th>
+    </tr></thead>
+    <tbody id="res-tbody"></tbody></table>
+  </div>
+</div>
+
+
+
+<!-- MODAL: DUPLICAR RECETA -->
+<div class="modal-backdrop hidden" id="m-dup">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <h3>Duplicar receta</h3>
+      <button class="x-btn" onclick="closeModal('m-dup')">x</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dup-rec-id">
+      <div style="background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--gr700)">
+        <div id="dup-rec-info"></div>
+      </div>
+      <div class="form-group">
+        <label>Cultivo</label>
+        <select id="dup-cultivo"></select>
+      </div>
+      <div class="form-group">
+        <label>Etapa</label>
+        <select id="dup-etapa"></select>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-dup')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDup()">Duplicar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: RECETA DETALLE -->
+<div class="modal-backdrop hidden" id="m-rec-det">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hdr">
+      <h3 id="m-rec-det-title">Composición de la receta</h3>
+      <button class="x-btn" onclick="closeModal('m-rec-det')">x</button>
+    </div>
+    <div class="modal-body" id="m-rec-det-body"></div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-rec-det')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<div id="toast"></div>
+
+<!-- MODAL: INSUMO -->
+<div class="modal-backdrop hidden" id="m-ins">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="m-ins-title">Agregar insumo</h3><button class="x-btn" onclick="closeModal('m-ins')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ins-id">
+      <div class="form-group"><label>Nombre *</label><input type="text" id="ins-nombre"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select id="ins-tipo" onchange="populateModoSelect(this.value,'')">
+            <option value="">— Seleccionar —</option>
+            <option>Herbicida</option><option>Fungicida</option><option>Insecticida</option>
+            <option>Coadyuvante</option><option>Fertilizante</option><option>Curasemilla</option><option>Inoculante</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unidad *</label>
+          <select id="ins-unidad"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>U$S/u</label>
+          <input type="number" id="ins-precio" value="" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>EIQ</label>
+          <input type="number" id="ins-eiq" value="" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Modo de Acción</label>
+        <select id="ins-modo"><option value="">— Sin especificar —</option></select>
+        <div class="modo-add-form" id="modo-add-form" style="display:none"></div>
+      </div>
+      <div class="form-group">
+        <label>Banda Toxicologica</label>
+        <input type="hidden" id="ins-banda" value="">
+        <div class="banda-selector">
+          <button type="button" class="banda-opt banda-none active" data-val="" onclick="selectBanda(this)">Sin especificar</button>
+          <button type="button" class="banda-opt" data-val="Ia" onclick="selectBanda(this)" style="background:#c0392b;color:#fff;border-color:#c0392b">Clase Ia</button>
+          <button type="button" class="banda-opt" data-val="Ib" onclick="selectBanda(this)" style="background:#e74c3c;color:#fff;border-color:#e74c3c">Clase Ib</button>
+          <button type="button" class="banda-opt" data-val="II" onclick="selectBanda(this)" style="background:#f39c12;color:#fff;border-color:#f39c12">Clase II</button>
+          <button type="button" class="banda-opt" data-val="III" onclick="selectBanda(this)" style="background:#2980b9;color:#fff;border-color:#2980b9">Clase III</button>
+          <button type="button" class="banda-opt" data-val="IV" onclick="selectBanda(this)" style="background:#27ae60;color:#fff;border-color:#27ae60">Clase IV</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-ins')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveInsumo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CAMPO -->
+<div class="modal-backdrop hidden" id="m-campo">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="m-campo-title">Agregar campo</h3><button class="x-btn" onclick="closeModal('m-campo')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="campo-id">
+      <div class="form-group"><label>Nombre del campo *</label><input type="text" id="campo-nombre"></div>
+      <div class="form-group"><label>Descripcion / Ubicacion</label><input type="text" id="campo-desc"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-campo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCampo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LOTE -->
+<div class="modal-backdrop hidden" id="m-lote">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="m-lote-title">Agregar lote</h3><button class="x-btn" onclick="closeModal('m-lote')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="lote-id">
+      <input type="hidden" id="lote-campo-id">
+      <div class="form-row">
+        <div class="form-group"><label>Nombre del lote *</label><input type="text" id="lote-nombre"></div>
+        <div class="form-group"><label>Superficie (has) *</label><input type="number" id="lote-has" min="0" step="0.01"></div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-lote')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveLote()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CULTIVO -->
+<div class="modal-backdrop hidden" id="m-cultivo">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="m-cul-title">Agregar cultivo</h3><button class="x-btn" onclick="closeModal('m-cultivo')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cul-id">
+      <div class="form-group"><label>Nombre del cultivo *</label><input type="text" id="cul-nombre"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Campaña *</label><input type="text" id="cul-campaña"></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="cul-fecha"></div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-cultivo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCultivo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PLANTEO -->
+<div class="modal-backdrop hidden" id="m-planteo">
+  <div class="modal modal-lg">
+    <div class="modal-hdr"><h3 id="m-pt-title">Nuevo Planteo Tecnico</h3><button class="x-btn" onclick="closeModal('m-planteo')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pt-id">
+      <input type="hidden" id="pt-etapa">
+      <input type="hidden" id="pt-cul-id">
+      <div class="form-group"><label>Nombre del planteo *</label><input type="text" id="pt-nombre"></div>
+      <hr style="border:none;border-top:1px solid var(--gr200);margin:14px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <label style="margin:0;text-transform:none;font-size:13px;font-weight:600">Insumos de la receta</label>
+        <span style="font-size:12px;color:var(--gr500)" id="pt-count">0 insumos</span>
+      </div>
+      <div class="ir-hdr"><span>Insumo</span><span>UM</span><span>Dosis/ha</span><span></span></div>
+      <div class="ir-list" id="pt-ir-list"></div>
+      <button class="add-ir" onclick="addIR()">+ Agregar insumo a la receta</button>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-planteo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePlanteo()">Guardar planteo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PROGRAMACION -->
+<div class="modal-backdrop hidden" id="m-prog">
+  <div class="modal modal-xl">
+    <div class="modal-hdr"><h3 id="m-prog-title">Agregar programacion</h3><button class="x-btn" onclick="closeModal('m-prog')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="prog-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Campo</label>
+          <select id="prog-campo" onchange="onProgCampoChange()"><option value="">— Sin campo —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Lote</label>
+          <select id="prog-lote" onchange="onProgLoteChange()" disabled><option value="">— Seleccionar campo primero —</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Hectareas</label>
+          <input type="number" id="prog-has" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Cultivo *</label>
+          <select id="prog-cultivo" onchange="onProgCultivoChange()"><option value="">— Seleccionar —</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Etapa *</label>
+          <select id="prog-etapa" onchange="onProgEtapaChange()" disabled><option value="">— Seleccionar cultivo primero —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Planteo tecnico *</label>
+          <select id="prog-planteo" onchange="showProgPreview()" disabled><option value="">— Seleccionar etapa primero —</option></select>
+        </div>
+      </div>
+      <div id="prog-preview" style="display:none;background:var(--g50);border:1px solid var(--g100);border-radius:var(--r);padding:12px;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--g800);letter-spacing:.05em;margin-bottom:8px">Vista previa de la receta</div>
+        <table class="ptbl" id="prog-prev-tbl"></table>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-prog')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProg()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LISTA ITEM -->
+<div class="modal-backdrop hidden" id="m-lista">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="m-lista-title">Agregar</h3><button class="x-btn" onclick="closeModal('m-lista')">x</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="lista-type">
+      <input type="hidden" id="lista-id">
+      <div class="form-group">
+        <label id="lista-label-nombre">Nombre *</label>
+        <input type="text" id="lista-nombre">
+        <div class="hint" id="lista-nombre-hint" style="display:none">Ingrese dos años separados por guion, ej. <strong>25-26</strong></div>
+      </div>
+      <!-- Solo para lotes -->
+      <div id="lista-campo-row" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Campo *</label>
+            <select id="lista-campo-sel"><option value="">— Seleccionar —</option></select>
+          </div>
+          <div class="form-group">
+            <label>Hectareas *</label>
+            <input type="number" id="lista-has" min="0" step="0.01">
+          </div>
+        </div>
+      </div>
+      <!-- Solo para etapas -->
+      <div id="lista-orden-row" style="display:none">
+        <div class="form-group"><label>Orden de visualizacion</label><input type="number" id="lista-orden" min="1" step="1"></div>
+      </div>
+      <!-- Solo para modos de accion -->
+      <div id="lista-modo-row" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select id="lista-modo-tipo">
+              <option value="">— Seleccionar —</option>
+              <option value="Herbicida">Herbicida</option>
+              <option value="Insecticida">Insecticida</option>
+              <option value="Fungicida">Fungicida</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Sigla *</label>
+            <input type="text" id="lista-modo-sigla">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-lista')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveListaItem()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRM -->
+<div class="modal-backdrop hidden" id="m-confirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr"><h3 id="conf-title">Confirmar</h3><button class="x-btn" onclick="closeModal('m-confirm')">x</button></div>
+    <div class="modal-body"><p id="conf-msg" style="font-size:14px;color:var(--gr700)"></p></div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeModal('m-confirm')">Cancelar</button>
+      <button class="btn btn-danger" id="conf-ok">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════
+//  DATA
+// ══════════════════════════
+const ETAPAS = ['Barbecho largo','Barbecho corto','Presiembra / Premergencia','Posemergencia','Fungicidas / Insecticidas'];
+const ETAPA_KEY = {'Barbecho largo':'bl','Barbecho corto':'bc','Presiembra / Premergencia':'ps','Posemergencia':'po','Fungicidas / Insecticidas':'fi'};
+const TIPO_CLS = {Herbicida:'tag-herb',Fungicida:'tag-fung',Insecticida:'tag-ins',Coadyuvante:'tag-coad',Fertilizante:'tag-fert',Curasemilla:'tag-cura',Inoculante:'tag-inoc'};
+
+const load = k => { try { return JSON.parse(localStorage.getItem(k)||'[]'); } catch { return []; } };
+const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+let ins   = load('fi_ins');
+let camps = load('fi_camps');
+let culs  = load('fi_culs');
+let progs = load('fi_progs');
+let recs  = load('fi_recs');
+let programas = load('fi_programacion');
+
+// one-time clear of old seeded data
+if (!localStorage.getItem('fi_seed_clr')) { ins=[]; save('fi_ins',ins); localStorage.setItem('fi_seed_clr','1'); }
+
+// ══════════════════════════
+//  NAV
+// ══════════════════════════
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='listas')   renderAllListas();
+  if(name==='insumos')  renderInsumos();
+  if(name==='recetas')  renderRecetas();
+  if(name==='prog')     renderProgramacion();
+  if(name==='resumen')  initResumenFilters(); renderResumen();
+  updateCounts();
+}
+
+function updateCounts() {
+  document.getElementById('cnt-ins').textContent = ins.length;
+  document.getElementById('cnt-cam').textContent = camps.length;
+  document.getElementById('cnt-cul').textContent = culs.length;
+  const recEl=document.getElementById('cnt-rec'); if(recEl) recEl.textContent=recs.length;
+  const progEl=document.getElementById('cnt-prog'); if(progEl) progEl.textContent=programas.length;
+  // Campaña badge from latest prog
+}
+
+// ══════════════════════════
+//  INSUMOS
+// ══════════════════════════
+function renderInsumos() {
+  const q = (document.getElementById('ins-search').value||'').toLowerCase();
+  const list = ins.filter(i=>!q||i.nombre.toLowerCase().includes(q)||i.tipo.toLowerCase().includes(q));
+  const tbody = document.getElementById('ins-tbody');
+  if(!list.length){ tbody.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">—</div>Sin insumos${q?' para "'+q+'"':''}</div></td></tr>`; return; }
+  tbody.innerHTML = list.map((r,i)=>`
+    <tr>
+      <td style="color:var(--gr500);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${esc(r.nombre)}</td>
+      <td><span class="tag ${TIPO_CLS[r.tipo]||''}">${esc(r.tipo)}</span></td>
+      <td>${esc(r.unidad)}</td>
+      <td class="num">${r.precio!=null&&r.precio!==''?'U$S '+fmt(r.precio):'<span style="color:var(--gr400)">—</span>'}</td>
+      <td>${r.banda?`<span class="tag tag-banda-${r.banda.replace(/\s.*/,'').toLowerCase()}">${esc(r.banda)}</span>`:'<span style="color:var(--gr400)">—</span>'}</td>
+      <td class="num">${r.eiq!=null&&r.eiq!==''?fmt(r.eiq):'<span style="color:var(--gr400)">—</span>'}</td>
+      <td>${r.modoAccion?'<span style="font-size:11px;font-weight:700;background:var(--g100);color:var(--g800);padding:2px 7px;border-radius:4px">'+esc(r.modoAccion)+'</span>':'<span style="color:var(--gr400)">—</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-xs" onclick="openInsModal('${r.id}')">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="confirm2('insumo','${r.id}','${esc(r.nombre)}')">Eliminar</button>
+      </div></td>
+    </tr>`).join('');
+  updateCounts();
+}
+
+function openInsModal(id) {
+  const r = id ? ins.find(x=>x.id===id) : null;
+  document.getElementById('m-ins-title').textContent = r?'Editar insumo':'Agregar insumo';
+  document.getElementById('ins-id').value = r?r.id:'';
+  // Populate units from Listas
+  const uSel = document.getElementById('ins-unidad');
+  const curU = r?r.unidad:'Lt';
+  uSel.innerHTML = lUnidades.map(function(u){
+    return '<option value="'+esc(u.nombre)+'"'+(u.nombre===curU?' selected':'')+'>'+esc(u.nombre)+'</option>';
+  }).join('') || '<option>Lt</option>';
+  document.getElementById('ins-nombre').value = r?r.nombre:'';
+  document.getElementById('ins-tipo').value = r?r.tipo:'';
+  document.getElementById('ins-unidad').value = r?r.unidad:'Lt';
+  document.getElementById('ins-precio').value = r&&r.precio!=null?r.precio:'';
+  document.getElementById('ins-eiq').value = r&&r.eiq!=null?r.eiq:'';
+  populateModoSelect(r?r.tipo||'':'', r?r.modoAccion||'':'');
+  selectBandaVal(r?r.banda||'':'');
+  document.getElementById('modo-add-form').style.display='none';
+  openModal('m-ins');
+}
+
+function selectBanda(btn) {
+  document.querySelectorAll('.banda-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ins-banda').value = btn.dataset.val;
+}
+
+function selectBandaVal(val) {
+  document.querySelectorAll('.banda-opt').forEach(b=>{
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+  document.getElementById('ins-banda').value = val;
+}
+
+function saveInsumo() {
+  const nombre = document.getElementById('ins-nombre').value.trim();
+  const tipo   = document.getElementById('ins-tipo').value;
+  const unidad = document.getElementById('ins-unidad').value;
+  const precioRaw = document.getElementById('ins-precio').value;
+  const precio = precioRaw!==''?parseFloat(precioRaw):null;
+  const modoAccion = document.getElementById('ins-modo').value;
+  const banda  = document.getElementById('ins-banda').value;
+  const eiqRaw = document.getElementById('ins-eiq').value;
+  const eiq    = eiqRaw!==''?parseFloat(eiqRaw):null;
+  if(!nombre) return shake('ins-nombre');
+  if(!tipo)   return shake('ins-tipo');
+  const id = document.getElementById('ins-id').value;
+  if(id) { const i=ins.findIndex(x=>x.id===id); if(i>=0) ins[i]={id,nombre,tipo,unidad,precio,modoAccion,banda,eiq}; }
+  else   ins.push({id:uid(),nombre,tipo,unidad,precio,modoAccion,banda,eiq});
+  save('fi_ins',ins); closeModal('m-ins'); renderInsumos(); toast(id?'Insumo actualizado':'Insumo agregado');
+}
+
+// ══════════════════════════
+//  CAMPOS Y LOTES
+// ══════════════════════════
+function renderCampos() {
+  const wrap = document.getElementById('campos-wrap');
+  if(!camps.length){ wrap.innerHTML=`<div class="tcard"><div class="empty"><div class="ei">—</div>Sin campos cargados</div></div>`; updateCounts(); return; }
+  wrap.innerHTML = camps.map(c=>{
+    const lotes = c.lotes||[];
+    const totHas = lotes.reduce((s,l)=>s+(parseFloat(l.has)||0),0);
+    return `
+    <div class="campo-card" id="cc-${c.id}">
+      <div class="campo-hdr" onclick="toggleCampo('${c.id}')">
+        <div>
+          <h3>${esc(c.nombre)}</h3>
+          <div class="campo-meta">
+            <span>${fmt(totHas)} has totales</span>
+            <span>${lotes.length} lote${lotes.length!==1?'s':''}</span>
+            ${c.desc?`<span>${esc(c.desc)}</span>`:''}
+          </div>
+        </div>
+        <div class="campo-hdr-right" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary btn-xs" onclick="openCampoModal('${c.id}')">Editar</button>
+          <button class="btn btn-danger btn-xs" onclick="confirm2('campo','${c.id}','${esc(c.nombre)}')">Eliminar</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="campo-body">
+        <table class="lotes-tbl">
+          <thead><tr><th>#</th><th>Lote</th><th class="num">Hectareas</th><th></th></tr></thead>
+          <tbody>${lotes.length?lotes.map((l,i)=>`
+            <tr>
+              <td style="color:var(--gr400);font-size:12px">${i+1}</td>
+              <td style="font-weight:600">${esc(l.nombre)}</td>
+              <td class="num">${fmt(l.has)} has</td>
+              <td><div class="td-actions">
+                <button class="btn btn-ghost btn-xs" onclick="openLoteModal('${c.id}','${l.id}')">Editar</button>
+                <button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="confirm2('lote','${l.id}','${esc(l.nombre)}','${c.id}')">Eliminar</button>
+              </div></td>
+            </tr>`).join(''):`<tr><td colspan="4"><div class="empty" style="padding:16px">Sin lotes</div></td></tr>`}
+          </tbody>
+        </table>
+        <div class="campo-footer"><button class="btn btn-primary btn-sm" onclick="openLoteModal('${c.id}')">+ Agregar lote</button></div>
+      </div>
+    </div>`; }).join('');
+  updateCounts();
+}
+
+function toggleCampo(id){ document.getElementById('cc-'+id).classList.toggle('collapsed'); }
+
+function openCampoModal(id) {
+  const c = id?camps.find(x=>x.id===id):null;
+  document.getElementById('m-campo-title').textContent = c?'Editar campo':'Agregar campo';
+  document.getElementById('campo-id').value = c?c.id:'';
+  document.getElementById('campo-nombre').value = c?c.nombre:'';
+  document.getElementById('campo-desc').value = c?c.desc||'':'';
+  openModal('m-campo');
+}
+
+function saveCampo() {
+  const nombre = document.getElementById('campo-nombre').value.trim();
+  if(!nombre) return shake('campo-nombre');
+  const desc = document.getElementById('campo-desc').value.trim();
+  const id = document.getElementById('campo-id').value;
+  if(id){ const i=camps.findIndex(x=>x.id===id); if(i>=0) camps[i]={...camps[i],nombre,desc}; }
+  else camps.push({id:uid(),nombre,desc,lotes:[]});
+  save('fi_camps',camps); closeModal('m-campo'); renderCampos(); toast(id?'Campo actualizado':'Campo agregado');
+}
+
+function openLoteModal(campoId, loteId) {
+  const c = camps.find(x=>x.id===campoId);
+  if(!c) return;
+  const l = loteId?(c.lotes||[]).find(x=>x.id===loteId):null;
+  document.getElementById('m-lote-title').textContent = `${l?'Editar':'Agregar'} lote — ${c.nombre}`;
+  document.getElementById('lote-id').value = l?l.id:'';
+  document.getElementById('lote-campo-id').value = campoId;
+  document.getElementById('lote-nombre').value = l?l.nombre:'';
+  document.getElementById('lote-has').value = l?l.has:'';
+  openModal('m-lote');
+}
+
+function saveLote() {
+  const nombre = document.getElementById('lote-nombre').value.trim();
+  const has    = parseFloat(document.getElementById('lote-has').value)||0;
+  if(!nombre) return shake('lote-nombre');
+  if(!has)    return shake('lote-has');
+  const campoId = document.getElementById('lote-campo-id').value;
+  const loteId  = document.getElementById('lote-id').value;
+  const c = camps.find(x=>x.id===campoId);
+  if(!c) return;
+  if(!c.lotes) c.lotes=[];
+  if(loteId){ const i=c.lotes.findIndex(x=>x.id===loteId); if(i>=0) c.lotes[i]={id:loteId,nombre,has}; }
+  else c.lotes.push({id:uid(),nombre,has});
+  save('fi_camps',camps); closeModal('m-lote'); renderCampos(); toast(loteId?'Lote actualizado':'Lote agregado');
+}
+
+// ══════════════════════════
+//  CULTIVOS
+// ══════════════════════════
+let _curCulId = null, _curStage = 0;
+
+function renderCultivos() {
+  const grid = document.getElementById('cul-grid');
+  updateCounts();
+  if(!culs.length){ grid.innerHTML=`<div style="grid-column:1/-1"><div class="tcard"><div class="empty"><div class="ei">—</div>Sin cultivos</div></div></div>`; return; }
+  grid.innerHTML = culs.map(c=>{
+    const stages = ETAPAS.filter(e=>c.etapas&&c.etapas[e]&&c.etapas[e].length>0);
+    const total  = ETAPAS.reduce((s,e)=>s+((c.etapas&&c.etapas[e])?c.etapas[e].length:0),0);
+    return `<div class="cul-card" onclick="openCulDetail('${c.id}')">
+      <div class="cul-card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-xs" onclick="openCultivoModal('${c.id}')">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delCultivo('${c.id}')">Elim.</button>
+      </div>
+      <h3>${esc(c.nombre)}</h3>
+      <div class="cmeta">Campaña ${esc(c.campaña||'—')}${c.fecha?' · '+fmtDate(c.fecha):''}</div>
+      <div class="etapa-pills">
+        <span class="epill">${total} planteo${total!==1?'s':''}</span>
+        ${stages.map(e=>`<span class="epill">${shortE(e)}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCulDetail(id) {
+  _curCulId = id; _curStage = 0;
+  const c = culs.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('cul-list').classList.add('hidden');
+  document.getElementById('cul-detail').classList.add('active');
+  document.getElementById('det-name').textContent = c.nombre;
+  document.getElementById('det-meta').textContent = `Campaña ${c.campaña||'—'}${c.fecha?' · '+fmtDate(c.fecha):''}`;
+  renderStageTabs();
+}
+
+function closeCulDetail() {
+  _curCulId=null;
+  document.getElementById('cul-list').classList.remove('hidden');
+  document.getElementById('cul-detail').classList.remove('active');
+  renderCultivos();
+}
+
+function renderStageTabs() {
+  const c = culs.find(x=>x.id===_curCulId); if(!c) return;
+  document.getElementById('stabs').innerHTML = ETAPAS.map((e,i)=>{
+    const n=(c.etapas&&c.etapas[e])?c.etapas[e].length:0;
+    return `<button class="stab ${i===_curStage?'active':''}" onclick="switchStage(${i})">${esc(e)}${n?` <span style="background:var(--g300);color:var(--g900);border-radius:999px;padding:0 6px;font-size:10px;margin-left:3px">${n}</span>`:''}`;
+  }).join('');
+  document.getElementById('spanels').innerHTML = ETAPAS.map((e,i)=>{
+    const pts=(c.etapas&&c.etapas[e])?c.etapas[e]:[];
+    return `<div class="spanel ${i===_curStage?'active':''}" id="sp-${i}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:700">${esc(e)}<span style="font-size:12px;font-weight:400;color:var(--gr500);margin-left:8px">${pts.length} planteo${pts.length!==1?'s':''}</span></div>
+        <button class="btn btn-primary btn-sm" onclick="openPTModal(null,'${e}')">+ Agregar planteo</button>
+      </div>
+      <div class="planteo-list" id="pl-${i}">
+        ${pts.length?pts.map((p,pi)=>renderPCard(p,pi,e)).join(''):`<div style="border:1px dashed var(--gr300);border-radius:var(--r);padding:24px;text-align:center;color:var(--gr400);font-size:13px">Sin planteos en esta etapa</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchStage(i){
+  _curStage=i;
+  document.querySelectorAll('.stab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.spanel').forEach((p,j)=>p.classList.toggle('active',i===j));
+}
+
+function renderPCard(p, pi, etapa) {
+  return `<div class="pcard" id="pc-${p.id}">
+    <div class="pcard-hdr" onclick="togglePCard('${p.id}')">
+      <div class="pcard-name"><span class="pt-badge">PT${pi+1}</span>${esc(p.nombre)}</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:11px;color:var(--gr500)">${(p.insumos||[]).length} insumo${(p.insumos||[]).length!==1?'s':''}</span>
+        <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openPTModal('${p.id}','${etapa}')">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="event.stopPropagation();confirm2('planteo','${p.id}','${esc(p.nombre)}','${etapa}')">Elim.</button>
+        <span class="chv">▼</span>
+      </div>
+    </div>
+    <div class="pcard-body">
+      ${(p.insumos||[]).length?`<table class="ptbl"><thead><tr><th>Insumo</th><th>UM</th><th class="num">Dosis/ha</th></tr></thead><tbody>
+        ${(p.insumos||[]).map(r=>`<tr><td>${esc(r.insumoNombre)}</td><td>${esc(r.um)}</td><td class="num">${fmt(r.dosis)}</td></tr>`).join('')}
+      </tbody></table>`:`<p style="text-align:center;color:var(--gr400);font-size:12px;padding:8px">Sin insumos</p>`}
+    </div>
+  </div>`;
+}
+
+function togglePCard(id){ document.getElementById('pc-'+id).classList.toggle('collapsed'); }
+
+function openCultivoModal(id) {
+  const c = id?culs.find(x=>x.id===id):null;
+  document.getElementById('m-cul-title').textContent = c?'Editar cultivo':'Agregar cultivo';
+  document.getElementById('cul-id').value = c?c.id:'';
+  document.getElementById('cul-nombre').value = c?c.nombre:'';
+  document.getElementById('cul-campaña').value = c?c.campaña:'';
+  document.getElementById('cul-fecha').value = c?c.fecha||'':'';
+  openModal('m-cultivo');
+}
+
+function saveCultivo() {
+  const nombre  = document.getElementById('cul-nombre').value.trim();
+  const campaña = document.getElementById('cul-campaña').value.trim();
+  if(!nombre)  return shake('cul-nombre');
+  if(!campaña) return shake('cul-campaña');
+  const fecha = document.getElementById('cul-fecha').value;
+  const id = document.getElementById('cul-id').value;
+  if(id){ const i=culs.findIndex(x=>x.id===id); if(i>=0) culs[i]={...culs[i],nombre,campaña,fecha}; }
+  else { const etapas={}; ETAPAS.forEach(e=>etapas[e]=[]); culs.push({id:uid(),nombre,campaña,fecha,etapas}); }
+  save('fi_culs',culs); closeModal('m-cultivo');
+  if(_curCulId){ const c=culs.find(x=>x.id===_curCulId); if(c){ document.getElementById('det-name').textContent=c.nombre; document.getElementById('det-meta').textContent=`Campaña ${c.campaña||'—'}${c.fecha?' · '+fmtDate(c.fecha):''}`;} }
+  else renderCultivos();
+  toast(id?'Cultivo actualizado':'Cultivo agregado');
+}
+
+function delCultivo(id) {
+  confirm2('cultivo',id,(culs.find(x=>x.id===id)||{}).nombre||'');
+}
+
+// ══════════════════════════
+//  PLANTEOS
+// ══════════════════════════
+function buildInsOpts(selId) {
+  const sorted = [...ins].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  return `<option value="">— Insumo —</option>`+sorted.map(i=>`<option value="${i.id}" ${i.id===selId?'selected':''}>${esc(i.nombre)} (${i.unidad})</option>`).join('');
+}
+
+function openPTModal(id, etapa) {
+  const c = culs.find(x=>x.id===_curCulId); if(!c) return;
+  const p = id?(c.etapas[etapa]||[]).find(x=>x.id===id):null;
+  document.getElementById('m-pt-title').textContent = `${p?'Editar':'Nuevo'} Planteo — ${etapa}`;
+  document.getElementById('pt-id').value = p?p.id:'';
+  document.getElementById('pt-etapa').value = etapa;
+  document.getElementById('pt-cul-id').value = _curCulId;
+  document.getElementById('pt-nombre').value = p?p.nombre:'';
+  const list = document.getElementById('pt-ir-list');
+  list.innerHTML='';
+  ((p&&p.insumos)||[{insumoId:'',um:'',dosis:''}]).forEach(r=>addIR(r));
+  updPTCount();
+  openModal('m-planteo');
+}
+
+function addIR(data) {
+  const row = document.createElement('div');
+  row.className='ir';
+  row.innerHTML=`
+    <select onchange="syncUM(this)">${buildInsOpts(data?data.insumoId:'')}</select>
+    <input type="text" value="${data?esc(data.um||''):''}" style="text-align:center">
+    <input type="number" value="${data?data.dosis||'':''}" min="0" step="0.001" style="text-align:right">
+    <button type="button" class="rm-row" onclick="this.closest('.ir').remove();updPTCount()">x</button>`;
+  document.getElementById('pt-ir-list').appendChild(row);
+  updPTCount();
+}
+
+function syncUM(sel) {
+  const r = ins.find(i=>i.id===sel.value);
+  if(r) sel.closest('.ir').querySelectorAll('input')[0].value=r.unidad;
+  updPTCount();
+}
+
+function updPTCount() {
+  const n=document.getElementById('pt-ir-list').children.length;
+  document.getElementById('pt-count').textContent=n+' insumo'+(n!==1?'s':'');
+}
+
+function savePlanteo() {
+  const nombre = document.getElementById('pt-nombre').value.trim();
+  if(!nombre) return shake('pt-nombre');
+  const etapa  = document.getElementById('pt-etapa').value;
+  const culId  = document.getElementById('pt-cul-id').value;
+  const ptId   = document.getElementById('pt-id').value;
+  const insumos = [...document.querySelectorAll('#pt-ir-list .ir')].map(row=>{
+    const sel=row.querySelector('select'); const r=ins.find(i=>i.id===sel.value);
+    const um=row.querySelectorAll('input')[0].value.trim();
+    const dosis=parseFloat(row.querySelectorAll('input')[1].value)||0;
+    return r?{insumoId:r.id,insumoNombre:r.nombre,um:um||r.unidad,dosis}:null;
+  }).filter(Boolean);
+  const c=culs.find(x=>x.id===culId); if(!c) return;
+  if(!c.etapas) c.etapas={};
+  if(!c.etapas[etapa]) c.etapas[etapa]=[];
+  if(ptId){ const i=c.etapas[etapa].findIndex(x=>x.id===ptId); if(i>=0) c.etapas[etapa][i]={id:ptId,nombre,insumos}; }
+  else c.etapas[etapa].push({id:uid(),nombre,insumos});
+  save('fi_culs',culs); closeModal('m-planteo'); renderStageTabs(); toast(ptId?'Planteo actualizado':'Planteo agregado');
+}
+
+// ══════════════════════════
+//  PROGRAMACIONES
+// ══════════════════════════
+function renderProgs() {
+  const tbody = document.getElementById('prog-tbody');
+  if(!progs.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty">Sin programaciones. Agregá una con el boton de arriba.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = progs.map((p,i)=>`
+    <tr>
+      <td style="color:var(--gr400);font-size:12px">${i+1}</td>
+      <td>${esc(p.campoNombre||'—')}</td>
+      <td style="font-weight:600">${esc(p.loteNombre||'—')}</td>
+      <td class="num">${p.has?fmt(p.has)+' has':'—'}</td>
+      <td>${esc(p.cultivoNombre||'—')}</td>
+      <td><span style="font-size:11px;color:var(--gr500)">${esc(p.etapa||'—')}</span></td>
+      <td>${p.planteoNombre?`<span class="recipe-pill">${esc(p.planteoNombre)}</span>`:'<span style="color:var(--gr400)">—</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-xs" onclick="openProgModal('${p.id}')">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="confirm2('prog','${p.id}','programacion ${i+1}')">Eliminar</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openProgModal(id) {
+  const p = id?progs.find(x=>x.id===id):null;
+  document.getElementById('m-prog-title').textContent = p?'Editar programacion':'Agregar programacion';
+  document.getElementById('prog-id').value = p?p.id:'';
+
+  // Campos
+  const sc = document.getElementById('prog-campo');
+  sc.innerHTML=`<option value="">— Sin campo —</option>`+camps.map(c=>`<option value="${c.id}" ${p&&p.campoId===c.id?'selected':''}>${esc(c.nombre)}</option>`).join('');
+
+  // Cultivos
+  const scul = document.getElementById('prog-cultivo');
+  scul.innerHTML=`<option value="">— Seleccionar —</option>`+culs.map(c=>`<option value="${c.id}" ${p&&p.cultivoId===c.id?'selected':''}>${esc(c.nombre)} (${c.campaña})</option>`).join('');
+
+  fillProgLotes(p?p.campoId:null, p?p.loteId:null);
+  fillProgEtapas(p?p.cultivoId:null, p?p.etapa:null);
+  fillProgPlanteos(p?p.cultivoId:null, p?p.etapa:null, p?p.planteoId:null);
+
+  document.getElementById('prog-has').value = p?p.has||'':'';
+  document.getElementById('prog-preview').style.display='none';
+  if(p&&p.planteoId) showProgPreview();
+  openModal('m-prog');
+}
+
+function onProgCampoChange() {
+  const id=document.getElementById('prog-campo').value;
+  fillProgLotes(id,null);
+  document.getElementById('prog-has').value='';
+}
+
+function onProgLoteChange() {
+  const campoId=document.getElementById('prog-campo').value;
+  const loteId=document.getElementById('prog-lote').value;
+  const c=camps.find(x=>x.id===campoId);
+  const l=c&&(c.lotes||[]).find(x=>x.id===loteId);
+  if(l) document.getElementById('prog-has').value=l.has;
+}
+
+function onProgCultivoChange() {
+  const id=document.getElementById('prog-cultivo').value;
+  fillProgEtapas(id,null);
+  fillProgPlanteos(null,null,null);
+  document.getElementById('prog-preview').style.display='none';
+}
+
+function onProgEtapaChange() {
+  const culId=document.getElementById('prog-cultivo').value;
+  const etapa=document.getElementById('prog-etapa').value;
+  fillProgPlanteos(culId,etapa,null);
+  document.getElementById('prog-preview').style.display='none';
+}
+
+function fillProgLotes(campoId, selLoteId) {
+  const sl=document.getElementById('prog-lote');
+  if(!campoId){ sl.innerHTML=`<option value="">— Seleccionar campo primero —</option>`; sl.disabled=true; return; }
+  const c=camps.find(x=>x.id===campoId);
+  const lotes=(c&&c.lotes)||[];
+  sl.disabled=false;
+  sl.innerHTML=`<option value="">— Sin lote —</option>`+lotes.map(l=>`<option value="${l.id}" ${l.id===selLoteId?'selected':''}>${esc(l.nombre)} (${fmt(l.has)} has)</option>`).join('');
+}
+
+function fillProgEtapas(culId, selEtapa) {
+  const se=document.getElementById('prog-etapa');
+  if(!culId){ se.innerHTML=`<option value="">— Seleccionar cultivo primero —</option>`; se.disabled=true; return; }
+  const c=culs.find(x=>x.id===culId);
+  se.disabled=false;
+  se.innerHTML=`<option value="">— Seleccionar etapa —</option>`+ETAPAS.map(e=>{
+    const n=c&&c.etapas&&c.etapas[e]?c.etapas[e].length:0;
+    return `<option value="${e}" ${e===selEtapa?'selected':''}>${esc(e)} (${n} planteo${n!==1?'s':''})</option>`;
+  }).join('');
+}
+
+function fillProgPlanteos(culId, etapa, selId) {
+  const sp=document.getElementById('prog-planteo');
+  if(!culId||!etapa){ sp.innerHTML=`<option value="">— Seleccionar etapa primero —</option>`; sp.disabled=true; return; }
+  const c=culs.find(x=>x.id===culId);
+  const pts=(c&&c.etapas&&c.etapas[etapa])||[];
+  sp.disabled=false;
+  sp.innerHTML=`<option value="">— Sin planteo especifico —</option>`+pts.map((p,i)=>`<option value="${p.id}" ${p.id===selId?'selected':''}>PT${i+1}: ${esc(p.nombre)}</option>`).join('');
+  sp.onchange=showProgPreview;
+}
+
+function showProgPreview() {
+  const culId=document.getElementById('prog-cultivo').value;
+  const etapa=document.getElementById('prog-etapa').value;
+  const pId=document.getElementById('prog-planteo').value;
+  const prev=document.getElementById('prog-preview');
+  if(!pId){ prev.style.display='none'; return; }
+  const c=culs.find(x=>x.id===culId);
+  const p=c&&c.etapas[etapa]?(c.etapas[etapa].find(x=>x.id===pId)):null;
+  if(!p){ prev.style.display='none'; return; }
+  document.getElementById('prog-prev-tbl').innerHTML=
+    `<thead><tr><th>Insumo</th><th>UM</th><th class="num">Dosis/ha</th></tr></thead><tbody>`+
+    (p.insumos||[]).map(r=>`<tr><td>${esc(r.insumoNombre)}</td><td>${esc(r.um)}</td><td class="num">${fmt(r.dosis)}</td></tr>`).join('')+
+    `</tbody>`;
+  prev.style.display='block';
+}
+
+function saveProg() {
+  const cultivoId=document.getElementById('prog-cultivo').value;
+  const etapa=document.getElementById('prog-etapa').value;
+  if(!cultivoId) return shake('prog-cultivo');
+  if(!etapa)     return shake('prog-etapa');
+  const id=document.getElementById('prog-id').value;
+  const campoId=document.getElementById('prog-campo').value;
+  const loteId=document.getElementById('prog-lote').value;
+  const planteoId=document.getElementById('prog-planteo').value;
+  const has=parseFloat(document.getElementById('prog-has').value)||null;
+  const campo=camps.find(x=>x.id===campoId);
+  const lote=campo&&(campo.lotes||[]).find(x=>x.id===loteId);
+  const cultivo=culs.find(x=>x.id===cultivoId);
+  const c=cultivo&&cultivo.etapas[etapa]?cultivo.etapas[etapa].find(x=>x.id===planteoId):null;
+  const rec={
+    id:id||uid(),
+    campoId, campoNombre: campo?campo.nombre:'',
+    loteId,  loteNombre:  lote?lote.nombre:'',
+    has: has||(lote?lote.has:null),
+    cultivoId, cultivoNombre: cultivo?cultivo.nombre:'',
+    campaña: cultivo?cultivo.campaña:'',
+    etapa, planteoId, planteoNombre: c?c.nombre:''
+  };
+  if(id){ const i=progs.findIndex(x=>x.id===id); if(i>=0) progs[i]=rec; } else progs.push(rec);
+  save('fi_progs',progs); closeModal('m-prog'); toast(id?'Programacion actualizada':'Programacion agregada');
+}
+
+// ══════════════════════════
+// ══════════════════════════
+//  LISTAS DATA
+// ══════════════════════════
+
+const MODOS_BASE = {
+  'Herbicida': [
+    {sigla:'ACCasa',  desc:'Inhibidores de la acetil coenzima-A carboxilasa (ACCasa)'},
+    {sigla:'ALSSulf', desc:'Inhibidores de la enzima acetolactato sintetasa (ALS)-Sulfonilureas'},
+    {sigla:'ALSIMI',  desc:'Inhibidores de la enzima acetolactato sintetasa (ALS)-Imidazolinonas'},
+    {sigla:'InhF2',   desc:'Inhibidores de la fotosintesis en el fotosistema II'},
+    {sigla:'InhF1',   desc:'Inhibidores fotosistema I'},
+    {sigla:'PPO',     desc:'Inhibidores de la enzima protoporfirinogeno oxidasa (PPO)'},
+    {sigla:'HPPD',    desc:'Inhibidores de la biosintesis de carotenoides (HPPD)'},
+    {sigla:'EPSPS',   desc:'Inhibidores de la enzima 5-enolpiruvilshikimato-3-fosfato sintetasa (EPSPS)'},
+    {sigla:'IGS',     desc:'Inhibidores de la glutamino sintetasa'},
+    {sigla:'DHPs',    desc:'Inhibidores de la 7,8-dihidropteroato sintetasa (DHPs)'},
+    {sigla:'IDC',     desc:'Inhibidores de la division celular'},
+    {sigla:'ISC',     desc:'Inhibidores de la sintesis de celulosa'},
+    {sigla:'ISL',     desc:'Inhibidores de la sintesis de lipidos'},
+    {sigla:'AuxSin',  desc:'Accion similar al acido indol acetico (auxinas sinteticas)'},
+    {sigla:'ITA',     desc:'Inhibidores del transporte de auxinas'},
+    {sigla:'H-MOAD',  desc:'Modo de accion desconocido'}
+  ],
+  'Insecticida': [
+    {sigla:'1',      desc:'Inhibidores de la acetilcolinesterasa'},
+    {sigla:'2',      desc:'Antagonistas de canales de sodio'},
+    {sigla:'3',      desc:'Moduladores del canal de sodio'},
+    {sigla:'4',      desc:'Moduladores competitivos del receptor nicotinico de la acetilcolina'},
+    {sigla:'5',      desc:'Moduladores alostericos del receptor nicotinico de la acetilcolina'},
+    {sigla:'6',      desc:'Moduladores alostericos del canal de cloro dependiente del glutamato'},
+    {sigla:'7',      desc:'Mimeticos de la hormona juvenil'},
+    {sigla:'8',      desc:'Diversos inhibidores no especificos (multi sitio)'},
+    {sigla:'9',      desc:'Moduladores del canal TRPV de los organos cordotonales'},
+    {sigla:'10',     desc:'Inhibidores del crecimiento de acaros'},
+    {sigla:'11',     desc:'Disruptores microbianos de las membranas digestivas de insectos'},
+    {sigla:'12',     desc:'Inhibidores de ATP sintetasa'},
+    {sigla:'13',     desc:'Desacopladores de la fosforilacion oxidativa via interrupcion del gradiente'},
+    {sigla:'14',     desc:'Bloqueadores del canal del receptor de acetilcolina'},
+    {sigla:'15',     desc:'Inhibidores de la biosintesis de quitina, Tipo 0'},
+    {sigla:'16',     desc:'Inhibidores de la biosintesis de quitina, Tipo 1'},
+    {sigla:'17',     desc:'Disruptores de la hormona de la muda. Dipteros'},
+    {sigla:'18',     desc:'Agonistas del receptor de ecdisona'},
+    {sigla:'19',     desc:'Antagonistas de los receptores de la octopamina'},
+    {sigla:'20',     desc:'Inhibidores del transporte de electrones en el complejo mitocondrial III'},
+    {sigla:'21',     desc:'Inhibidores del transporte de electrones en el complejo mitocondrial I'},
+    {sigla:'22',     desc:'Bloqueadores del canal de sodio dependiente del voltaje'},
+    {sigla:'23',     desc:'Inhibidores de la acetil CoA carboxilasa'},
+    {sigla:'24',     desc:'Inhibidores del transporte de electrones en el complejo mitocondrial IV'},
+    {sigla:'25',     desc:'Inhibidores del transporte de electrones en el complejo mitocondrial II'},
+    {sigla:'28',     desc:'Moduladores del receptor de la rianodina'},
+    {sigla:'29',     desc:'Moduladores de los organos cordonales sin punto de accion definido'},
+    {sigla:'30',     desc:'Antagonista canal clorico del receptor de acido gamma-aminobutirico (GABA)'},
+    {sigla:'F-MOAD', desc:'Compuestos de modo de accion desconocido o incierto'}
+  ],
+  'Fungicida': [
+    {sigla:'A',      desc:'Metabolismo de acidos nucleicos'},
+    {sigla:'B',      desc:'Citoesqueleto y proteinas motoras'},
+    {sigla:'C',      desc:'Respiracion'},
+    {sigla:'D',      desc:'Sintesis de aminoacidos y proteinas'},
+    {sigla:'E',      desc:'Senal de transduccion'},
+    {sigla:'F',      desc:'Sintesis o transporte de lipidos (funcion o integridad de la membrana)'},
+    {sigla:'G',      desc:'Biosintesis de esterol en las membranas'},
+    {sigla:'H',      desc:'Biosintesis de pared celular'},
+    {sigla:'I',      desc:'Sintesis de melanina en la pared celular'},
+    {sigla:'M',      desc:'Quimicos con actividad multisitio'},
+    {sigla:'P',      desc:'Induccion de la defensa de la planta huesped'},
+    {sigla:'BM',     desc:'Biologicos con multiples modos de accion'},
+    {sigla:'F-MOAD', desc:'Modo de accion desconocido'}
+  ]
+};
+
+let lCampañas = load('fi_l_camp');
+let lCampos   = load('fi_l_campo');
+let lLotes    = load('fi_l_lote');
+let lCultivos = load('fi_l_cultivo');
+let lEtapas   = load('fi_l_etapa');
+let lUnidades = load('fi_l_unidad');
+let lModos    = load('fi_l_modo');
+
+if (!lEtapas.length) {
+  ['Barbecho largo','Barbecho corto','Presiembra / Premergencia','Posemergencia','Fungicidas / Insecticidas']
+    .forEach((n,i) => lEtapas.push({id:uid(), nombre:n, orden:i+1}));
+  save('fi_l_etapa', lEtapas);
+}
+if (!localStorage.getItem('fi_seed_unidades')) {
+  lUnidades = ['Lt','Kg','g','cc','ml','u','tn'].map(function(n){ return {id:uid(), nombre:n}; });
+  save('fi_l_unidad', lUnidades); localStorage.setItem('fi_seed_unidades','1');
+}
+if (!localStorage.getItem('fi_seed_modos_v3')) {
+  const allModos = [];
+  Object.keys(MODOS_BASE).forEach(function(tipo){
+    MODOS_BASE[tipo].forEach(function(m){ allModos.push({id:uid(), tipo:tipo, sigla:m.sigla, desc:m.desc}); });
+  });
+  lModos = allModos; save('fi_l_modo', lModos); localStorage.setItem('fi_seed_modos_v3','1');
+}
+
+function showLista(name, btn) {
+  document.querySelectorAll('.listas-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.listas-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('lp-'+name).classList.add('active');
+  btn.classList.add('active');
+  renderLista(name);
+}
+
+function renderAllListas() {
+  ['campaña','campo','lote','cultivo','etapa','unidad','modo'].forEach(renderLista);
+}
+
+function renderLista(type) {
+  const counts = { campaña: lCampañas.length, campo: lCampos.length, lote: lLotes.length, cultivo: lCultivos.length, etapa: lEtapas.length, unidad: lUnidades.length, modo: lModos.length };
+  Object.entries(counts).forEach(([k,v]) => {
+    const el = document.getElementById('lcnt-'+k); if(el) el.textContent = v;
+  });
+  if (type === 'campaña') {
+    document.getElementById('lt-campaña').innerHTML = lCampañas.length
+      ? lCampañas.map((r,i) => `<tr><td style="color:var(--gr400);font-size:12px">${i+1}</td><td style="font-weight:600">${esc(r.nombre)}</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('campaña','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('campaña','${r.id}','${esc(r.nombre)}')">Eliminar</button></div></td></tr>`).join('')
+      : `<tr><td colspan="3"><div class="empty">Sin campañas cargadas</div></td></tr>`;
+  }
+  if (type === 'campo') {
+    document.getElementById('lt-campo').innerHTML = lCampos.length
+      ? lCampos.map((r,i) => `<tr><td style="color:var(--gr400);font-size:12px">${i+1}</td><td style="font-weight:600">${esc(r.nombre)}</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('campo','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('campo','${r.id}','${esc(r.nombre)}')">Eliminar</button></div></td></tr>`).join('')
+      : `<tr><td colspan="3"><div class="empty">Sin campos cargados</div></td></tr>`;
+  }
+  if (type === 'lote') {
+    const rows = [...lLotes].sort((a,b) => {
+      const ca = (lCampos.find(x=>x.id===a.campoId)||{}).nombre||'';
+      const cb = (lCampos.find(x=>x.id===b.campoId)||{}).nombre||'';
+      return ca.localeCompare(cb) || a.nombre.localeCompare(b.nombre);
+    });
+    document.getElementById('lt-lote').innerHTML = rows.length
+      ? rows.map((r,i) => { const c=(lCampos.find(x=>x.id===r.campoId)||{}).nombre||'—'; return `<tr><td style="color:var(--gr400);font-size:12px">${i+1}</td><td style="font-weight:600">${esc(r.nombre)}</td><td>${esc(c)}</td><td class="num">${fmt(r.has)} has</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('lote','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('lote','${r.id}','${esc(r.nombre)}')">Eliminar</button></div></td></tr>`; }).join('')
+      : `<tr><td colspan="5"><div class="empty">Sin lotes cargados</div></td></tr>`;
+  }
+  if (type === 'cultivo') {
+    document.getElementById('lt-cultivo').innerHTML = lCultivos.length
+      ? lCultivos.map((r,i) => `<tr><td style="color:var(--gr400);font-size:12px">${i+1}</td><td style="font-weight:600">${esc(r.nombre)}</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('cultivo','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('cultivo','${r.id}','${esc(r.nombre)}')">Eliminar</button></div></td></tr>`).join('')
+      : `<tr><td colspan="3"><div class="empty">Sin cultivos cargados</div></td></tr>`;
+  }
+  if (type === 'etapa') {
+    const rows = [...lEtapas].sort((a,b)=>(a.orden||99)-(b.orden||99));
+    document.getElementById('lt-etapa').innerHTML = rows.length
+      ? rows.map((r,i) => `<tr draggable="true" data-etapaid="${r.id}" class="etapa-drag-row" style="cursor:grab"><td style="color:var(--gr400);font-size:12px;padding-right:4px">&#8597;</td><td style="color:var(--gr400);font-size:12px">${i+1}</td><td style="font-weight:600">${esc(r.nombre)}</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('etapa','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('etapa','${r.id}','${esc(r.nombre)}')">Eliminar</button></div></td></tr>`).join('')
+      : `<tr><td colspan="4"><div class="empty">Sin etapas</div></td></tr>`;
+    setTimeout(initEtapaDrag, 0);
+  }
+  if (type === 'unidad') {
+    document.getElementById('lt-unidad').innerHTML = !lUnidades.length
+      ? `<tr><td colspan="3"><div class="empty"><div class="ei">—</div>Sin unidades</div></td></tr>`
+      : lUnidades.map((r,i) => `<tr><td style="color:var(--gr400);font-size:12px">${i+1}</td><td style="font-weight:600">${esc(r.nombre)}</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('unidad','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('unidad','${r.id}','${esc(r.nombre)}')">Eliminar</button></div></td></tr>`).join('');
+  }
+  if (type === 'modo') {
+    document.getElementById('lt-modo').innerHTML = !lModos.length
+      ? `<tr><td colspan="5"><div class="empty"><div class="ei">—</div>Sin modos cargados</div></td></tr>`
+      : lModos.map((r,i) => `<tr><td style="color:var(--gr400);font-size:12px">${i+1}</td><td><span class="tag ${TIPO_CLS[r.tipo]||''}">${esc(r.tipo)}</span></td><td style="font-weight:700">${esc(r.sigla)}</td><td style="color:var(--gr600);font-size:12px">${esc(r.desc)}</td><td><div class="td-actions"><button class="btn btn-ghost btn-xs" onclick="openListaModal('modo','${r.id}')">Editar</button><button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="delLista('modo','${r.id}','${esc(r.sigla)}')">Eliminar</button></div></td></tr>`).join('');
+  }
+}
+
+function openListaModal(type, id) {
+  const maps = { campaña: lCampañas, campo: lCampos, lote: lLotes, cultivo: lCultivos, etapa: lEtapas, unidad: lUnidades, modo: lModos };
+  const r = id ? maps[type].find(x=>x.id===id) : null;
+  document.getElementById('m-lista-title').textContent = (r?'Editar ':'Agregar ') + type;
+  document.getElementById('lista-type').value = type;
+  document.getElementById('lista-id').value = r ? r.id : '';
+  document.getElementById('lista-nombre').value = r ? r.nombre : '';
+  document.getElementById('lista-nombre').pattern = type==='campaña' ? '\\d{2}-\\d{2}' : '';
+  document.getElementById('lista-label-nombre').textContent = type==='lote' ? 'Nombre del lote *' : type==='campaña' ? 'Nombre * (formato AA-AA)' : type==='modo' ? 'Descripcion *' : 'Nombre *';
+  const hintEl = document.getElementById('lista-nombre-hint');
+  if (hintEl) hintEl.style.display = type==='campaña' ? 'block' : 'none';
+  const campoRow = document.getElementById('lista-campo-row');
+  const ordenRow = document.getElementById('lista-orden-row');
+  campoRow.style.display = type==='lote'  ? 'block' : 'none';
+  ordenRow.style.display = type==='etapa' ? 'block' : 'none';
+  const modoRow = document.getElementById('lista-modo-row');
+  if (modoRow) modoRow.style.display = type==='modo' ? 'block' : 'none';
+  if (type==='modo' && r) {
+    document.getElementById('lista-modo-tipo').value = r.tipo||'';
+    document.getElementById('lista-modo-sigla').value = r.sigla||'';
+  } else if (type==='modo') {
+    document.getElementById('lista-modo-tipo').value = '';
+    document.getElementById('lista-modo-sigla').value = '';
+  }
+  if (type === 'lote') {
+    document.getElementById('lista-campo-sel').innerHTML =
+      '<option value="">— Seleccionar campo —</option>' +
+      lCampos.map(c=>`<option value="${c.id}" ${r&&r.campoId===c.id?'selected':''}>${esc(c.nombre)}</option>`).join('');
+    document.getElementById('lista-has').value = r ? r.has||'' : '';
+  }
+  if (type === 'etapa') {
+    document.getElementById('lista-orden').value = r ? r.orden||'' : lEtapas.length+1;
+  }
+  openModal('m-lista');
+}
+
+function saveListaItem() {
+  const type   = document.getElementById('lista-type').value;
+  const id     = document.getElementById('lista-id').value;
+  const nombre = document.getElementById('lista-nombre').value.trim();
+  if (!nombre) return shake('lista-nombre');
+  if (type==='campaña' && !/^\d{2}-\d{2}$/.test(nombre)) {
+    toast('El formato debe ser AA-AA, ej. 25-26');
+    return shake('lista-nombre');
+  }
+  const maps  = { campaña: lCampañas, campo: lCampos, lote: lLotes, cultivo: lCultivos, etapa: lEtapas, unidad: lUnidades, modo: lModos };
+  const saves = { campaña:'fi_l_camp', campo:'fi_l_campo', lote:'fi_l_lote', cultivo:'fi_l_cultivo', etapa:'fi_l_etapa', unidad:'fi_l_unidad', modo:'fi_l_modo' };
+  const list  = maps[type];
+  let item = { id: id||uid(), nombre };
+  if (type === 'modo') {
+    const modoTipo  = document.getElementById('lista-modo-tipo').value;
+    const modoSigla = document.getElementById('lista-modo-sigla').value.trim();
+    if (!modoTipo)  return shake('lista-modo-tipo');
+    if (!modoSigla) return shake('lista-modo-sigla');
+    item = { ...item, tipo: modoTipo, sigla: modoSigla, desc: nombre };
+  }
+  if (type === 'lote') {
+    const campoId = document.getElementById('lista-campo-sel').value;
+    const has     = parseFloat(document.getElementById('lista-has').value)||0;
+    if (!campoId) return shake('lista-campo-sel');
+    if (!has)     return shake('lista-has');
+    item = { ...item, campoId, has };
+  }
+  if (type === 'etapa') {
+    item.orden = parseInt(document.getElementById('lista-orden').value)||list.length+1;
+  }
+  if (id) { const i=list.findIndex(x=>x.id===id); if(i>=0) list[i]=item; }
+  else list.push(item);
+  save(saves[type], list);
+  closeModal('m-lista');
+  renderLista(type);
+  toast(id ? 'Actualizado' : 'Agregado');
+}
+
+function delLista(type, id, nombre) {
+  const maps  = { campaña: lCampañas, campo: lCampos, lote: lLotes, cultivo: lCultivos, etapa: lEtapas, unidad: lUnidades, modo: lModos };
+  const saves = { campaña:'fi_l_camp', campo:'fi_l_campo', lote:'fi_l_lote', cultivo:'fi_l_cultivo', etapa:'fi_l_etapa', unidad:'fi_l_unidad', modo:'fi_l_modo' };
+  confirm2('_lista', id, nombre, null, () => {
+    const list = maps[type];
+    const idx  = list.findIndex(x=>x.id===id);
+    if(idx>=0) list.splice(idx,1);
+    save(saves[type], list);
+    renderLista(type);
+  });
+}
+
+// ══════════════════════════
+//  DELETE / CONFIRM
+// ══════════════════════════
+function confirm2(type, id, nombre, extra, cb) {
+  const msg = {
+    insumo:  'Eliminar el insumo "'+nombre+'"?',
+    cultivo: 'Eliminar el cultivo "'+nombre+'" y todos sus planteos?',
+    planteo: 'Eliminar el planteo "'+nombre+'"?',
+    prog:    'Eliminar esta programacion?',
+    _lista:  'Eliminar "'+nombre+'"?'
+  };
+  document.getElementById('conf-title').textContent = 'Confirmar eliminacion';
+  document.getElementById('conf-msg').textContent = (msg[type]||'Eliminar "'+nombre+'"?') + ' Esta accion no se puede deshacer.';
+  document.getElementById('conf-ok').onclick = function() {
+    if(type==='insumo')  { ins=ins.filter(x=>x.id!==id); save('fi_ins',ins); renderInsumos(); }
+    if(type==='cultivo') { culs=culs.filter(x=>x.id!==id); save('fi_culs',culs); if(_curCulId===id) closeCulDetail(); else renderCultivos(); }
+    if(type==='planteo') { const c=culs.find(x=>x.id===_curCulId); if(c&&c.etapas[extra]) c.etapas[extra]=c.etapas[extra].filter(x=>x.id!==id); save('fi_culs',culs); renderStageTabs(); }
+    if(type==='prog')    { progs=progs.filter(x=>x.id!==id); save('fi_progs',progs); }
+    if(type==='_lista'&&cb) cb();
+    closeModal('m-confirm'); toast('Eliminado');
+  };
+  openModal('m-confirm');
+}
+
+
+// ══════════════════════════
+//  RECETAS
+// ══════════════════════════
+function renderRecetas() {
+  const tbody = document.getElementById('rec-tbody');
+  if (!tbody) return;
+  const filtered = recs;
+  document.getElementById('cnt-rec').textContent = recs.length;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="ei">—</div>Sin recetas cargadas</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(function(r) {
+    const total = (r.lineas||[]).reduce(function(s,l){
+      const item = ins.find(function(x){return x.id===l.insumoId;});
+      return s + (parseFloat(l.dosis)||0) * (item&&item.precio!=null ? parseFloat(item.precio)||0 : 0);
+    }, 0);
+    const totalEiq = (r.lineas||[]).reduce(function(s,l){
+      const item = ins.find(function(x){return x.id===l.insumoId;});
+      const eiqv = item&&item.eiq!=null ? parseFloat(item.eiq)||0 : (l.eiq!=null ? parseFloat(l.eiq)||0 : 0);
+      return s + (parseFloat(l.dosis)||0) * eiqv;
+    }, 0);
+    return '<tr>'
+      + '<td style="font-weight:600">'+(r.titulo ? esc(r.titulo) : '<span style="color:var(--gr400)">—</span>')+'</td>'
+      + '<td>'+esc(r.cultivo)+'</td>'
+      + '<td>'+esc(r.etapa)+'</td>'
+      + '<td class="num">'+(r.lineas||[]).length+'</td>'
+      + '<td class="num">'+(total>0?'U$S '+fmt(total):'—')+'</td>'
+      + '<td class="num">'+(totalEiq>0?fmt(totalEiq):'—')+'</td>'
+      + '<td><div class="td-actions">'
+        + '<button class="btn btn-ghost btn-xs" onclick="openRecForm(\''+r.id+'\')">Editar</button>'
+        + '<button class="btn btn-ghost btn-xs" style="color:var(--g700)" onclick="openDupModal(\''+r.id+'\')">Duplicar</button>'
+        + '<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="deleteRec(\''+r.id+'\',\''+esc(r.cultivo)+'\')">Eliminar</button>'
+      + '</div></td>'
+    + '</tr>';
+  }).join('');
+}
+
+function openRecForm(id) {
+  const r = id ? recs.find(function(x){return x.id===id;}) : null;
+  document.getElementById('rec-form-title').textContent = r ? 'Editar receta' : 'Nueva receta';
+  document.getElementById('rec-id').value = r ? r.id : '';
+  document.getElementById('rec-titulo').value = r ? r.titulo||'' : '';
+
+  const culsList = load('fi_l_cultivo');
+  document.getElementById('rec-cultivo').innerHTML =
+    '<option value="">— Cultivo —</option>' +
+    culsList.map(function(c){ return '<option value="'+esc(c.nombre)+'"'+(r&&r.cultivo===c.nombre?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  const etapasList = load('fi_l_etapa');
+  document.getElementById('rec-etapa').innerHTML =
+    '<option value="">— Etapa —</option>' +
+    etapasList.map(function(e){ return '<option value="'+esc(e.nombre)+'"'+(r&&r.etapa===e.nombre?' selected':'')+'>'+esc(e.nombre)+'</option>'; }).join('');
+
+  document.getElementById('rec-lines').innerHTML = '';
+  const lineas = r ? (r.lineas||[]) : [];
+  if (lineas.length) { lineas.forEach(function(l){ addRecLine(l); }); }
+  else { addRecLine(); }
+
+  document.getElementById('rec-list').style.display = 'none';
+  document.getElementById('rec-form').style.display = 'block';
+}
+
+function closeRecForm() {
+  document.getElementById('rec-list').style.display = 'block';
+  document.getElementById('rec-form').style.display = 'none';
+}
+
+function buildInsOpts(selectedId, filter) {
+  var sorted = [...ins].sort(function(a,b){ return a.nombre.localeCompare(b.nombre,'es'); });
+  var q = (filter||'').toLowerCase().trim();
+  var filtered = q ? sorted.filter(function(i){ return i.nombre.toLowerCase().includes(q); }) : sorted;
+  return '<option value="">— Seleccionar —</option>'
+    + filtered.map(function(i){
+        return '<option value="'+i.id+'"'+(i.id===selectedId?' selected':'')+'>'+esc(i.nombre)+'</option>';
+      }).join('');
+}
+
+function filterInsSelect(rowId, q) {
+  var sel = document.querySelector('select[data-rowid="'+rowId+'"]');
+  if (!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = buildInsOpts(cur, q);
+  if (cur && sel.querySelector('option[value="'+cur+'"]')) sel.value = cur;
+}
+
+function addRecLine(data) {
+  const tbody = document.getElementById('rec-lines');
+  const rowId = uid();
+  const insOpts = buildInsOpts(data ? data.insumoId : '', '');
+  const tr = document.createElement('tr');
+  tr.dataset.rowid = rowId;
+  tr.innerHTML =
+    '<td style="min-width:200px">'
+      + '<input type="text" id="rl-search-'+rowId+'"'
+        + ' oninput="filterInsSelect(\''+rowId+'\',this.value)"'
+        + ' style="width:100%;margin-bottom:3px;padding:2px 6px;border:1px solid var(--gr300);border-radius:4px;font-size:12px;box-sizing:border-box">'
+      + '<select onchange="syncRecLine(this)" data-rowid="'+rowId+'" style="width:100%">'+insOpts+'</select>'
+    + '</td>'
+    + '<td><span class="rec-ro" id="rl-tipo-'+rowId+'">—</span></td>'
+    + '<td><span class="rec-ro" id="rl-unidad-'+rowId+'">—</span></td>'
+    + '<td><input type="number" id="rl-dosis-'+rowId+'" value="'+(data?data.dosis||'':'')+'" min="0" step="0.001" oninput="calcRecLine(\''+rowId+'\')" style="width:80px"></td>'
+    + '<td><span class="rec-ro" id="rl-ppha-'+rowId+'">—</span></td>'
+    + '<td><span id="rl-banda-'+rowId+'">—</span></td>'
+    + '<td><span class="rec-ro" id="rl-eiq-'+rowId+'">—</span></td>'
+    + '<td><span class="rec-ro" id="rl-eiqha-'+rowId+'">—</span></td>'
+    + '<td><button type="button" onclick="this.closest(\'tr\').remove();calcRecTotal()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;padding:2px 6px;line-height:1">x</button></td>';
+  tbody.appendChild(tr);
+  if (data && data.insumoId) {
+    var sel = tr.querySelector('select');
+    sel.value = data.insumoId;
+    syncRecLine(sel);
+  }
+}
+
+function syncRecLine(sel) {
+  const rowId = sel.dataset.rowid;
+  const item = ins.find(function(x){return x.id===sel.value;});
+  document.getElementById('rl-tipo-'+rowId).textContent   = item ? item.tipo   : '—';
+  document.getElementById('rl-unidad-'+rowId).textContent = item ? item.unidad : '—';
+  document.getElementById('rl-eiq-'+rowId).textContent    = item&&item.eiq!=null ? fmt(item.eiq) : '—';
+  calcRecLine(rowId);
+  const bandaEl = document.getElementById('rl-banda-'+rowId);
+  if (item && item.banda) {
+    const cls = 'tag tag-banda-' + item.banda.replace(/\s.*/,'').toLowerCase();
+    bandaEl.innerHTML = '\x3cspan class="'+cls+'">'+esc(item.banda)+'\x3c/span>';
+  } else {
+    bandaEl.textContent = '—';
+  }
+  calcRecLine(rowId);
+}
+
+function calcRecLine(rowId) {
+  const tr = document.querySelector('tr[data-rowid="'+rowId+'"]');
+  if (!tr) return;
+  const sel  = tr.querySelector('select');
+  const item = ins.find(function(x){return x.id===sel.value;});
+  const dosis  = parseFloat(document.getElementById('rl-dosis-'+rowId).value)||0;
+  const precio = item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+  const ppha   = dosis * precio;
+  document.getElementById('rl-ppha-'+rowId).textContent = ppha>0 ? 'U$S '+fmt(ppha) : '—';
+  const eiqVal = item&&item.eiq!=null ? parseFloat(item.eiq)||0 : 0;
+  const eiqha  = dosis * eiqVal;
+  const eiqhaEl = document.getElementById('rl-eiqha-'+rowId);
+  if (eiqhaEl) eiqhaEl.textContent = eiqha>0 ? fmt(eiqha) : '—';
+  calcRecTotal();
+}
+
+function calcRecTotal() {
+  let total = 0;
+  document.querySelectorAll('#rec-lines tr').forEach(function(tr) {
+    const rowId = tr.dataset.rowid;
+    if (!rowId) return;
+    const sel  = tr.querySelector('select');
+    const item = sel ? ins.find(function(x){return x.id===sel.value;}) : null;
+    const dosis  = parseFloat((document.getElementById('rl-dosis-'+rowId)||{}).value)||0;
+    const precio = item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+    total += dosis * precio;
+  });
+  let totalEiq = 0;
+  document.querySelectorAll('#rec-lines tr').forEach(function(tr2) {
+    const rowId2 = tr2.dataset.rowid;
+    if (!rowId2) return;
+    const sel2 = tr2.querySelector('select');
+    const item2 = sel2 ? ins.find(function(x){return x.id===sel2.value;}) : null;
+    const dosis2 = parseFloat((document.getElementById('rl-dosis-'+rowId2)||{}).value)||0;
+    const eiq2   = item2&&item2.eiq!=null ? parseFloat(item2.eiq)||0 : 0;
+    totalEiq += dosis2 * eiq2;
+  });
+  const el = document.getElementById('rec-total-row');
+  if (el) el.innerHTML = total>0 ? '\x3cstrong>Total U$S/ha: U$S '+fmt(total)+'\x3c/strong>' : '';
+  const eiqEl = document.getElementById('rec-total-eiq');
+  if (eiqEl) eiqEl.innerHTML = totalEiq>0 ? '\x3cstrong>EIQ total: '+fmt(totalEiq)+'\x3c/strong>' : '';
+}
+
+function saveReceta() {
+  const cultivo  = document.getElementById('rec-cultivo').value;
+  const etapa    = document.getElementById('rec-etapa').value;
+  const titulo   = document.getElementById('rec-titulo').value.trim();
+  if (!cultivo)  return shake('rec-cultivo');
+  if (!etapa)    return shake('rec-etapa');
+
+  const lineas = [];
+  document.querySelectorAll('#rec-lines tr').forEach(function(tr) {
+    const rowId = tr.dataset.rowid;
+    if (!rowId) return;
+    const sel  = tr.querySelector('select');
+    if (!sel || !sel.value) return;
+    const item = ins.find(function(x){return x.id===sel.value;});
+    const dosis = parseFloat((document.getElementById('rl-dosis-'+rowId)||{}).value)||0;
+    lineas.push({
+      insumoId: sel.value,
+      nombre:  item ? item.nombre  : '',
+      tipo:    item ? item.tipo    : '',
+      unidad:  item ? item.unidad  : '',
+      dosis:   dosis,
+      banda:   item ? item.banda||'' : '',
+      eiq:     item ? item.eiq : null
+    });
+  });
+
+  const id = document.getElementById('rec-id').value;
+  if (id) {
+    const i = recs.findIndex(function(x){return x.id===id;});
+    if (i>=0) recs[i] = {id:id, titulo:titulo, cultivo:cultivo, etapa:etapa, lineas:lineas};
+  } else {
+    recs.push({id:uid(), titulo:titulo, cultivo:cultivo, etapa:etapa, lineas:lineas});
+  }
+  save('fi_recs', recs);
+  closeRecForm();
+  renderRecetas();
+  updateCounts();
+  toast(id ? 'Receta actualizada' : 'Receta guardada');
+}
+
+function deleteRec(id, nombre) {
+  confirm2('_lista', id, nombre, null, function() {
+    recs = recs.filter(function(x){return x.id!==id;});
+    save('fi_recs', recs);
+    renderRecetas();
+    updateCounts();
+  });
+}
+
+
+
+// ══════════════════════════
+//  PROGRAMACION
+// ══════════════════════════
+function populateProgFiltros() {
+  var selCamp   = document.getElementById('pf-camp');
+  var selCampo  = document.getElementById('pf-campo');
+  var selCultivo = document.getElementById('pf-cultivo');
+  if (!selCamp) return;
+  var curCamp   = selCamp.value;
+  var curCampo  = selCampo.value;
+  var curCultivo = selCultivo.value;
+  var camps   = [...new Set(programas.map(function(p){return p.campaña||'';}).filter(Boolean))].sort();
+  var campos  = [...new Set(programas.map(function(p){return p.campoNombre||'';}).filter(Boolean))].sort();
+  var cultivos = [...new Set(programas.map(function(p){return p.cultivo||'';}).filter(Boolean))].sort();
+  selCamp.innerHTML   = '<option value="">Todas</option>'  + camps.map(function(v){return '<option value="'+esc(v)+'"'+(v===curCamp?' selected':'')+'>'+esc(v)+'</option>';}).join('');
+  selCampo.innerHTML  = '<option value="">Todos</option>'  + campos.map(function(v){return '<option value="'+esc(v)+'"'+(v===curCampo?' selected':'')+'>'+esc(v)+'</option>';}).join('');
+  selCultivo.innerHTML= '<option value="">Todos</option>'  + cultivos.map(function(v){return '<option value="'+esc(v)+'"'+(v===curCultivo?' selected':'')+'>'+esc(v)+'</option>';}).join('');
+}
+
+function clearProgFiltros() {
+  ['pf-camp','pf-campo','pf-cultivo'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  renderProgramacion();
+}
+
+function renderProgramacion() {
+  const thead = document.getElementById('prog-thead');
+  const tbody = document.getElementById('prog-tbody');
+  if (!tbody) return;
+  const progEl = document.getElementById('cnt-prog');
+  if (progEl) progEl.textContent = programas.length;
+
+  populateProgFiltros();
+
+  // Apply filters
+  var fCamp    = (document.getElementById('pf-camp')||{}).value||'';
+  var fCampo   = (document.getElementById('pf-campo')||{}).value||'';
+  var fCultivo = (document.getElementById('pf-cultivo')||{}).value||'';
+  var filtered = programas.filter(function(p){
+    if (fCamp    && p.campaña    !== fCamp)    return false;
+    if (fCampo   && p.campoNombre !== fCampo)   return false;
+    if (fCultivo && p.cultivo     !== fCultivo) return false;
+    return true;
+  });
+
+  // Build ordered etapa columns from lEtapas
+  const etapasCols = [...lEtapas].sort(function(a,b){ return (a.orden||99)-(b.orden||99); });
+  const colCount = 5 + etapasCols.length + 1; // fixed cols + etapas + actions
+
+  // Dynamic thead
+  if (thead) {
+    thead.innerHTML = '<tr>'
+      + '<th>Campaña</th><th>Cultivo</th><th>Campo</th><th>Lote</th><th class="num">Has</th>'
+      + etapasCols.map(function(e){
+          return '<th style="min-width:140px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--g800);border-left:1px solid var(--gr200);padding-left:12px">'+esc(e.nombre)+'</th>';
+        }).join('')
+      + '<th></th>'
+    + '</tr>';
+  }
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="'+colCount+'"><div class="empty"><div class="ei">—</div>'+(fCamp||fCampo||fCultivo?'Sin programaciones para los filtros seleccionados':'Sin programaciones cargadas')+'</div></td></tr>';
+    return;
+  }
+
+  // Group by loteId+cultivo+campaña → one row per unique combination
+  var grouped = {};
+  var groupOrder = [];
+  filtered.forEach(function(p) {
+    var key = (p.loteId||'')+'|'+(p.cultivo||'')+'|'+(p.campaña||'');
+    if (!grouped[key]) {
+      grouped[key] = { p: p, etapaMap: {} };
+      groupOrder.push(key);
+    }
+    // Merge etapas: later entries override earlier for same etapa
+    (p.etapas||[]).forEach(function(e) {
+      if (e.recetaId) grouped[key].etapaMap[e.etapa] = e.recetaId;
+    });
+  });
+
+  tbody.innerHTML = groupOrder.map(function(key) {
+    var g = grouped[key];
+    var p = g.p;
+    // Collect all ids for this lote group (for edit: use first entry; for delete: remove all)
+    var ids = filtered.filter(function(x){ return (x.loteId||'')+'|'+(x.cultivo||'')+'|'+(x.campaña||'')===key; }).map(function(x){ return x.id; });
+    var etapaCells = etapasCols.map(function(e) {
+      var recetaId = g.etapaMap[e.nombre];
+      var rec = recetaId ? recs.find(function(r){ return r.id===recetaId; }) : null;
+      var titulo = rec ? (rec.titulo || (rec.cultivo+' / '+rec.etapa)) : null;
+      return '<td style="border-left:1px solid var(--gr200);padding-left:12px;vertical-align:middle">'
+        + (titulo
+          ? '<button data-rid="'+recetaId+'" onclick="showRecetaDetalle(this.dataset.rid)" style="background:none;border:none;padding:0;cursor:pointer;color:var(--g700);font-size:12px;font-weight:600;text-align:left;line-height:1.4">'+esc(titulo)+'</button>'
+          : '<span style="color:var(--gr300);font-size:12px">—</span>')
+      + '</td>';
+    }).join('');
+    return '<tr>'
+      + '<td>'+esc(p.campaña)+'</td>'
+      + '<td style="font-weight:600">'+esc(p.cultivo)+'</td>'
+      + '<td>'+esc(p.campoNombre)+'</td>'
+      + '<td>'+esc(p.loteNombre)+'</td>'
+      + '<td class="num">'+fmt(p.has)+'</td>'
+      + etapaCells
+      + '<td><div class="td-actions">'
+        + '<button class="btn btn-ghost btn-xs" data-pid="'+ids[0]+'" onclick="openProgForm(this.dataset.pid)">Editar</button>'
+        + '<button class="btn btn-ghost btn-xs" style="color:var(--red)" data-pids="'+ids.join(',')+'" data-nom="'+esc(p.cultivo+' - '+p.loteNombre)+'" onclick="deleteProgramGroup(this.dataset.pids,this.dataset.nom)">Eliminar</button>'
+      + '</div></td>'
+    + '</tr>';
+  }).join('');
+}
+
+function openProgForm(id) {
+  const p = id ? programas.find(function(x){return x.id===id;}) : null;
+  document.getElementById('prog-form-title').textContent = p ? 'Editar programacion' : 'Nueva programacion';
+  document.getElementById('prog-id').value = p ? p.id : '';
+
+  // Campaña
+  const campsList = load('fi_l_camp');
+  const selCamp = document.getElementById('prog-campaña');
+  selCamp.innerHTML = '<option value="">— Campaña —</option>' +
+    campsList.map(function(c){ var sel=(p&&p.campaña===c.nombre); return '<option value="'+esc(c.nombre)+'"'+(sel?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  // Cultivo
+  const culsList = load('fi_l_cultivo');
+  const selCul = document.getElementById('prog-cultivo');
+  selCul.innerHTML = '<option value="">— Cultivo —</option>' +
+    culsList.map(function(c){ return '<option value="'+esc(c.nombre)+'"'+(p&&p.cultivo===c.nombre?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  // Campo
+  const camposList = load('fi_l_campo');
+  const selCampo = document.getElementById('prog-campo');
+  var selCampoId = '';
+  if (p && p.loteId) {
+    const allLotes = load('fi_l_lote');
+    const curLote = allLotes.find(function(l){ return l.id===p.loteId; });
+    if (curLote) selCampoId = curLote.campoId || '';
+  }
+  selCampo.innerHTML = '<option value="">— Campo —</option>' +
+    camposList.map(function(c){ return '<option value="'+c.id+'"'+(c.id===selCampoId?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  // Lotes (filtered by campo if selected)
+  _buildProgLoteOptions(selCampoId, p ? p.loteId : null);
+
+  if (p) {
+    _showProgMeta(p.loteId);
+    _buildEtapaRows(p.campaña, p.cultivo, p.etapas||[]);
+  } else {
+    document.getElementById('prog-meta').style.display = 'none';
+    document.getElementById('prog-etapas-wrap').innerHTML =
+      '<div style="padding:16px;text-align:center;color:var(--gr400);font-size:13px">Selecciona campaña y cultivo para ver las etapas disponibles</div>';
+  }
+
+  document.getElementById('prog-list').style.display = 'none';
+  document.getElementById('prog-form').style.display = 'block';
+}
+
+function closeProgForm() {
+  document.getElementById('prog-list').style.display = 'block';
+  document.getElementById('prog-form').style.display = 'none';
+}
+
+function _buildProgLoteOptions(campoId, selLoteId) {
+  const lotes = load('fi_l_lote');
+  const campos = load('fi_l_campo');
+  const sel = document.getElementById('prog-lote');
+  const filtered = campoId ? lotes.filter(function(l){ return l.campoId===campoId; }) : lotes;
+  if (!campoId) {
+    sel.innerHTML = '<option value="">— Seleccionar campo primero —</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML = '<option value="">— Lote —</option>' +
+    filtered.map(function(l){
+      return '<option value="'+l.id+'"'+(l.id===selLoteId?' selected':'')+'>'+esc(l.nombre)+' ('+fmt(l.has)+' ha)</option>';
+    }).join('');
+}
+
+function _showProgMeta(loteId) {
+  const lotes  = load('fi_l_lote');
+  const campos = load('fi_l_campo');
+  const lote   = lotes.find(function(l){return l.id===loteId;});
+  const meta   = document.getElementById('prog-meta');
+  if (!lote) { meta.style.display='none'; return; }
+  const campo = campos.find(function(c){return c.id===lote.campoId;});
+  document.getElementById('prog-meta-campo').textContent = campo ? campo.nombre : '—';
+  document.getElementById('prog-meta-has').textContent   = fmt(lote.has) + ' ha';
+  meta.style.display = 'flex';
+}
+
+function _buildEtapaRows(campaña, cultivo, savedEtapas) {
+  const etapasList = load('fi_l_etapa');
+  const wrap = document.getElementById('prog-etapas-wrap');
+  if (!campaña || !cultivo || !etapasList.length) {
+    wrap.innerHTML = '<div style="padding:16px;text-align:center;color:var(--gr400);font-size:13px">Selecciona campaña y cultivo para ver las etapas</div>';
+    return;
+  }
+  let html = '';
+  etapasList.forEach(function(e) {
+    const saved = savedEtapas.find(function(s){return s.etapa===e.nombre;});
+    const selId = saved ? saved.recetaId : '';
+    // Filter recipes: match cultivo + etapa (any campaña, so old recipes are reusable)
+    const recsFilt = recs.filter(function(r){
+      return r.cultivo===cultivo && r.etapa===e.nombre;
+    });
+    const opts = '<option value="">— Sin receta —</option>' +
+      recsFilt.map(function(r){
+        const total = (r.lineas||[]).reduce(function(s,l){
+          const item = ins.find(function(x){return x.id===l.insumoId;});
+          return s+(parseFloat(l.dosis)||0)*(item&&item.precio!=null?parseFloat(item.precio)||0:0);
+        },0);
+        const titlePart = r.titulo ? esc(r.titulo) : (r.lineas||[]).length+' insumos';
+        const costPart  = total>0 ? ' · U$S '+fmt(total)+'/ha' : '';
+        return '<option value="'+r.id+'"'+(r.id===selId?' selected':'')+'>'+titlePart+costPart+'</option>';
+      }).join('');
+    const noRecs = !recsFilt.length;
+    html += '<div class="prog-etapa-row" data-etapa="'+esc(e.nombre)+'">'
+      + '<span class="prog-etapa-label">'+esc(e.nombre)+'</span>'
+      + '<div style="flex:1">'
+        + '<select class="prog-rec-sel"'+(noRecs?' disabled':'')+'>'+opts+'</select>'
+        + (noRecs ? '<div class="prog-rec-summary" style="color:var(--gr400);font-size:11px;margin-top:4px">Sin recetas para este cultivo/etapa</div>' : '')
+      + '</div>'
+    + '</div>';
+  });
+  wrap.innerHTML = html || '<div style="padding:16px;text-align:center;color:var(--gr400)">Sin etapas configuradas en Listas</div>';
+}
+
+function onProgCampChange() { _refreshEtapas(); }
+function onProgCulChange()  { _refreshEtapas(); }
+function _refreshEtapas() {
+  const campaña = document.getElementById('prog-campaña').value;
+  const cultivo  = document.getElementById('prog-cultivo').value;
+  _buildEtapaRows(campaña, cultivo, []);
+}
+
+function onProgCampoChange() {
+  const campoId = document.getElementById('prog-campo').value;
+  _buildProgLoteOptions(campoId, null);
+  document.getElementById('prog-meta').style.display = 'none';
+}
+
+function onProgLoteChange() {
+  const loteId = document.getElementById('prog-lote').value;
+  _showProgMeta(loteId);
+}
+
+function saveProgram() {
+  const campaña = document.getElementById('prog-campaña').value;
+  const cultivo  = document.getElementById('prog-cultivo').value;
+  const loteId   = document.getElementById('prog-lote').value;
+  const campoId = document.getElementById('prog-campo').value;
+  if (!campaña) return shake('prog-campaña');
+  if (!cultivo)  return shake('prog-cultivo');
+  if (!campoId)  return shake('prog-campo');
+  if (!loteId)   return shake('prog-lote');
+
+  const lotes  = load('fi_l_lote');
+  const campos = load('fi_l_campo');
+  const lote   = lotes.find(function(l){return l.id===loteId;}) || {};
+  const campo  = campos.find(function(c){return c.id===lote.campoId;}) || {};
+
+  const etapas = [];
+  document.querySelectorAll('#prog-etapas-wrap .prog-etapa-row').forEach(function(row) {
+    const etapaNombre = row.dataset.etapa;
+    const sel = row.querySelector('.prog-rec-sel');
+    etapas.push({ etapa: etapaNombre, recetaId: sel ? sel.value : '' });
+  });
+
+  const id = document.getElementById('prog-id').value;
+  const obj = {
+    id: id || uid(),
+    campaña:    campaña,
+    cultivo:    cultivo,
+    loteId:     loteId,
+    loteNombre: lote.nombre || '',
+    campoNombre: campo.nombre || '',
+    has:        parseFloat(lote.has) || 0,
+    etapas:     etapas
+  };
+  // Upsert: if editing by id use that; otherwise find existing entry for same loteId+cultivo
+  const editIdx = id ? programas.findIndex(function(x){return x.id===id;}) : -1;
+  const dupeIdx = editIdx<0 ? programas.findIndex(function(x){return x.loteId===loteId && x.cultivo===cultivo && x.campaña===campaña;}) : -1;
+  if (editIdx>=0) {
+    programas[editIdx] = obj;
+  } else if (dupeIdx>=0) {
+    // Merge etapas into existing entry (new selections override old ones for same etapa)
+    const existing = programas[dupeIdx];
+    const merged = [...(existing.etapas||[])];
+    etapas.forEach(function(ne) {
+      const mi = merged.findIndex(function(me){ return me.etapa===ne.etapa; });
+      if (mi>=0) { if (ne.recetaId) merged[mi] = ne; }
+      else merged.push(ne);
+    });
+    programas[dupeIdx] = Object.assign({}, existing, { etapas: merged });
+    obj.id = existing.id;
+  } else {
+    programas.push(obj);
+  }
+  save('fi_programacion', programas);
+  closeProgForm();
+  renderProgramacion();
+  updateCounts();
+  toast('Programacion guardada');
+}
+
+function showRecetaDetalle(recId) {
+  var rec = recs.find(function(r){ return r.id===recId; });
+  if (!rec) return;
+  var titulo = rec.titulo || (rec.cultivo+' / '+rec.etapa);
+  document.getElementById('m-rec-det-title').textContent = titulo;
+  var lineas = rec.lineas||[];
+  var totalCost = 0, totalEiq = 0;
+  var rows = lineas.map(function(l) {
+    var item = ins.find(function(x){ return x.id===l.insumoId; });
+    var precio = item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+    var eiqV   = item&&item.eiq!=null   ? parseFloat(item.eiq)||0   : (l.eiq!=null?parseFloat(l.eiq)||0:0);
+    var ppha   = (parseFloat(l.dosis)||0) * precio;
+    var eiqha  = (parseFloat(l.dosis)||0) * eiqV;
+    totalCost += ppha; totalEiq += eiqha;
+    var bandaCls = l.banda ? 'tag tag-banda-'+l.banda.replace(/\s.*/,'').toLowerCase() : '';
+    return '<tr>'
+      + '<td style="font-weight:600">'+esc(l.nombre||'—')+'</td>'
+      + '<td>'+esc(l.tipo||'—')+'</td>'
+      + '<td class="num">'+fmt(l.dosis||0)+' '+esc(l.unidad||'')+'</td>'
+      + '<td class="num">'+(ppha>0?'U$S '+fmt(ppha):'—')+'</td>'
+      + '<td>'+(l.banda?'<span class="'+bandaCls+'">'+esc(l.banda)+'</span>':'—')+'</td>'
+      + '<td class="num">'+(eiqha>0?fmt(eiqha):'—')+'</td>'
+    + '</tr>';
+  }).join('');
+  var meta = '<div style="font-size:12px;color:var(--gr500);margin-bottom:12px">'
+    + esc(rec.cultivo)+' — '+esc(rec.etapa)
+    + '</div>';
+  var tbl = lineas.length
+    ? '<table><thead><tr>'
+        +'<th>Insumo</th><th>Tipo</th><th class="num">Dosis/ha</th>'
+        +'<th class="num">U$S/ha</th><th>Banda</th><th class="num">EIQ/ha</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table>'
+      +'<div style="display:flex;justify-content:flex-end;gap:24px;padding:10px 4px 0;font-size:13px;color:var(--gr700)">'
+        +(totalEiq>0?'<strong>EIQ total: '+fmt(totalEiq)+'</strong>':'')
+        +(totalCost>0?'<strong>Total U$S/ha: U$S '+fmt(totalCost)+'</strong>':'')
+      +'</div>'
+    : '<div style="color:var(--gr400);padding:12px 0">Sin insumos cargados</div>';
+  document.getElementById('m-rec-det-body').innerHTML = meta + tbl;
+  openModal('m-rec-det');
+}
+
+function deleteProgram(id, nombre) {
+  confirm2('_lista', id, nombre, null, function() {
+    programas = programas.filter(function(x){return x.id!==id;});
+    save('fi_programacion', programas);
+    renderProgramacion();
+    updateCounts();
+  });
+}
+
+function deleteProgramGroup(idsStr, nombre) {
+  var ids = idsStr.split(',');
+  confirm2('_lista', ids[0], nombre, null, function() {
+    programas = programas.filter(function(x){return ids.indexOf(x.id)<0;});
+    save('fi_programacion', programas);
+    renderProgramacion();
+    updateCounts();
+  });
+}
+
+
+// ══════════════════════════
+//  RESUMEN
+// ══════════════════════════
+function initResumenFilters() {
+  var campsList  = load('fi_l_camp');
+  var camposList = load('fi_l_campo');
+  var culsList   = load('fi_l_cultivo');
+  var etapasList = load('fi_l_etapa');
+
+  var selCamp = document.getElementById('res-f-camp');
+  var curCamp = selCamp.value || '';
+  selCamp.innerHTML = '<option value="">Todas</option>' +
+    campsList.map(function(c){ return '<option value="'+esc(c.nombre)+'"'+(c.nombre===curCamp?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  var selCampo = document.getElementById('res-f-campo');
+  var curCampo = selCampo.value;
+  selCampo.innerHTML = '<option value="">Todos</option>' +
+    camposList.map(function(c){ return '<option value="'+esc(c.nombre)+'"'+(c.nombre===curCampo?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  var selCul = document.getElementById('res-f-cultivo');
+  var curCul = selCul.value;
+  selCul.innerHTML = '<option value="">Todos</option>' +
+    culsList.map(function(c){ return '<option value="'+esc(c.nombre)+'"'+(c.nombre===curCul?' selected':'')+'>'+esc(c.nombre)+'</option>'; }).join('');
+
+  var selEtapa = document.getElementById('res-f-etapa');
+  var curEtapa = selEtapa.value;
+  selEtapa.innerHTML = '<option value="">Todas</option>' +
+    etapasList.map(function(e){ return '<option value="'+esc(e.nombre)+'"'+(e.nombre===curEtapa?' selected':'')+'>'+esc(e.nombre)+'</option>'; }).join('');
+  campBanner('resumen');
+}
+
+function clearResFilters() {
+  ['res-f-camp','res-f-campo','res-f-cultivo','res-f-etapa'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  renderResumen();
+}
+
+function calcResumen() {
+  var filtCamp   = document.getElementById('res-f-camp').value;
+  var filtCampo  = document.getElementById('res-f-campo').value;
+  var filtCul    = document.getElementById('res-f-cultivo').value;
+  var filtEtapa  = document.getElementById('res-f-etapa').value;
+
+  // Map: insumoId -> {nombre, tipo, unidad, banda, eiq, modoAccion, totalQty, totalCost, etapasSet}
+  var result = {};
+
+  programas.forEach(function(prog) {
+    if (filtCamp  && prog.campaña    !== filtCamp)  return;
+    if (filtCampo && prog.campoNombre !== filtCampo) return;
+    if (filtCul   && prog.cultivo     !== filtCul)   return;
+
+    (prog.etapas||[]).forEach(function(etapaEntry) {
+      if (filtEtapa && etapaEntry.etapa !== filtEtapa) return;
+      if (!etapaEntry.recetaId) return;
+
+      var receta = recs.find(function(r){ return r.id===etapaEntry.recetaId; });
+      if (!receta) return;
+
+      (receta.lineas||[]).forEach(function(linea) {
+        var item = ins.find(function(x){ return x.id===linea.insumoId; });
+        var qty  = (parseFloat(linea.dosis)||0) * (parseFloat(prog.has)||0);
+        var precio = item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+        var cost = qty * precio;
+        var key  = linea.insumoId || linea.nombre;
+
+        if (!result[key]) {
+          result[key] = {
+            insumoKey:  key,
+            nombre:     linea.nombre,
+            tipo:       linea.tipo,
+            unidad:     linea.unidad,
+            totalQty:   0,
+            totalCost:  0
+          };
+        }
+        result[key].totalQty  += qty;
+        result[key].totalCost += cost;
+      });
+    });
+  });
+
+  return Object.values(result).sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
+}
+
+var fiStock = load('fi_stock') || {};
+
+function saveStock(insumoKey, val) {
+  fiStock[insumoKey] = parseFloat(val) || 0;
+  save('fi_stock', fiStock);
+  renderResumen();
+}
+
+function renderCultivoBreakdown() {
+  var wrap = document.getElementById('res-cultivo-wrap');
+  if (!wrap) return;
+  var filtCamp  = document.getElementById('res-f-camp').value;
+  var filtCampo = document.getElementById('res-f-campo').value;
+  var filtCul   = document.getElementById('res-f-cultivo').value;
+  var filtEtapa = document.getElementById('res-f-etapa').value;
+
+  // Collect per-cultivo data from programas
+  var byCtv = {};
+  programas.forEach(function(prog) {
+    if (filtCamp  && prog.campaña    !== filtCamp)  return;
+    if (filtCampo && prog.campoNombre !== filtCampo) return;
+    if (filtCul   && prog.cultivo     !== filtCul)   return;
+    var cul = prog.cultivo || '—';
+    if (!byCtv[cul]) byCtv[cul] = { has: 0, insumos: {}, cost: 0 };
+    byCtv[cul].has += parseFloat(prog.has)||0;
+    (prog.etapas||[]).forEach(function(etapaEntry) {
+      if (filtEtapa && etapaEntry.etapa !== filtEtapa) return;
+      if (!etapaEntry.recetaId) return;
+      var rec = recs.find(function(r){ return r.id===etapaEntry.recetaId; });
+      if (!rec) return;
+      (rec.lineas||[]).forEach(function(linea) {
+        var item   = ins.find(function(x){ return x.id===linea.insumoId; });
+        var stock  = parseFloat(fiStock[linea.insumoId])||0;
+        var qty    = (parseFloat(linea.dosis)||0) * (parseFloat(prog.has)||0);
+        var precio = item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+        byCtv[cul].insumos[linea.insumoId||linea.nombre] = true;
+        byCtv[cul].cost += qty * precio;
+      });
+    });
+  });
+
+  var keys = Object.keys(byCtv);
+  if (!keys.length) { wrap.innerHTML = ''; return; }
+
+  var rows = keys.map(function(cul, i) {
+    var d = byCtv[cul];
+    var nInsumos = Object.keys(d.insumos).length;
+    return '<tr>'
+      + '<td style="font-weight:700;color:var(--g800)">'+esc(cul)+'</td>'
+      + '<td class="num">'+fmt(d.has)+' ha</td>'
+      + '<td class="num">'+nInsumos+' insumo'+(nInsumos!==1?'s':'')+'</td>'
+      + '<td class="num" style="color:var(--g700);font-weight:700">'+(d.cost>0?'U$S '+fmt(d.cost):'—')+'</td>'
+    + '</tr>';
+  }).join('');
+
+  var label = keys.length===1 ? 'Cultivo seleccionado' : 'Total por cultivo';
+  wrap.innerHTML = '<div class="tcard" style="padding:0">'
+    + '<div style="padding:10px 16px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gr500)">'+label+'</div>'
+    + '<table><thead><tr>'
+      + '<th>Cultivo</th><th class="num">Has</th><th class="num">Insumos</th><th class="num">Costo estimado</th>'
+    + '</tr></thead><tbody>'+rows+'</tbody></table>'
+  + '</div>';
+}
+
+function renderResumen() {
+  var rows  = calcResumen();
+  var tbody = document.getElementById('res-tbody');
+  var cards = document.getElementById('res-cards');
+
+  var filtProg = programas.filter(function(p){
+    var fc = document.getElementById('res-f-camp').value;
+    var fo = document.getElementById('res-f-campo').value;
+    var fv = document.getElementById('res-f-cultivo').value;
+    if (fc && p.campaña!==fc) return false;
+    if (fo && p.campoNombre!==fo) return false;
+    if (fv && p.cultivo!==fv) return false;
+    return true;
+  });
+  var totalHas = filtProg.reduce(function(s,p){ return s+(parseFloat(p.has)||0); }, 0);
+
+  // Compute necesidad and cost on necesidad
+  var totalInsumos = rows.length;
+  var totalCostNec = rows.reduce(function(s,r){
+    var stock = parseFloat(fiStock[r.insumoKey])||0;
+    var nec   = Math.max(0, r.totalQty - stock);
+    var item  = ins.find(function(x){ return x.id===r.insumoKey; });
+    var precio= item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+    return s + nec * precio;
+  }, 0);
+
+  cards.innerHTML =
+    '<div class="res-scard"><div class="rs-label">Insumos distintos</div><div class="rs-val">'+totalInsumos+'</div></div>' +
+    '<div class="res-scard"><div class="rs-label">Lotes programados</div><div class="rs-val">'+filtProg.length+'</div></div>' +
+    '<div class="res-scard"><div class="rs-label">Total hectareas</div><div class="rs-val">'+fmt(totalHas)+' ha</div></div>' +
+    '<div class="res-scard"><div class="rs-label">Costo total estimado</div><div class="rs-val">U$S '+fmt(totalCostNec)+'</div></div>';
+
+  renderCultivoBreakdown();
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="ei">—</div>Sin datos para los filtros seleccionados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(function(r, i) {
+    var stock  = parseFloat(fiStock[r.insumoKey])||0;
+    var nec    = Math.max(0, r.totalQty - stock);
+    var item   = ins.find(function(x){ return x.id===r.insumoKey; });
+    var precio = item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+    var costNec = nec * precio;
+    return '<tr>'
+      + '<td style="color:var(--gr500);font-size:12px">'+(i+1)+'</td>'
+      + '<td style="font-weight:600">'+esc(r.nombre)+'</td>'
+      + '<td><span class="tag '+(TIPO_CLS[r.tipo]||'')+'">'+esc(r.tipo)+'</span></td>'
+      + '<td>'+esc(r.unidad)+'</td>'
+      + '<td class="num" style="color:var(--g700)"><strong>'+fmt(r.totalQty)+'</strong></td>'
+      + '<td class="num"><input type="number" min="0" step="0.01"' + ' value="'+(stock||'')+'"' + ' data-key="'+r.insumoKey+'"' + ' onchange="saveStock(this.dataset.key,this.value)"' + ' style="width:80px;text-align:right;border:1px solid #0891b2;border-radius:4px;padding:2px 6px;font-size:13px;color:#0369a1"></td>'
+      + '<td class="num" style="color:#ea7c00"><strong>'+fmt(nec)+'</strong></td>'
+      + '<td class="num">'+(costNec>0?'U$S '+fmt(costNec):'—')+'</td>'
+    + '</tr>';
+  }).join('');
+}
+
+function printResumen() {
+  // Build filters label
+  var fc = document.getElementById('res-f-camp').value;
+  var fo = document.getElementById('res-f-campo').value;
+  var fv = document.getElementById('res-f-cultivo').value;
+  var fe = document.getElementById('res-f-etapa').value;
+  var filtros = [fc&&('Campaña: '+fc), fo&&('Campo: '+fo), fv&&('Cultivo: '+fv), fe&&('Etapa: '+fe)].filter(Boolean).join(' | ');
+
+  // Cultivo breakdown HTML
+  var byCtv = {};
+  var filtProg = programas.filter(function(p){
+    if (fc && p.campaña!==fc) return false;
+    if (fo && p.campoNombre!==fo) return false;
+    if (fv && p.cultivo!==fv) return false;
+    return true;
+  });
+  filtProg.forEach(function(prog) {
+    var cul = prog.cultivo||'—';
+    if (!byCtv[cul]) byCtv[cul] = {has:0, insumos:{}, cost:0};
+    byCtv[cul].has += parseFloat(prog.has)||0;
+    (prog.etapas||[]).forEach(function(et) {
+      if (fe && et.etapa!==fe) return;
+      if (!et.recetaId) return;
+      var rec = recs.find(function(r){return r.id===et.recetaId;});
+      if (!rec) return;
+      (rec.lineas||[]).forEach(function(l) {
+        var item = ins.find(function(x){return x.id===l.insumoId;});
+        var qty = (parseFloat(l.dosis)||0)*(parseFloat(prog.has)||0);
+        var precio = item&&item.precio!=null?parseFloat(item.precio)||0:0;
+        byCtv[cul].insumos[l.insumoId||l.nombre]=true;
+        byCtv[cul].cost += qty*precio;
+      });
+    });
+  });
+  var ctvRows = Object.keys(byCtv).map(function(cul){
+    var d=byCtv[cul];
+    return '<tr><td>'+esc(cul)+'</td><td class="r">'+fmt(d.has)+' ha</td><td class="r">'+Object.keys(d.insumos).length+'</td><td class="r">'+(d.cost>0?'U$S '+fmt(d.cost):'—')+'</td></tr>';
+  }).join('');
+
+  // Insumo rows
+  var rows = calcResumen();
+  var totalCostNec = 0;
+  var insRows = rows.map(function(r,i){
+    var stock  = parseFloat(fiStock[r.insumoKey])||0;
+    var nec    = Math.max(0, r.totalQty - stock);
+    var item   = ins.find(function(x){return x.id===r.insumoKey;});
+    var precio = item&&item.precio!=null?parseFloat(item.precio)||0:0;
+    var costNec = nec*precio;
+    totalCostNec += costNec;
+    return '<tr><td>'+(i+1)+'</td><td><strong>'+esc(r.nombre)+'</strong></td><td>'+esc(r.tipo)+'</td><td>'+esc(r.unidad)+'</td>'
+      +'<td class="r">'+fmt(r.totalQty)+'</td>'
+      +'<td class="r">'+fmt(stock)+'</td>'
+      +'<td class="r"><strong>'+fmt(nec)+'</strong></td>'
+      +'<td class="r">'+(costNec>0?'U$S '+fmt(costNec):'—')+'</td></tr>';
+  }).join('');
+  var totalHas = filtProg.reduce(function(s,p){return s+(parseFloat(p.has)||0);},0);
+
+  var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    +'<title>Resumen Fitosanitario</title>'
+    +'<style>'
+    +'* { margin:0; padding:0; box-sizing:border-box; }'
+    +'body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 20px; }'
+    +'h1 { font-size:18px; color:#1b4332; margin-bottom:4px; }'
+    +'.sub { font-size:11px; color:#555; margin-bottom:16px; }'
+    +'.cards { display:flex; gap:16px; margin-bottom:20px; }'
+    +'.card { border:1px solid #d1fae5; border-radius:8px; padding:10px 16px; min-width:140px; }'
+    +'.card .lbl { font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:#6b7280; }'
+    +'.card .val { font-size:18px; font-weight:700; color:#1b4332; }'
+    +'h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#6b7280; margin:18px 0 8px; border-bottom:1px solid #e5e7eb; padding-bottom:4px; }'
+    +'table { width:100%; border-collapse:collapse; margin-bottom:20px; }'
+    +'th { background:#f0faf4; color:#2d6a4f; font-size:10px; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; text-align:left; border-bottom:2px solid #95d5b2; }'
+    +'td { padding:5px 8px; border-bottom:1px solid #f3f4f6; font-size:11px; }'
+    +'tr:nth-child(even) td { background:#fafafa; }'
+    +'.r { text-align:right; }'
+    +'.footer { margin-top:24px; font-size:9px; color:#9ca3af; border-top:1px solid #e5e7eb; padding-top:8px; }'
+    +'@page { size: A4 landscape; margin: 15mm; }'
+    +'</style></head><body>'
+    +'<h1>Resumen Fitosanitario</h1>'
+    +'<div class="sub">'+(filtros||'Todos los filtros')+' &nbsp;|&nbsp; Generado: '+new Date().toLocaleDateString('es-AR')+'</div>'
+    +'<div class="cards">'
+    +'<div class="card"><div class="lbl">Insumos distintos</div><div class="val">'+rows.length+'</div></div>'
+    +'<div class="card"><div class="lbl">Lotes programados</div><div class="val">'+filtProg.length+'</div></div>'
+    +'<div class="card"><div class="lbl">Total hectáreas</div><div class="val">'+fmt(totalHas)+' ha</div></div>'
+    +'<div class="card"><div class="lbl">Costo a comprar</div><div class="val">U$S '+fmt(totalCostNec)+'</div></div>'
+    +'</div>'
+    +(Object.keys(byCtv).length?'<h2>Total por cultivo</h2><table><thead><tr><th>Cultivo</th><th class="r">Hectáreas</th><th class="r">Insumos</th><th class="r">Costo estimado</th></tr></thead><tbody>'+ctvRows+'</tbody></table>':'')
+    +'<h2>Detalle de insumos</h2>'
+    +'<table><thead><tr><th>#</th><th>Insumo</th><th>Tipo</th><th>Unidad</th><th class="r">Total req.</th><th class="r">Stock</th><th class="r">Nec. compra</th><th class="r">Total U$S</th></tr></thead><tbody>'
+    +insRows
+    +'</tbody><tfoot><tr><td colspan="7" style="text-align:right;font-weight:700;padding:6px 8px;border-top:2px solid #95d5b2">Total a comprar:</td><td class="r" style="font-weight:700;border-top:2px solid #95d5b2">'+(totalCostNec>0?'U$S '+fmt(totalCostNec):'—')+'</td></tr></tfoot></table>'
+    +'<div class="footer">Gestion Fitosanitaria &mdash; generado el '+new Date().toLocaleString('es-AR')+'</div>'
+    +'</body></html>';
+
+  var w = window.open('','_blank','width=900,height=700');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(function(){ w.print(); }, 400);
+}
+
+function exportResumen() {
+  var rows = calcResumen();
+  if (!rows.length) { toast('Sin datos para exportar'); return; }
+  var header = 'Insumo;Tipo;Unidad;Total requerimiento;Stock;Necesidad compra;Total U$S';
+  var lines = rows.map(function(r){
+    var stock = parseFloat(fiStock[r.insumoKey])||0;
+    var nec   = Math.max(0, r.totalQty - stock);
+    var item  = ins.find(function(x){ return x.id===r.insumoKey; });
+    var precio= item&&item.precio!=null ? parseFloat(item.precio)||0 : 0;
+    var costNec = nec * precio;
+    return [r.nombre,r.tipo,r.unidad,r.totalQty.toFixed(2),stock.toFixed(2),nec.toFixed(2),costNec.toFixed(2)].join(';');
+  });
+  var csv = [header].concat(lines).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download = 'resumen_insumos.csv';
+  a.click();
+  toast('CSV exportado');
+}
+
+
+// ══════════════════════════
+//  CAMPAÑA ACTIVA (header)
+// ══════════════════════════
+var activeCampaña = '';
+
+function toggleCampDD(e) {
+  e.stopPropagation();
+  var dd = document.getElementById('hdr-camp-dd');
+  if (dd.classList.contains('open')) { dd.classList.remove('open'); return; }
+  _buildCampDD();
+  dd.classList.add('open');
+}
+
+function _buildCampDD() {
+  var camps = load('fi_l_camp');
+  var dd = document.getElementById('hdr-camp-dd');
+  if (!camps.length) {
+    dd.innerHTML = '<div class="hdr-camp-dd-empty">Sin campañas cargadas</div>';
+    return;
+  }
+  dd.innerHTML =
+    '<button class="hdr-camp-dd-item'+(activeCampaña===''?' active':'')+'" onclick="selectCamp(\'\')">Todas las campañas</button>' +
+    '<div class="hdr-camp-dd-sep"></div>' +
+    camps.map(function(c){
+      return '<button class="hdr-camp-dd-item'+(activeCampaña===c.nombre?' active':'')+'" onclick="selectCamp(\''+esc(c.nombre)+'\')">'+esc(c.nombre)+'</button>';
+    }).join('');
+}
+
+function selectCamp(nombre) {
+  activeCampaña = nombre;
+  localStorage.setItem('fi_active_camp', nombre);
+  document.getElementById('hdr-badge-txt').textContent = nombre ? 'Campaña ' + nombre : 'Todas las campañas';
+  document.getElementById('hdr-camp-dd').classList.remove('open');
+  // Refrescar la tab activa con la nueva campaña
+  var activePanel = document.querySelector('.tab-panel.active');
+  if (activePanel) {
+    var id = activePanel.id.replace('panel-','');
+    if (id==='recetas')  renderRecetas();
+    if (id==='prog')     renderProgramacion();
+    if (id==='resumen')  { initResumenFilters(); renderResumen(); }
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function() {
+  var dd = document.getElementById('hdr-camp-dd');
+  if (dd) dd.classList.remove('open');
+});
+
+
+function campBanner(tabId) {
+  var wrap = document.getElementById('camp-banner-'+tabId);
+  if (!wrap) return;
+  if (!activeCampaña) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'flex';
+  wrap.querySelector('.cb-txt').textContent = 'Campaña ' + activeCampaña;
+}
+
+function openDupModal(id) {
+  var r = recs.find(function(x){ return x.id===id; });
+  if (!r) return;
+  document.getElementById('dup-rec-id').value = id;
+  document.getElementById('dup-rec-info').innerHTML =
+    '<strong>'+esc(r.titulo||r.cultivo)+'</strong> &mdash; '+esc(r.etapa)+
+    '<br><span style="font-size:12px;color:var(--gr500)">'+(r.lineas||[]).length+' insumos</span>';
+
+  var culsList = load('fi_l_cultivo');
+  document.getElementById('dup-cultivo').innerHTML = '<option value="">— Mismo cultivo —</option>' +
+    culsList.map(function(c){
+      return '<option value="'+esc(c.nombre)+'"'+(r.cultivo===c.nombre?' selected':'')+'>'+esc(c.nombre)+'</option>';
+    }).join('');
+
+  var etapasList = load('fi_l_etapa');
+  document.getElementById('dup-etapa').innerHTML = '<option value="">— Misma etapa —</option>' +
+    etapasList.map(function(e){
+      return '<option value="'+esc(e.nombre)+'"'+(r.etapa===e.nombre?' selected':'')+'>'+esc(e.nombre)+'</option>';
+    }).join('');
+
+  openModal('m-dup');
+}
+
+function saveDup() {
+  var id       = document.getElementById('dup-rec-id').value;
+  var r        = recs.find(function(x){ return x.id===id; });
+  if (!r) return;
+  var cultivo  = document.getElementById('dup-cultivo').value  || r.cultivo;
+  var etapa    = document.getElementById('dup-etapa').value    || r.etapa;
+
+  var copia = {
+    id:      uid(),
+    titulo:  (r.titulo ? r.titulo+' (copia)' : ''),
+    cultivo: cultivo,
+    etapa:   etapa,
+    lineas:  JSON.parse(JSON.stringify(r.lineas||[]))
+  };
+  recs.push(copia);
+  save('fi_recs', recs);
+  closeModal('m-dup');
+  renderRecetas();
+  updateCounts();
+  toast('Receta duplicada');
+}
+
+// ══════════════════════════
+//  MODOS DE ACCION
+// ══════════════════════════
+
+let customModos = load('fi_custom_modes') || [];
+
+function getModos(tipo) {
+  return lModos.filter(function(m){ return !tipo || m.tipo === tipo || m.tipo === 'General'; });
+}
+
+function populateModoSelect(tipo, selectedVal) {
+  const sel = document.getElementById('ins-modo');
+  if (!sel) return;
+  const modos = getModos(tipo);
+  sel.innerHTML = '<option value="">— Sin especificar —</option>' +
+    modos.map(function(m){
+      return '<option value="'+esc(m.sigla)+'"'+(m.sigla===selectedVal?' selected':'')+'>'+esc(m.sigla)+' — '+esc(m.desc)+'</option>';
+    }).join('');
+}
+
+function toggleModoAdd() {
+  const f = document.getElementById('modo-add-form');
+  f.style.display = f.style.display==='none'||!f.style.display ? 'block' : 'none';
+}
+
+function saveModoCustom() {
+  const tipo  = document.getElementById('ins-tipo').value;
+  const sigla = document.getElementById('modo-new-sigla').value.trim();
+  const desc  = document.getElementById('modo-new-desc').value.trim();
+  if (!tipo)  return shake('ins-tipo');
+  if (!sigla) return shake('modo-new-sigla');
+  if (!desc)  return shake('modo-new-desc');
+  customModos.push({tipo:tipo, sigla:sigla, desc:desc});
+  save('fi_custom_modes', customModos);
+  populateModoSelect(tipo, sigla);
+  document.getElementById('modo-add-form').style.display = 'none';
+  document.getElementById('modo-new-sigla').value = '';
+  document.getElementById('modo-new-desc').value = '';
+  toast('Modo de accion agregado');
+}
+
+// ══════════════════════════
+//  UTILIDADES
+// ══════════════════════════
+// ══════════════════════════
+//  UTILIDADES
+// ══════════════════════════
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/\x3c/g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(n) { const v=parseFloat(n); return isNaN(v)?'—':v.toLocaleString('es-AR',{maximumFractionDigits:2}); }
+function fmtDate(s) { if(!s) return ''; const [y,m,d]=s.split('-'); return d+'/'+m+'/'+y; }
+function shortE(name) { const k={'Barbecho largo':'B.Largo','Barbecho corto':'B.Corto','Presiembra / Premergencia':'Presiembra','Posemergencia':'Posemerg.','Fungicidas / Insecticidas':'Fung/Ins'}; return k[name]||name; }
+function toast(msg) {
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1b4332;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .2s'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.opacity='0',2500);
+}
+function shake(id) {
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.borderColor='var(--red)';
+  setTimeout(function(){el.style.borderColor='';},2000);
+}
+
+// ══════════════════════════
+//  INIT
+// ══════════════════════════
+function resetAllData() {
+  if (!confirm('Borrar TODOS los datos del programa? Esta accion no se puede deshacer.')) return;
+  var keys = [];
+  for (var i=0; i<localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k && k.startsWith('fi_')) keys.push(k);
+  }
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  location.reload();
+}
+
+
+// ══════════════════════════
+//  DRAG ETAPAS
+// ══════════════════════════
+var _dragSrcId = null;
+
+function initEtapaDrag() {
+  var rows = document.querySelectorAll('.etapa-drag-row');
+  rows.forEach(function(row) {
+    row.addEventListener('dragstart', function(e) {
+      _dragSrcId = row.dataset.etapaid;
+      e.dataTransfer.effectAllowed = 'move';
+      row.style.opacity = '0.4';
+    });
+    row.addEventListener('dragend', function() {
+      row.style.opacity = '1';
+      document.querySelectorAll('.etapa-drag-row').forEach(function(r){
+        r.classList.remove('drag-over');
+      });
+    });
+    row.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.etapa-drag-row').forEach(function(r){ r.classList.remove('drag-over'); });
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('drop', function(e) {
+      e.preventDefault();
+      var targetId = row.dataset.etapaid;
+      if (!_dragSrcId || _dragSrcId === targetId) return;
+      // Reorder lEtapas
+      var sorted = [...lEtapas].sort(function(a,b){ return (a.orden||99)-(b.orden||99); });
+      var srcIdx = sorted.findIndex(function(x){ return x.id===_dragSrcId; });
+      var tgtIdx = sorted.findIndex(function(x){ return x.id===targetId; });
+      if (srcIdx<0 || tgtIdx<0) return;
+      var moved = sorted.splice(srcIdx,1)[0];
+      sorted.splice(tgtIdx,0,moved);
+      // Reassign orden
+      sorted.forEach(function(e,i){ e.orden = i+1; });
+      lEtapas = sorted;
+      save('fi_l_etapa', lEtapas);
+      renderLista('etapa');
+      renderProgramacion();
+    });
+  });
+}
+
+renderAllListas(); renderInsumos(); renderRecetas(); renderProgramacion(); updateCounts();
+</script>
+</body>
+</html>

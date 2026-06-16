@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herramientas · Puntal Agro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0F2F5;--card:#fff;--border:#E4E8EE;--text:#0F1923;--muted:#7A8899;--olive:#4A6533;--ochre:#A86A1F;--terra:#C8642D;--radius:12px;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--sans:'DM Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:4px;background:var(--olive)}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:16px}
+.logo-icon{height:64px;display:flex;align-items:center;justify-content:center}
+.logo-icon img{height:64px;width:auto;display:block}
+.logo-sub{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--terra);margin-bottom:3px}
+.logo-title{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
+.h-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.h-user{font-size:11px;color:var(--muted);white-space:nowrap}
+.h-user strong{color:var(--text);font-weight:600}
+.h-emp{font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);background:var(--bg)}
+.h-emp:focus{outline:none;border-color:#4A6533}
+.h-out{font-family:var(--sans);font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:20px;padding:5px 12px;cursor:pointer}
+.h-out:hover{color:#C8642D;border-color:#C8642D}
+main{padding:0;display:flex;flex-direction:column;flex:1}
+.sec{padding:22px 24px 26px}
+.sec-divisor{height:0;border-top:6px solid var(--card);margin:0 24px}
+.block-title{font-size:15px;font-weight:700;letter-spacing:-.3px;color:var(--text);margin-bottom:0}
+.block-title .ln{display:block;height:2px;width:34px;margin-top:7px;border-radius:2px}
+.subsec{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:14px 2px 9px}
+.subsec.first{margin-top:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.empty{font-size:13px;color:var(--muted);padding:8px 4px;font-style:italic}
+.tool{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);border-left:3px solid transparent;overflow:hidden;transition:box-shadow .12s;box-shadow:0 1px 3px rgba(15,25,35,.04)}
+.tool:hover{box-shadow:0 4px 14px rgba(15,25,35,.09)}
+.tool-main{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;text-decoration:none;color:inherit}
+.tool-main:hover{background:#FAFBFC}
+.tool-name{font-size:13.5px;font-weight:600;letter-spacing:-.2px;line-height:1.2;flex:1}
+.tool-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tool-tag{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:10px;font-family:var(--sans);white-space:nowrap}
+.tool-arrow{width:14px;height:14px;stroke:var(--muted);stroke-width:2;fill:none}
+.tool-toggle{background:none;border:none;border-top:1px solid var(--border);padding:5px 14px;width:100%;text-align:left;font-family:var(--sans);font-size:10.5px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px}
+.tool-toggle:hover{color:var(--text);background:#FAFBFC}
+.tool-toggle .ico{display:inline-block;width:10px;text-align:center;font-weight:600;transition:transform .15s}
+.tool-toggle.open .ico{transform:rotate(45deg)}
+.tool-detail{display:none;padding:0 14px 11px;font-size:12px;color:var(--muted);line-height:1.5}
+.tool-detail.open{display:block}
+.tool-detail .src{display:block;margin-top:6px;font-family:var(--sans);font-size:10.5px;color:var(--ochre)}
+.t-gra{border-left-color:#4A6533}.t-var{border-left-color:#A86A1F}.t-ins{border-left-color:#C8642D}
+.t-sue{border-left-color:#7A8B3F}.t-sie{border-left-color:#5E7A2C}.t-hac{border-left-color:#A85A2C}
+.t-lab{border-left-color:#8E5A18}.t-fit{border-left-color:#6B7E2E}.t-ext{border-left-color:#B8AFA2}
+.tag-gra{background:#EEF3E8;color:#3A5128}.tag-var{background:#FBF1E0;color:#7A4E16}.tag-ins{background:#FBEDE3;color:#9A4A20}
+.tag-sue{background:#F2F5E8;color:#4F5C28}.tag-sie{background:#EBF1DF;color:#3F5520}.tag-hac{background:#FBEAD9;color:#8A4520}
+.tag-lab{background:#F8EDD9;color:#6E4612}.tag-fit{background:#EFF1E0;color:#4A5520}.tag-ext{background:#EEF0F3;color:#475569}
+footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--card);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (max-width:768px){.grid{grid-template-columns:1fr}.logo-title{font-size:18px}}
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+<header>
+  <div class="logo">
+    <div class="logo-icon"><img src="logo-iso.png" alt="Puntal Agro"></div>
+    <div>
+      <div class="logo-sub">Puntal Agro</div>
+      <div class="logo-title">Herramientas de Gestión y Tableros de Decisión</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <span class="h-user" id="huser">—</span>
+    <select class="h-emp" id="hemp" onchange="cambiarEmpresa(this.value)"></select>
+    <button class="h-out" onclick="salir()">Salir</button>
+  </div>
+</header>
+
+<main>
+
+  <div class="sec">
+    <div class="block-title">Tableros de Decisión<span class="ln" style="background:var(--olive)"></span></div>
+
+    <div class="subsec first">Propios</div>
+    <div class="grid" id="grid-dec-propios">
+
+      <div class="tool t-gra" data-tool="tablero_agro">
+        <a class="tool-main" href="tablero_agro.html">
+          <span class="tool-name">Tablero Comercial Agropecuario</span>
+          <span class="tool-right"><span class="tool-tag tag-gra">Comercial</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Disponible, futuros y pizarra de granos. Precios de referencia y escenarios comerciales para la toma de decisión.</div>
+      </div>
+
+      <div class="tool t-var" data-tool="tablero_evolucion">
+        <a class="tool-main" href="tablero_evolucion.html">
+          <span class="tool-name">Evolución de Variables</span>
+          <span class="tool-right"><span class="tool-tag tag-var">Contexto</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Series del contexto económico-financiero: inflación, tipos de cambio, tasas, descuento de cheque y créditos.</div>
+      </div>
+
+      <div class="tool t-hac" data-tool="tablero_hacienda">
+        <a class="tool-main" href="tablero_hacienda.html">
+          <span class="tool-name">Tablero de Relaciones Ganaderas</span>
+          <span class="tool-right"><span class="tool-tag tag-hac">Ganadería</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Relaciones de precios y categorías de hacienda para análisis de la actividad ganadera.</div>
+      </div>
+
+      <div class="tool t-lab" data-tool="tablero_labores">
+        <a class="tool-main" href="tablero_labores.html">
+          <span class="tool-name">Tarifa de Labores y Fletes</span>
+          <span class="tool-right"><span class="tool-tag tag-lab">Costos</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Tarifas de referencia para labores agrícolas y fletes. Valores actualizados para presupuestar y comparar contratos.</div>
+      </div>
+
+    </div>
+    <div class="empty" id="empty-dec-propios" style="display:none">No tenés tableros de decisión habilitados para esta empresa.</div>
+
+    <div class="subsec">Externos</div>
+    <div class="grid">
+
+      <div class="tool t-ext">
+        <a class="tool-main" href="https://simpleza.com.ar/herramientas/calculadora-alquileres/" target="_blank" rel="noopener">
+          <span class="tool-name">Calculadora de Alquileres</span>
+          <span class="tool-right"><span class="tool-tag tag-ext">Externo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Calculadora de arrendamientos agrícolas para estimar el valor del alquiler de campo en distintos esquemas.<span class="src">Fuente: Simpleza</span></div>
+      </div>
+
+      <div class="tool t-ext">
+        <a class="tool-main" href="https://simpleza.com.ar/herramientas/agriculturafinanciera/" target="_blank" rel="noopener">
+          <span class="tool-name">Agricultura &amp; Finanzas</span>
+          <span class="tool-right"><span class="tool-tag tag-ext">Externo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Simulador financiero agrícola: rentabilidad por cultivo, impacto de shocks de precios y rindes, y escenarios de financiamiento con o sin socio a riesgo.<span class="src">Fuente: Simpleza</span></div>
+      </div>
+
+      <div class="tool t-ext">
+        <a class="tool-main" href="https://drive.google.com/file/d/1xfwCMCIAalW0YV47MCtThDFhc60dBNIJ/view" target="_blank" rel="noopener">
+          <span class="tool-name">Reporte de Actualidad Agro</span>
+          <span class="tool-right"><span class="tool-tag tag-ext">Externo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Reporte de actualidad del sector agropecuario con análisis de coyuntura y datos de referencia.<span class="src">Fuente: CREA</span></div>
+      </div>
+
+      <div class="tool t-ext">
+        <a class="tool-main" href="rif_especial_urea_india.pdf" target="_blank" rel="noopener">
+          <span class="tool-name">RIF Especial · Licitación Urea India</span>
+          <span class="tool-right"><span class="tool-tag tag-ext">Externo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Informe especial sobre la licitación oficial de compra de urea de India (NFL) de mayo 2026: volúmenes, fechas, restricciones geopolíticas e impacto esperado en precios internacionales.<span class="src">Fuente: Ingeniería en Fertilizantes</span></div>
+      </div>
+
+      <div class="tool t-ext">
+        <a class="tool-main" href="apuntes_zorraquin_meneses_mayo2026.pdf" target="_blank" rel="noopener">
+          <span class="tool-name">Apuntes para Empresas · Mayo 2026</span>
+          <span class="tool-right"><span class="tool-tag tag-ext">Externo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Análisis de contexto para empresas agropecuarias: macro en la micro, baja de retenciones, negocio agrícola, ganadero y lechero. Método del 1% y el Furgón de Cola.<span class="src">Fuente: Zorraquín + Meneses</span></div>
+      </div>
+
+      <div class="tool t-ext">
+        <a class="tool-main" href="rif_semanal_2026_22.pdf" target="_blank" rel="noopener">
+          <span class="tool-name">RIF Semanal · Mercado de Fertilizantes</span>
+          <span class="tool-right"><span class="tool-tag tag-ext">Externo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Reporte semanal del mercado de fertilizantes (29 mayo 2026): nitrogenados, fosfatados, precios locales e internacionales, y relación insumo-producto para trigo y maíz.<span class="src">Fuente: Ingeniería en Fertilizantes</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="sec-divisor"></div>
+
+  <div class="sec">
+    <div class="block-title">Herramientas de Gestión<span class="ln" style="background:var(--terra)"></span></div>
+    <div class="grid" id="grid-gestion" style="margin-top:14px">
+
+      <div class="tool t-sue" data-tool="tablero_uso_suelo">
+        <a class="tool-main" href="tablero_uso_suelo.html">
+          <span class="tool-name">Plan de Uso del Suelo</span>
+          <span class="tool-right"><span class="tool-tag tag-sue">Planificación</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Planificación del uso del suelo por lote y campaña: rotaciones, cultivos asignados y superficies.</div>
+      </div>
+
+      <div class="tool t-sie" data-tool="ProgramaSiembra">
+        <a class="tool-main" href="ProgramaSiembra.html">
+          <span class="tool-name">Programa de Siembra</span>
+          <span class="tool-right"><span class="tool-tag tag-sie">Planificación</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Programación de siembra por lote y campaña: cultivos, fechas y superficies a sembrar.</div>
+      </div>
+
+      <div class="tool t-fit" data-tool="Fitosanitarios">
+        <a class="tool-main" href="Fitosanitarios.html">
+          <span class="tool-name">Requerimiento de Fitosanitarios</span>
+          <span class="tool-right"><span class="tool-tag tag-fit">Insumos</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Cálculo de requerimientos de fitosanitarios por lote y cultivo para planificar compras y aplicaciones de campaña.</div>
+      </div>
+
+      <div class="tool t-ins" data-tool="tablero_insumos_ot">
+        <a class="tool-main" href="tablero_insumos_ot.html">
+          <span class="tool-name">Registro de Labores e Insumos</span>
+          <span class="tool-right"><span class="tool-tag tag-ins">Operativo</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Registro y seguimiento de labores, órdenes de trabajo e insumos aplicados. Planificación operativa de campaña.</div>
+      </div>
+
+    </div>
+    <div class="empty" id="empty-gestion" style="display:none">No tenés herramientas de gestión habilitadas para esta empresa.</div>
+  </div>
+
+  <div class="sec-divisor"></div>
+
+  <div class="sec">
+    <div class="block-title">Administración<span class="ln" style="background:var(--olive)"></span></div>
+    <div class="grid" style="margin-top:14px">
+
+      <div class="tool t-est">
+        <a class="tool-main" href="administracion.html">
+          <span class="tool-name">Estructura de Clientes</span>
+          <span class="tool-right"><span class="tool-tag tag-ins">Configuración</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Alta y edición de la estructura Cliente → Empresa → Campo, base sobre la que se reparten los permisos de cada usuario.</div>
+      </div>
+
+      <div class="tool t-mae">
+        <a class="tool-main" href="maestros.html">
+          <span class="tool-name">Maestros / Padrones</span>
+          <span class="tool-right"><span class="tool-tag tag-ins">Configuración</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Catálogos base que consumen los demás módulos: proveedores y clientes, choferes, depósitos y acopios, labores, cultivos, especies y unidades.</div>
+      </div>
+
+      <div class="tool t-usu">
+        <a class="tool-main" href="usuarios.html">
+          <span class="tool-name">Usuarios y Permisos</span>
+          <span class="tool-right"><span class="tool-tag tag-ins">Configuración</span><svg class="tool-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <button class="tool-toggle" onclick="tog(this)"><span class="ico">+</span> Detalle</button>
+        <div class="tool-detail">Gestión de usuarios, roles y permisos de acceso por empresa, campo y herramienta.</div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>Herramientas · Puntal Agro</span>
+  <span id="fts2">—</span>
+</footer>
+
+<script src="pa-core.js"></script>
+<script>
+function tog(btn){ btn.classList.toggle('open'); btn.nextElementSibling.classList.toggle('open'); }
+
+function aplicarCtx(ctx){
+  // header: usuario
+  document.getElementById('huser').innerHTML = '<strong>'+ctx.usuario.nombre+'</strong> · '+ctx.permiso.nivel;
+  // selector de empresa
+  var sel = document.getElementById('hemp');
+  sel.innerHTML = '';
+  for (var i=0;i<ctx.empresasDisponibles.length;i++){
+    var e = ctx.empresasDisponibles[i];
+    var op = document.createElement('option');
+    op.value = e.id; op.textContent = e.razonSocial;
+    if (e.id === ctx.empresaActivaId) op.selected = true;
+    sel.appendChild(op);
+  }
+  // filtrar tarjetas por herramientas del permiso (en ambos bloques)
+  filtrarGrupo('grid-dec-propios', 'empty-dec-propios');
+  filtrarGrupo('grid-gestion', 'empty-gestion');
+}
+
+function filtrarGrupo(gridId, emptyId){
+  var grid = document.getElementById(gridId);
+  if (!grid) return;
+  var cards = grid.querySelectorAll('.tool[data-tool]');
+  var visibles = 0;
+  for (var c=0;c<cards.length;c++){
+    var id = cards[c].getAttribute('data-tool');
+    if (PA.can('ver', { herramienta: id })) { cards[c].style.display=''; visibles++; }
+    else { cards[c].style.display='none'; }
+  }
+  document.getElementById(emptyId).style.display = visibles ? 'none' : 'block';
+}
+
+function cambiarEmpresa(empresaId){
+  PA.setEmpresaActiva(empresaId, function(err, ctx){
+    if (err) { location.href='login.html'; return; }
+    aplicarCtx(ctx);
+  });
+}
+function salir(){ PA.logout(); location.href='login.html'; }
+
+PA.init({ modo:'demo' }, function(){
+  if (!PA.haySesion()) { location.href='login.html'; return; }
+  PA.loadContext(null, function(err, ctx){
+    if (err) { location.href='login.html'; return; }
+    aplicarCtx(ctx);
+  });
+  document.getElementById('fts2').textContent = new Date().toLocaleString('es-AR');
+});
+</script>
+
+</body>
+</html>

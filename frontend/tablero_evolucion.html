@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolución de Variables · Puntal Agro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#F0F2F5;--card:#fff;--border:#E4E8EE;--text:#0F1923;--muted:#7A8899;--radius:12px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--verde:#4A6533;--naranja:#C8642D;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+.sticky-top{position:sticky;top:0;z-index:100;background:var(--card);box-shadow:0 1px 4px rgba(15,25,35,0.06)}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:9px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-img{height:40px;width:auto;display:block}
+.logo-title{font-size:13px;font-weight:600;letter-spacing:-.2px}
+.logo-sub{font-size:11px;color:var(--muted)}
+.inst-bar{background:#E8EDF2;border-bottom:1px solid var(--border);padding:7px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inst-lbl{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:.5px;font-weight:500;white-space:nowrap}
+.inst-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #CBD5E1;background:var(--card);color:#475569;transition:all .12s;font-family:var(--sans)}
+.inst-btn.active{background:var(--verde);color:#fff;border-color:var(--verde)}
+.inst-desc{font-size:11px;color:#64748B;margin-left:4px}
+.inst-right{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.upd{font-size:11px;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:20px;border:1px solid var(--border);font-family:var(--mono);white-space:nowrap}
+.fbar{background:var(--card);border-bottom:1px solid var(--border);padding:7px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+.pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);transition:all .12s;font-family:var(--sans);white-space:nowrap}
+.p-macro{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+.p-granos{background:#F0FDF4;color:#166534;border-color:#86EFAC}
+.p-hac{background:#FEF2F2;color:#991B1B;border-color:#FCA5A5}
+.p-leche{background:#F0F9FF;color:#075985;border-color:#7DD3FC}
+.sep{width:1px;height:18px;background:var(--border)}
+.per-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.per-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-family:var(--sans)}
+.per-btn.on{background:var(--verde);color:#fff;border-color:var(--verde)}
+.per-custom{display:none;align-items:center;gap:6px;background:var(--card);padding:4px 8px;border-radius:8px;border:1px solid var(--border)}
+.per-custom.show{display:flex}
+.per-custom select{font-family:var(--sans);font-size:12px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:2px 5px;cursor:pointer}
+.per-custom button{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--verde);background:var(--verde);color:#fff;font-family:var(--sans)}
+main{padding:18px 24px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px}
+.chd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.ct{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.ct-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-left:6px}
+.legrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text);padding:2px 5px;border-radius:4px}
+.leg-line{width:14px;height:2px;display:inline-block;flex-shrink:0;border-radius:1px}
+.leg-bar{width:11px;height:11px;display:inline-block;flex-shrink:0;border-radius:2px}
+.cw{position:relative;width:100%;height:clamp(240px, 38vh, 360px)}
+.pnote{font-size:11px;color:var(--muted);margin-top:8px;padding:8px 12px;background:var(--bg);border-radius:6px;line-height:1.5}
+.varpanel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.varpanel-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.varpanel-sub{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.varbar-row{display:grid;grid-template-columns:150px 1fr 95px 64px;gap:10px;align-items:center;padding:3px 0;font-size:11px}
+.varbar-name{color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px}
+.varbar-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.varbar-track{position:relative;height:15px;background:var(--bg);border-radius:3px;overflow:hidden}
+.varbar-track::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:#CBD5E1}
+.varbar-fill{position:absolute;top:0;bottom:0;border-radius:2px;transition:width .3s}
+.varbar-fill-pos{background:#639922;left:50%}
+.varbar-fill-neg{background:#C8642D;right:50%}
+.varbar-abs{font-family:var(--mono);font-size:11px;font-weight:600;text-align:right;white-space:nowrap;color:var(--text)}
+.varbar-val{font-family:var(--mono);font-size:11px;font-weight:600;text-align:right;white-space:nowrap}
+.varbar-val-pos{color:#3B6D11}.varbar-val-neg{color:#A84D1F}.varbar-val-neutral{color:var(--muted)}
+.block{padding:14px 16px;border-radius:14px;border:1px solid var(--border)}
+.block-macro{background:linear-gradient(180deg,rgba(255,251,235,0.5) 0%,#fff 80%)}
+.block-granos{background:linear-gradient(180deg,rgba(240,253,244,0.5) 0%,#fff 80%)}
+.block-hac{background:linear-gradient(180deg,rgba(254,242,242,0.5) 0%,#fff 80%)}
+.block-leche{background:linear-gradient(180deg,rgba(240,249,255,0.5) 0%,#fff 80%)}
+.block-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.block-title-toggle{font-size:11px;color:var(--muted);width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;transition:all .15s}
+.block-title:hover .block-title-toggle{background:var(--bg);color:var(--text)}
+.block-title-name{color:var(--text);font-weight:700}
+.block-title-count{font-size:10px;color:var(--muted);font-family:var(--mono);background:var(--card);padding:1px 8px;border-radius:10px;border:1px solid var(--border)}
+.block-title-line{flex:1;height:1px;background:var(--border);margin-left:4px}
+.block-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px;transition:opacity .2s}
+.block-grid.collapsed{display:none}
+.block.collapsed{padding-bottom:8px}
+.block.collapsed .block-title{margin-bottom:0}
+.vc{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:0;transition:all .18s ease;cursor:pointer;position:relative;overflow:hidden;min-height:130px;display:flex;flex-direction:column}
+.vc:hover{box-shadow:0 4px 14px rgba(15,25,35,0.08);transform:translateY(-1px)}
+.vc.off{opacity:.4}
+.vc.off:hover{opacity:.7;transform:none}
+.vc-top{padding:11px 14px 8px 14px;border-left:3px solid transparent;flex:1}
+.vc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px}
+.vc-name{font-size:12px;font-weight:600;color:var(--text);letter-spacing:.1px;line-height:1.2}
+.vc-pctil{font-size:11px;font-weight:600;font-family:var(--mono);padding:1px 7px;border-radius:10px;background:#F1F5F9;color:#475569;white-space:nowrap;cursor:help}
+.vc-mes{font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.vc-valrow{display:flex;align-items:baseline;gap:5px}
+.vc-val{font-family:var(--mono);font-size:25px;font-weight:600;color:var(--text);line-height:1.05;white-space:nowrap}
+.vc-unit{font-size:10px;color:var(--muted);font-weight:500}
+.vc-bottom{padding:7px 14px 8px 14px;background:#FAFBFC;border-top:1px solid var(--border)}
+.vc-per-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:500;margin-bottom:2px}
+.vc-per-row{display:flex;align-items:baseline;gap:7px}
+.vc-per-abs{font-family:var(--mono);font-size:16px;font-weight:600;white-space:nowrap}
+.vc-per-pct{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.vc-delta-arrow{font-size:13px;line-height:1;font-weight:700}
+.vc-delta-up{color:#0F6E56}.vc-delta-down{color:#993C1D}.vc-delta-neutral{color:var(--muted)}
+.vc-spark-area{height:56px;position:relative;padding:2px 6px 6px 6px;background:#FAFBFC;border-top:1px solid #EEF1F5}
+.vc-spark-area canvas{width:100%!important;height:100%!important}
+.vc-empty{background:#FAFBFC;color:var(--muted);font-size:11px;text-align:center;padding:28px 8px;font-style:italic;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:130px;border:1px dashed var(--border);border-radius:var(--radius)}
+.vc-empty-name{font-style:normal;font-weight:600;color:#475569;font-size:12px;margin-bottom:4px}
+.vc-s-ipc .vc-top{border-left-color:#6E1F2A}
+.vc-s-ipn .vc-top{border-left-color:#8B2E3C}
+.vc-s-tco .vc-top{border-left-color:#A8434F}
+.vc-s-tcm .vc-top{border-left-color:#C25E5E}
+.vc-s-tcb .vc-top{border-left-color:#D08A7E}
+.vc-s-trg .vc-top{border-left-color:#3B6D11}
+.vc-s-mai .vc-top{border-left-color:#639922}
+.vc-s-sor .vc-top{border-left-color:#86A832}
+.vc-s-soj .vc-top{border-left-color:#4A6533}
+.vc-s-gir .vc-top{border-left-color:#A8B84A}
+.vc-s-h1 .vc-top{border-left-color:#C8642D}
+.vc-s-h2 .vc-top{border-left-color:#A84D1F}
+.vc-s-h3 .vc-top{border-left-color:#D87E3A}
+.vc-s-h4 .vc-top{border-left-color:#B5602A}
+.vc-s-h5 .vc-top{border-left-color:#E0934A}
+.vc-s-h6 .vc-top{border-left-color:#8A3D15}
+.vc-s-lec .vc-top{border-left-color:#C99A2E}
+footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--card);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (max-width:768px){.block-grid{grid-template-columns:1fr 1fr}.cw{height:260px}main{padding:12px 14px;gap:14px}.inst-bar,.fbar{padding:7px 14px}.varbar-row{grid-template-columns:100px 1fr 78px 52px;gap:6px}.sticky-top{position:relative}}
+@media (max-width:480px){.block-grid{grid-template-columns:1fr}.varbar-row{grid-template-columns:80px 1fr 66px 46px;font-size:10px;gap:5px}}
+</style>
+</head><body>
+<div class="sticky-top">
+<header>
+  <div class="logo">
+    <img class="logo-img" src="data:image/png;base64,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" alt="Puntal Agro">
+    <div>
+      <div class="logo-title">Evolución de Variables · Contexto económico, granos, hacienda y leche</div>
+      <div class="logo-sub">Puntal Agro</div>
+    </div>
+  </div>
+</header>
+
+<div class="inst-bar">
+  <span class="inst-lbl">Vista:</span>
+  <button class="inst-btn active" id="vistaNom" onclick="setVista('nom',this)">Nominal</button>
+  <button class="inst-btn" id="vistaReal" onclick="setVista('real',this)">Constante</button>
+  <button class="inst-btn" id="vistaUsd" onclick="setVista('usd',this)">USD</button>
+  <span class="inst-sep" style="width:1px;height:20px;background:var(--border);margin:0 4px;display:inline-block"></span>
+  <span class="inst-lbl">Dólar:</span>
+  <button class="inst-btn dol active" id="dolOf" onclick="setDolar('TC_Oficial_Venta',this)">Oficial</button>
+  <button class="inst-btn dol" id="dolMep" onclick="setDolar('TC_MEP_Venta',this)">MEP</button>
+  <button class="inst-btn dol" id="dolBlue" onclick="setDolar('TC_Blue_Venta',this)">Blue</button>
+  <span class="inst-desc" id="vistaDesc">Valores en su unidad natural</span>
+  <div class="inst-right">
+    <div class="upd" id="updBadge">—</div>
+  </div>
+</div>
+
+<div class="fbar">
+  <span class="fl">Período</span>
+  <div class="per-row">
+    <button class="per-btn" onclick="setPer(3,this)">3m</button>
+    <button class="per-btn" onclick="setPer(6,this)">6m</button>
+    <button class="per-btn" onclick="setPer('ytd',this)">YTD</button>
+    <button class="per-btn on" onclick="setPer(12,this)">12m</button>
+    <button class="per-btn" onclick="setPer(24,this)">24m</button>
+    <button class="per-btn" onclick="setPer(60,this)">5a</button>
+    <button class="per-btn" onclick="setPer('all',this)">Todo</button>
+    <button class="per-btn" onclick="toggleCustom(this)">Personalizado ▾</button>
+  </div>
+  <div class="per-custom" id="perCustom">
+    <span class="fl">Desde</span>
+    <select id="cFrom"></select>
+    <span class="fl">Hasta</span>
+    <select id="cTo"></select>
+    <button onclick="applyCustom()">Aplicar</button>
+  </div>
+</div>
+
+<div class="fbar" style="background:var(--bg);padding-top:9px;padding-bottom:9px">
+  <span class="fl">Variables activas</span>
+  <button class="per-btn" onclick="seleccionarTodas()">Seleccionar todas</button>
+  <button class="per-btn" onclick="limpiarSeleccion()">Limpiar selección</button>
+  <div class="pills" id="pillsRow"></div>
+</div>
+</div><!-- /sticky-top -->
+
+<main>
+  <!-- Tarjetas por bloque PRIMERO -->
+  <div class="block block-macro" id="block-macro">
+    <div class="block-title" onclick="togBlock('macro')"><span class="block-title-toggle" id="tg-macro">▾</span><span class="block-title-name">Macro</span><span class="block-title-count" id="cnt-macro">—</span><span class="block-title-line"></span></div>
+    <div class="block-grid" id="grpMacro"></div>
+  </div>
+  <div class="block block-granos" id="block-granos">
+    <div class="block-title" onclick="togBlock('granos')"><span class="block-title-toggle" id="tg-granos">▾</span><span class="block-title-name">Granos disponibles Rosario</span><span class="block-title-count" id="cnt-granos">—</span><span class="block-title-line"></span></div>
+    <div class="block-grid" id="grpGranos"></div>
+  </div>
+  <div class="block block-hac" id="block-hac">
+    <div class="block-title" onclick="togBlock('hac')"><span class="block-title-toggle" id="tg-hac">▾</span><span class="block-title-name">Hacienda</span><span class="block-title-count" id="cnt-hac">—</span><span class="block-title-line"></span></div>
+    <div class="block-grid" id="grpHacienda"></div>
+  </div>
+  <div class="block block-leche" id="block-leche">
+    <div class="block-title" onclick="togBlock('leche')"><span class="block-title-toggle" id="tg-leche">▾</span><span class="block-title-name">Leche</span><span class="block-title-count" id="cnt-leche">—</span><span class="block-title-line"></span></div>
+    <div class="block-grid" id="grpLeche"></div>
+  </div>
+
+  <!-- Gráfico líneas+columnas EN EL MEDIO -->
+  <div class="card">
+    <div class="chd">
+      <div>
+        <span class="ct">Gráfico comparativo · índice base 100</span>
+        <span class="ct-sub" id="baseInfo"></span>
+      </div>
+    </div>
+    <div class="legrow" id="legRow"></div>
+    <div class="cw"><canvas id="bigChart"></canvas></div>
+    <div class="pnote">Cada serie se normaliza a base 100 en el primer mes del período. Dólar e inflación se grafican como <b>líneas</b>; granos, hacienda y leche como <b>columnas</b>. Tocá las tarjetas o pills para sumar/quitar series.</div>
+  </div>
+
+  <!-- Barras de variación del período AL FINAL -->
+  <div class="card">
+    <div class="varpanel-head">
+      <span class="varpanel-title">Variación del período · variables seleccionadas</span>
+      <span class="varpanel-sub" id="varpanelSub">—</span>
+    </div>
+    <div id="varBars"></div>
+  </div>
+</main>
+
+<footer>
+  <span>Evolución de Variables · Puntal Agro</span>
+  <span id="fts">—</span>
+</footer><script>
+var SERIES_IPC_Pampeana=[{"f":"2020-07-01","v":2.13},{"f":"2020-08-01","v":2.63},{"f":"2020-09-01","v":2.9},{"f":"2020-10-01","v":4.01},{"f":"2020-11-01","v":3.38},{"f":"2020-12-01","v":4.19},{"f":"2021-01-01","v":4.62},{"f":"2021-02-01","v":3.44},{"f":"2021-03-01","v":4.83},{"f":"2021-04-01","v":3.96},{"f":"2021-05-01","v":3.22},{"f":"2021-06-01","v":3.25},{"f":"2021-07-01","v":2.88},{"f":"2021-08-01","v":2.25},{"f":"2021-09-01","v":3.41},{"f":"2021-10-01","v":3.39},{"f":"2021-11-01","v":2.81},{"f":"2021-12-01","v":3.51},{"f":"2022-01-01","v":3.86},{"f":"2022-02-01","v":4.67},{"f":"2022-03-01","v":6.63},{"f":"2022-04-01","v":5.86},{"f":"2022-05-01","v":5.28},{"f":"2022-06-01","v":5.14},{"f":"2022-07-01","v":7.52},{"f":"2022-08-01","v":6.93},{"f":"2022-09-01","v":6.26},{"f":"2022-10-01","v":6.14},{"f":"2022-11-01","v":4.94},{"f":"2022-12-01","v":5.08},{"f":"2023-01-01","v":6.07},{"f":"2023-02-01","v":6.35},{"f":"2023-03-01","v":7.82},{"f":"2023-04-01","v":8.54},{"f":"2023-05-01","v":7.68},{"f":"2023-06-01","v":5.89},{"f":"2023-07-01","v":6.44},{"f":"2023-08-01","v":12.24},{"f":"2023-09-01","v":13.08},{"f":"2023-10-01","v":8.3},{"f":"2023-11-01","v":13.01},{"f":"2023-12-01","v":25.7},{"f":"2024-01-01","v":21.21},{"f":"2024-02-01","v":11.89},{"f":"2024-03-01","v":11.28},{"f":"2024-04-01","v":8.76},{"f":"2024-05-01","v":4.02},{"f":"2024-06-01","v":4.74},{"f":"2024-07-01","v":3.93},{"f":"2024-08-01","v":3.91},{"f":"2024-09-01","v":3.21},{"f":"2024-10-01","v":2.57},{"f":"2024-11-01","v":2.31},{"f":"2024-12-01","v":2.53},{"f":"2025-01-01","v":2.35},{"f":"2025-02-01","v":2.51},{"f":"2025-03-01","v":3.61},{"f":"2025-04-01","v":2.81},{"f":"2025-05-01","v":1.57},{"f":"2025-06-01","v":1.31},{"f":"2025-07-01","v":1.99},{"f":"2025-08-01","v":1.84},{"f":"2025-09-01","v":2.01},{"f":"2025-10-01","v":2.32},{"f":"2025-11-01","v":2.48},{"f":"2025-12-01","v":2.91},{"f":"2026-01-01","v":2.9},{"f":"2026-02-01","v":3.02},{"f":"2026-03-01","v":2.9},{"f":"2026-04-01","v":2.77}];
+var SERIES_IPC_Nivel=[{"f":"2020-06-01","v":324.52},{"f":"2020-07-01","v":331.44},{"f":"2020-08-01","v":340.16},{"f":"2020-09-01","v":350.04},{"f":"2020-10-01","v":364.09},{"f":"2020-11-01","v":376.38},{"f":"2020-12-01","v":392.16},{"f":"2021-01-01","v":410.29},{"f":"2021-02-01","v":424.4},{"f":"2021-03-01","v":444.9},{"f":"2021-04-01","v":462.5},{"f":"2021-05-01","v":477.4},{"f":"2021-06-01","v":492.9},{"f":"2021-07-01","v":507.1},{"f":"2021-08-01","v":518.53},{"f":"2021-09-01","v":536.21},{"f":"2021-10-01","v":554.4},{"f":"2021-11-01","v":570.0},{"f":"2021-12-01","v":590.0},{"f":"2022-01-01","v":612.8},{"f":"2022-02-01","v":641.4},{"f":"2022-03-01","v":683.9},{"f":"2022-04-01","v":724.0},{"f":"2022-05-01","v":762.2},{"f":"2022-06-01","v":801.4},{"f":"2022-07-01","v":861.7},{"f":"2022-08-01","v":921.4},{"f":"2022-09-01","v":979.1},{"f":"2022-10-01","v":1039.2},{"f":"2022-11-01","v":1090.5},{"f":"2022-12-01","v":1145.9},{"f":"2023-01-01","v":1215.5},{"f":"2023-02-01","v":1292.7},{"f":"2023-03-01","v":1393.8},{"f":"2023-04-01","v":1512.8},{"f":"2023-05-01","v":1629.0},{"f":"2023-06-01","v":1724.9},{"f":"2023-07-01","v":1835.9},{"f":"2023-08-01","v":2060.6},{"f":"2023-09-01","v":2330.1},{"f":"2023-10-01","v":2523.6},{"f":"2023-11-01","v":2851.9},{"f":"2023-12-01","v":3584.8},{"f":"2024-01-01","v":4345.0},{"f":"2024-02-01","v":4861.5},{"f":"2024-03-01","v":5409.9},{"f":"2024-04-01","v":5884.0},{"f":"2024-05-01","v":6120.3},{"f":"2024-06-01","v":6410.3},{"f":"2024-07-01","v":6662.3},{"f":"2024-08-01","v":6922.6},{"f":"2024-09-01","v":7145.1},{"f":"2024-10-01","v":7328.4},{"f":"2024-11-01","v":7497.9},{"f":"2024-12-01","v":7687.3},{"f":"2025-01-01","v":7867.8},{"f":"2025-02-01","v":8064.9},{"f":"2025-03-01","v":8356.1},{"f":"2025-04-01","v":8591.2},{"f":"2025-05-01","v":8725.9},{"f":"2025-06-01","v":8840.1},{"f":"2025-07-01","v":9016.3},{"f":"2025-08-01","v":9182.3},{"f":"2025-09-01","v":9366.8},{"f":"2025-10-01","v":9584.15},{"f":"2025-11-01","v":9821.36},{"f":"2025-12-01","v":10107.61},{"f":"2026-01-01","v":10400.5},{"f":"2026-02-01","v":10714.24},{"f":"2026-03-01","v":11024.95},{"f":"2026-04-01","v":11330.27}];
+var SERIES_TC_Oficial_Venta=[{"f":"2003-07-01","v":2.77},{"f":"2003-08-01","v":2.9},{"f":"2003-09-01","v":2.9},{"f":"2003-10-01","v":2.84},{"f":"2003-11-01","v":2.85},{"f":"2003-12-01","v":2.95},{"f":"2004-01-01","v":2.9},{"f":"2004-02-01","v":2.93},{"f":"2004-03-01","v":2.9},{"f":"2004-04-01","v":2.84},{"f":"2004-05-01","v":2.92},{"f":"2004-06-01","v":2.96},{"f":"2004-07-01","v":2.96},{"f":"2004-08-01","v":3.01},{"f":"2004-09-01","v":3.0},{"f":"2004-10-01","v":2.97},{"f":"2004-11-01","v":2.95},{"f":"2004-12-01","v":2.97},{"f":"2005-01-01","v":2.95},{"f":"2005-02-01","v":2.91},{"f":"2005-03-01","v":2.92},{"f":"2005-04-01","v":2.9},{"f":"2005-05-01","v":2.89},{"f":"2005-06-01","v":2.88},{"f":"2005-07-01","v":2.87},{"f":"2005-08-01","v":2.88},{"f":"2005-09-01","v":2.91},{"f":"2005-10-01","v":2.96},{"f":"2005-11-01","v":2.97},{"f":"2005-12-01","v":3.01},{"f":"2006-01-01","v":3.04},{"f":"2006-02-01","v":3.06},{"f":"2006-03-01","v":3.07},{"f":"2006-04-01","v":3.06},{"f":"2006-05-01","v":3.06},{"f":"2006-06-01","v":3.08},{"f":"2006-07-01","v":3.08},{"f":"2006-08-01","v":3.08},{"f":"2006-09-01","v":3.1},{"f":"2006-10-01","v":3.1},{"f":"2006-11-01","v":3.08},{"f":"2006-12-01","v":3.06},{"f":"2007-01-01","v":3.08},{"f":"2007-02-01","v":3.1},{"f":"2007-03-01","v":3.1},{"f":"2007-04-01","v":3.09},{"f":"2007-05-01","v":3.09},{"f":"2007-06-01","v":3.08},{"f":"2007-07-01","v":3.12},{"f":"2007-08-01","v":3.16},{"f":"2007-09-01","v":3.16},{"f":"2007-10-01","v":3.16},{"f":"2007-11-01","v":3.14},{"f":"2007-12-01","v":3.14},{"f":"2008-01-01","v":3.15},{"f":"2008-02-01","v":3.16},{"f":"2008-03-01","v":3.16},{"f":"2008-04-01","v":3.17},{"f":"2008-05-01","v":3.16},{"f":"2008-06-01","v":3.05},{"f":"2008-07-01","v":3.03},{"f":"2008-08-01","v":3.03},{"f":"2008-09-01","v":3.08},{"f":"2008-10-01","v":3.24},{"f":"2008-11-01","v":3.33},{"f":"2008-12-01","v":3.42},{"f":"2009-01-01","v":3.46},{"f":"2009-02-01","v":3.51},{"f":"2009-03-01","v":3.65},{"f":"2009-04-01","v":3.69},{"f":"2009-05-01","v":3.72},{"f":"2009-06-01","v":3.76},{"f":"2009-07-01","v":3.81},{"f":"2009-08-01","v":3.83},{"f":"2009-09-01","v":3.84},{"f":"2009-10-01","v":3.82},{"f":"2009-11-01","v":3.81},{"f":"2009-12-01","v":3.81},{"f":"2010-01-01","v":3.81},{"f":"2010-02-01","v":3.85},{"f":"2010-03-01","v":3.86},{"f":"2010-04-01","v":3.87},{"f":"2010-05-01","v":3.9},{"f":"2010-06-01","v":3.93},{"f":"2010-07-01","v":3.93},{"f":"2010-08-01","v":3.94},{"f":"2010-09-01","v":3.95},{"f":"2010-10-01","v":3.96},{"f":"2010-11-01","v":3.97},{"f":"2010-12-01","v":3.98},{"f":"2011-01-01","v":3.98},{"f":"2011-02-01","v":4.03},{"f":"2011-03-01","v":4.04},{"f":"2011-04-01","v":4.07},{"f":"2011-05-01","v":4.09},{"f":"2011-06-01","v":4.11},{"f":"2011-07-01","v":4.14},{"f":"2011-08-01","v":4.18},{"f":"2011-09-01","v":4.22},{"f":"2011-10-01","v":4.23},{"f":"2011-11-01","v":4.27},{"f":"2011-12-01","v":4.29},{"f":"2012-01-01","v":4.32},{"f":"2012-02-01","v":4.35},{"f":"2012-03-01","v":4.36},{"f":"2012-04-01","v":4.4},{"f":"2012-05-01","v":4.45},{"f":"2012-06-01","v":4.5},{"f":"2012-07-01","v":4.55},{"f":"2012-08-01","v":4.61},{"f":"2012-09-01","v":4.66},{"f":"2012-10-01","v":4.72},{"f":"2012-11-01","v":4.79},{"f":"2012-12-01","v":4.87},{"f":"2013-01-01","v":4.94},{"f":"2013-02-01","v":5.0},{"f":"2013-03-01","v":5.07},{"f":"2013-04-01","v":5.14},{"f":"2013-05-01","v":5.23},{"f":"2013-06-01","v":5.31},{"f":"2013-07-01","v":5.43},{"f":"2013-08-01","v":5.57},{"f":"2013-09-01","v":5.72},{"f":"2013-10-01","v":5.83},{"f":"2013-11-01","v":6.0},{"f":"2013-12-01","v":6.31},{"f":"2014-01-01","v":7.09},{"f":"2014-02-01","v":7.82},{"f":"2014-03-01","v":7.91},{"f":"2014-04-01","v":7.98},{"f":"2014-05-01","v":8.02},{"f":"2014-06-01","v":8.1},{"f":"2014-07-01","v":8.12},{"f":"2014-08-01","v":8.26},{"f":"2014-09-01","v":8.35},{"f":"2014-10-01","v":8.41},{"f":"2014-11-01","v":8.46},{"f":"2014-12-01","v":8.51},{"f":"2015-01-01","v":8.56},{"f":"2015-02-01","v":8.64},{"f":"2015-03-01","v":8.73},{"f":"2015-04-01","v":8.82},{"f":"2015-05-01","v":8.9},{"f":"2015-06-01","v":8.99},{"f":"2015-07-01","v":9.1},{"f":"2015-08-01","v":9.2},{"f":"2015-09-01","v":9.32},{"f":"2015-10-01","v":9.45},{"f":"2015-11-01","v":9.58},{"f":"2015-12-01","v":11.46},{"f":"2016-01-01","v":13.59},{"f":"2016-02-01","v":14.78},{"f":"2016-03-01","v":14.95},{"f":"2016-04-01","v":14.39},{"f":"2016-05-01","v":14.12},{"f":"2016-06-01","v":14.18},{"f":"2016-07-01","v":14.88},{"f":"2016-08-01","v":14.84},{"f":"2016-09-01","v":15.1},{"f":"2016-10-01","v":15.18},{"f":"2016-11-01","v":15.34},{"f":"2016-12-01","v":15.84},{"f":"2017-01-01","v":15.91},{"f":"2017-02-01","v":15.59},{"f":"2017-03-01","v":15.52},{"f":"2017-04-01","v":15.35},{"f":"2017-05-01","v":15.71},{"f":"2017-06-01","v":16.12},{"f":"2017-07-01","v":17.2},{"f":"2017-08-01","v":17.42},{"f":"2017-09-01","v":17.25},{"f":"2017-10-01","v":17.47},{"f":"2017-11-01","v":17.48},{"f":"2017-12-01","v":17.73},{"f":"2018-01-01","v":19.03},{"f":"2018-02-01","v":19.83},{"f":"2018-03-01","v":20.25},{"f":"2018-04-01","v":20.24},{"f":"2018-05-01","v":23.7},{"f":"2018-06-01","v":26.59},{"f":"2018-07-01","v":27.57},{"f":"2018-08-01","v":30.16},{"f":"2018-09-01","v":38.53},{"f":"2018-10-01","v":37.05},{"f":"2018-11-01","v":36.48},{"f":"2018-12-01","v":37.83},{"f":"2019-01-01","v":37.4},{"f":"2019-02-01","v":38.4},{"f":"2019-03-01","v":41.5},{"f":"2019-04-01","v":43.27},{"f":"2019-05-01","v":44.88},{"f":"2019-06-01","v":43.74},{"f":"2019-07-01","v":42.57},{"f":"2019-08-01","v":52.4},{"f":"2019-09-01","v":56.16},{"f":"2019-10-01","v":58.9},{"f":"2019-11-01","v":60.29},{"f":"2019-12-01","v":60.33},{"f":"2020-01-01","v":60.5},{"f":"2020-02-01","v":60.81},{"f":"2020-03-01","v":62.07},{"f":"2020-04-01","v":64.75},{"f":"2020-05-01","v":67.21},{"f":"2020-06-01","v":69.46},{"f":"2020-07-01","v":72.56},{"f":"2020-08-01","v":74.79},{"f":"2020-09-01","v":76.64},{"f":"2020-10-01","v":79.64},{"f":"2020-11-01","v":82.12},{"f":"2020-12-01","v":84.75},{"f":"2021-01-01","v":87.94},{"f":"2021-02-01","v":90.53},{"f":"2021-03-01","v":93.09},{"f":"2021-04-01","v":95.2},{"f":"2021-05-01","v":96.17},{"f":"2021-06-01","v":97.24},{"f":"2021-07-01","v":98.31},{"f":"2021-08-01","v":99.29},{"f":"2021-09-01","v":100.44},{"f":"2021-10-01","v":101.53},{"f":"2021-11-01","v":102.43},{"f":"2021-12-01","v":103.95},{"f":"2022-01-01","v":105.96},{"f":"2022-02-01","v":108.54},{"f":"2022-03-01","v":111.58},{"f":"2022-04-01","v":115.36},{"f":"2022-05-01","v":119.9},{"f":"2022-06-01","v":124.67},{"f":"2022-07-01","v":130.99},{"f":"2022-08-01","v":137.65},{"f":"2022-09-01","v":145.62},{"f":"2022-10-01","v":154.62},{"f":"2022-11-01","v":164.39},{"f":"2022-12-01","v":175.29},{"f":"2023-01-01","v":185.02},{"f":"2023-02-01","v":194.33},{"f":"2023-03-01","v":205.75},{"f":"2023-04-01","v":218.92},{"f":"2023-05-01","v":235.15},{"f":"2023-06-01","v":252.3},{"f":"2023-07-01","v":271.64},{"f":"2023-08-01","v":327.7},{"f":"2023-09-01","v":356.5},{"f":"2023-10-01","v":356.5},{"f":"2023-11-01","v":360.32},{"f":"2023-12-01","v":646.45},{"f":"2024-01-01","v":817.83},{"f":"2024-02-01","v":833.76},{"f":"2024-03-01","v":849.05},{"f":"2024-04-01","v":867.92},{"f":"2024-05-01","v":885.66},{"f":"2024-06-01","v":902.5},{"f":"2024-07-01","v":921.77},{"f":"2024-08-01","v":941.27},{"f":"2024-09-01","v":961.1},{"f":"2024-10-01","v":981.0},{"f":"2024-11-01","v":1001.29},{"f":"2024-12-01","v":1020.39},{"f":"2025-01-01","v":1043.25},{"f":"2025-02-01","v":1058.11},{"f":"2025-03-01","v":1068.65},{"f":"2025-04-01","v":1119.04},{"f":"2025-05-01","v":1139.25},{"f":"2025-06-01","v":1171.84},{"f":"2025-07-01","v":1260.0},{"f":"2025-08-01","v":1319.5},{"f":"2025-09-01","v":1393.86},{"f":"2025-10-01","v":1435.68},{"f":"2025-11-01","v":1427.65},{"f":"2025-12-01","v":1446.84},{"f":"2026-01-01","v":1447.38},{"f":"2026-02-01","v":1404.97},{"f":"2026-03-01","v":1391.34},{"f":"2026-04-01","v":1380.75},{"f":"2026-05-01","v":1390.0}];
+var SERIES_TC_MEP_Venta=[{"f":"2020-09-01","v":126.81},{"f":"2020-10-01","v":148.63},{"f":"2020-11-01","v":143.71},{"f":"2020-12-01","v":140.6},{"f":"2021-01-01","v":145.61},{"f":"2021-02-01","v":145.58},{"f":"2021-03-01","v":143.71},{"f":"2021-04-01","v":146.15},{"f":"2021-05-01","v":155.52},{"f":"2021-06-01","v":160.76},{"f":"2021-07-01","v":166.37},{"f":"2021-08-01","v":169.67},{"f":"2021-09-01","v":172.17},{"f":"2021-10-01","v":177.82},{"f":"2021-11-01","v":191.59},{"f":"2021-12-01","v":197.81},{"f":"2022-01-01","v":206.49},{"f":"2022-02-01","v":205.99},{"f":"2022-03-01","v":194.16},{"f":"2022-04-01","v":197.13},{"f":"2022-05-01","v":208.58},{"f":"2022-06-01","v":225.98},{"f":"2022-07-01","v":292.03},{"f":"2022-08-01","v":281.65},{"f":"2022-09-01","v":285.77},{"f":"2022-10-01","v":294.26},{"f":"2022-11-01","v":293.73},{"f":"2022-12-01","v":324.06},{"f":"2023-01-01","v":340.44},{"f":"2023-02-01","v":355.48},{"f":"2023-03-01","v":378.11},{"f":"2023-04-01","v":411.75},{"f":"2023-05-01","v":451.09},{"f":"2023-06-01","v":476.8},{"f":"2023-07-01","v":494.62},{"f":"2023-08-01","v":602.8},{"f":"2023-09-01","v":679.93},{"f":"2023-10-01","v":839.11},{"f":"2023-11-01","v":881.7},{"f":"2023-12-01","v":965.58},{"f":"2024-01-01","v":1153.54},{"f":"2024-02-01","v":1128.8},{"f":"2024-03-01","v":1019.49},{"f":"2024-04-01","v":1013.0},{"f":"2024-05-01","v":1109.45},{"f":"2024-06-01","v":1281.36},{"f":"2024-07-01","v":1351.65},{"f":"2024-08-01","v":1295.36},{"f":"2024-09-01","v":1230.35},{"f":"2024-10-01","v":1159.81},{"f":"2024-11-01","v":1106.01},{"f":"2024-12-01","v":1108.45},{"f":"2025-01-01","v":1164.73},{"f":"2025-02-01","v":1196.77},{"f":"2025-03-01","v":1259.75},{"f":"2025-04-01","v":1248.32},{"f":"2025-05-01","v":1157.4},{"f":"2025-06-01","v":1187.88},{"f":"2025-07-01","v":1275.76},{"f":"2025-08-01","v":1357.34},{"f":"2025-09-01","v":1431.6},{"f":"2025-10-01","v":1498.69},{"f":"2025-11-01","v":1465.95},{"f":"2025-12-01","v":1482.97},{"f":"2026-01-01","v":1477.85},{"f":"2026-02-01","v":1427.01},{"f":"2026-03-01","v":1422.09},{"f":"2026-04-01","v":1424.17},{"f":"2026-05-01","v":1428.5}];
+var SERIES_TC_Blue_Venta=[{"f":"2018-01-01","v":19.66},{"f":"2018-02-01","v":20.15},{"f":"2018-03-01","v":20.74},{"f":"2018-04-01","v":20.67},{"f":"2018-05-01","v":24.61},{"f":"2018-06-01","v":27.46},{"f":"2018-07-01","v":28.75},{"f":"2018-08-01","v":30.99},{"f":"2018-09-01","v":39.2},{"f":"2018-10-01","v":37.83},{"f":"2018-11-01","v":36.53},{"f":"2018-12-01","v":38.22},{"f":"2019-01-01","v":39.05},{"f":"2019-02-01","v":38.4},{"f":"2019-03-01","v":41.64},{"f":"2019-04-01","v":44.27},{"f":"2019-05-01","v":46.1},{"f":"2019-06-01","v":45.06},{"f":"2019-07-01","v":43.98},{"f":"2019-08-01","v":54.84},{"f":"2019-09-01","v":61.06},{"f":"2019-10-01","v":65.46},{"f":"2019-11-01","v":66.75},{"f":"2019-12-01","v":72.59},{"f":"2020-01-01","v":77.48},{"f":"2020-02-01","v":78.19},{"f":"2020-03-01","v":82.43},{"f":"2020-04-01","v":101.09},{"f":"2020-05-01","v":126.24},{"f":"2020-06-01","v":125.86},{"f":"2020-07-01","v":130.95},{"f":"2020-08-01","v":133.76},{"f":"2020-09-01","v":137.95},{"f":"2020-10-01","v":170.62},{"f":"2020-11-01","v":160.4},{"f":"2020-12-01","v":153.17},{"f":"2021-01-01","v":158.0},{"f":"2021-02-01","v":149.11},{"f":"2021-03-01","v":143.41},{"f":"2021-04-01","v":146.25},{"f":"2021-05-01","v":153.55},{"f":"2021-06-01","v":162.09},{"f":"2021-07-01","v":177.76},{"f":"2021-08-01","v":180.82},{"f":"2021-09-01","v":184.38},{"f":"2021-10-01","v":188.83},{"f":"2021-11-01","v":200.57},{"f":"2021-12-01","v":200.87},{"f":"2022-01-01","v":212.01},{"f":"2022-02-01","v":213.57},{"f":"2022-03-01","v":202.13},{"f":"2022-04-01","v":199.29},{"f":"2022-05-01","v":204.67},{"f":"2022-06-01","v":218.23},{"f":"2022-07-01","v":290.76},{"f":"2022-08-01","v":292.52},{"f":"2022-09-01","v":281.55},{"f":"2022-10-01","v":287.1},{"f":"2022-11-01","v":302.0},{"f":"2022-12-01","v":326.77},{"f":"2023-01-01","v":368.73},{"f":"2023-02-01","v":377.8},{"f":"2023-03-01","v":383.04},{"f":"2023-04-01","v":421.65},{"f":"2023-05-01","v":481.7},{"f":"2023-06-01","v":490.32},{"f":"2023-07-01","v":519.05},{"f":"2023-08-01","v":675.65},{"f":"2023-09-01","v":739.9},{"f":"2023-10-01","v":946.86},{"f":"2023-11-01","v":955.41},{"f":"2023-12-01","v":990.71},{"f":"2024-01-01","v":1151.3},{"f":"2024-02-01","v":1115.95},{"f":"2024-03-01","v":1016.43},{"f":"2024-04-01","v":1018.77},{"f":"2024-05-01","v":1132.96},{"f":"2024-06-01","v":1282.05},{"f":"2024-07-01","v":1427.26},{"f":"2024-08-01","v":1355.68},{"f":"2024-09-01","v":1264.52},{"f":"2024-10-01","v":1206.96},{"f":"2024-11-01","v":1137.14},{"f":"2024-12-01","v":1141.14},{"f":"2025-01-01","v":1226.96},{"f":"2025-02-01","v":1223.25},{"f":"2025-03-01","v":1259.05},{"f":"2025-04-01","v":1270.68},{"f":"2025-05-01","v":1172.95},{"f":"2025-06-01","v":1191.9},{"f":"2025-07-01","v":1295.22},{"f":"2025-08-01","v":1337.62},{"f":"2025-09-01","v":1420.0},{"f":"2025-10-01","v":1471.74},{"f":"2025-11-01","v":1435.9},{"f":"2025-12-01","v":1477.74},{"f":"2026-01-01","v":1502.36},{"f":"2026-02-01","v":1436.5},{"f":"2026-03-01","v":1421.14},{"f":"2026-04-01","v":1407.95},{"f":"2026-05-01","v":1418.81}];
+var SERIES_Trigo_Disp_Rosario=[{"f":"2004-01-01","v":129.12},{"f":"2004-02-01","v":122.45},{"f":"2004-03-01","v":125.03},{"f":"2004-04-01","v":131.11},{"f":"2004-05-01","v":129.0},{"f":"2004-06-01","v":113.81},{"f":"2004-07-01","v":107.31},{"f":"2004-08-01","v":96.01},{"f":"2004-09-01","v":98.61},{"f":"2004-10-01","v":97.95},{"f":"2004-11-01","v":93.61},{"f":"2004-12-01","v":85.3},{"f":"2005-01-01","v":82.99},{"f":"2005-02-01","v":88.69},{"f":"2005-03-01","v":102.89},{"f":"2005-04-01","v":107.1},{"f":"2005-05-01","v":110.07},{"f":"2005-06-01","v":107.52},{"f":"2005-07-01","v":111.24},{"f":"2005-08-01","v":109.82},{"f":"2005-09-01","v":107.32},{"f":"2005-10-01","v":106.45},{"f":"2005-11-01","v":110.36},{"f":"2005-12-01","v":102.14},{"f":"2006-01-01","v":109.4},{"f":"2006-02-01","v":107.7},{"f":"2006-03-01","v":103.91},{"f":"2006-04-01","v":107.53},{"f":"2006-05-01","v":114.6},{"f":"2006-06-01","v":107.0},{"f":"2006-07-01","v":104.19},{"f":"2006-08-01","v":106.55},{"f":"2006-09-01","v":111.83},{"f":"2006-10-01","v":122.24},{"f":"2006-11-01","v":123.09},{"f":"2006-12-01","v":123.48},{"f":"2007-01-01","v":121.18},{"f":"2007-02-01","v":121.8},{"f":"2007-03-01","v":118.07},{"f":"2007-04-01","v":120.72},{"f":"2007-05-01","v":130.76},{"f":"2007-06-01","v":141.0},{"f":"2007-07-01","v":147.67},{"f":"2007-08-01","v":169.18},{"f":"2007-09-01","v":195.44},{"f":"2007-10-01","v":202.23},{"f":"2007-11-01","v":197.27},{"f":"2007-12-01","v":179.92},{"f":"2008-01-01","v":180.45},{"f":"2008-02-01","v":192.05},{"f":"2008-03-01","v":192.11},{"f":"2008-04-01","v":233.12},{"f":"2008-05-01","v":233.95},{"f":"2008-06-01","v":241.75},{"f":"2008-07-01","v":227.57},{"f":"2008-08-01","v":202.1},{"f":"2008-09-01","v":196.0},{"f":"2008-10-01","v":161.45},{"f":"2008-11-01","v":127.25},{"f":"2008-12-01","v":118.32},{"f":"2009-01-01","v":123.29},{"f":"2009-02-01","v":118.5},{"f":"2009-03-01","v":133.62},{"f":"2009-04-01","v":138.47},{"f":"2009-05-01","v":146.97},{"f":"2009-06-01","v":153.07},{"f":"2009-07-01","v":154.0},{"f":"2009-08-01","v":163.05},{"f":"2009-09-01","v":151.25},{"f":"2009-10-01","v":140.0},{"f":"2009-11-01","v":141.0},{"f":"2009-12-01","v":144.5},{"f":"2010-01-01","v":139.5},{"f":"2010-02-01","v":122.5},{"f":"2010-03-01","v":134.2},{"f":"2010-04-01","v":139.3},{"f":"2010-05-01","v":151.5},{"f":"2010-06-01","v":151.8},{"f":"2010-07-01","v":159.5},{"f":"2010-08-01","v":183.7},{"f":"2010-09-01","v":194.3},{"f":"2010-10-01","v":186.7},{"f":"2010-11-01","v":179.2},{"f":"2010-12-01","v":169.3},{"f":"2011-01-01","v":177.1},{"f":"2011-02-01","v":177.5},{"f":"2011-03-01","v":185.9},{"f":"2011-04-01","v":185.3},{"f":"2011-05-01","v":183.5},{"f":"2011-06-01","v":164.2},{"f":"2011-07-01","v":168.5},{"f":"2011-08-01","v":159.9},{"f":"2011-09-01","v":156.6},{"f":"2011-10-01","v":144.9},{"f":"2011-11-01","v":128.4},{"f":"2011-12-01","v":113.4},{"f":"2012-01-01","v":134.8},{"f":"2012-02-01","v":128.8},{"f":"2012-03-01","v":138.2},{"f":"2012-04-01","v":148.85},{"f":"2012-05-01","v":161.1},{"f":"2012-06-01","v":158.3},{"f":"2012-07-01","v":184.1},{"f":"2012-08-01","v":203.1},{"f":"2012-09-01","v":240.5},{"f":"2012-10-01","v":225.11},{"f":"2012-11-01","v":220.1},{"f":"2012-12-01","v":219.21},{"f":"2013-01-01","v":249.5},{"f":"2013-02-01","v":254.29},{"f":"2013-03-01","v":260.5},{"f":"2013-04-01","v":278.2},{"f":"2013-05-01","v":351.36},{"f":"2013-06-01","v":446.92},{"f":"2013-07-01","v":448.33},{"f":"2013-08-01","v":435.4},{"f":"2013-09-01","v":462.57},{"f":"2013-10-01","v":617.27},{"f":"2013-11-01","v":338.1},{"f":"2013-12-01","v":239.32},{"f":"2014-01-01","v":234.23},{"f":"2014-02-01","v":235.6},{"f":"2014-03-01","v":237.36},{"f":"2014-04-01","v":239.16},{"f":"2014-05-01","v":249.2},{"f":"2014-06-01","v":246.4},{"f":"2014-07-01","v":217.44},{"f":"2014-08-01","v":180.35},{"f":"2014-09-01","v":169.8},{"f":"2014-10-01","v":152.35},{"f":"2014-11-01","v":141.39},{"f":"2014-12-01","v":130.69},{"f":"2015-01-01","v":131.02},{"f":"2015-02-01","v":123.83},{"f":"2015-03-01","v":106.3},{"f":"2015-04-01","v":119.1},{"f":"2015-05-01","v":125.64},{"f":"2015-06-01","v":110.09},{"f":"2015-07-01","v":122.2},{"f":"2015-08-01","v":126.8},{"f":"2015-09-01","v":127.09},{"f":"2015-10-01","v":129.4},{"f":"2015-11-01","v":156.15},{"f":"2015-12-01","v":149.0},{"f":"2016-01-01","v":140.7},{"f":"2016-02-01","v":134.89},{"f":"2016-03-01","v":142.61},{"f":"2016-04-01","v":157.88},{"f":"2016-05-01","v":181.42},{"f":"2016-06-01","v":187.75},{"f":"2016-07-01","v":176.0},{"f":"2016-08-01","v":163.77},{"f":"2016-09-01","v":145.56},{"f":"2016-10-01","v":146.55},{"f":"2016-11-01","v":146.0},{"f":"2016-12-01","v":146.95},{"f":"2017-01-01","v":163.02},{"f":"2017-02-01","v":170.75},{"f":"2017-03-01","v":166.61},{"f":"2017-04-01","v":169.55},{"f":"2017-05-01","v":168.09},{"f":"2017-06-01","v":168.85},{"f":"2017-07-01","v":172.29},{"f":"2017-08-01","v":173.4},{"f":"2017-09-01","v":161.11},{"f":"2017-10-01","v":169.4},{"f":"2017-11-01","v":165.66},{"f":"2017-12-01","v":160.9},{"f":"2018-01-01","v":167.7},{"f":"2018-02-01","v":177.08},{"f":"2018-03-01","v":192.95},{"f":"2018-04-01","v":227.39},{"f":"2018-05-01","v":252.4},{"f":"2018-06-01","v":237.55},{"f":"2018-07-01","v":203.48},{"f":"2018-08-01","v":235.45},{"f":"2018-09-01","v":226.9},{"f":"2018-10-01","v":236.86},{"f":"2018-11-01","v":202.2},{"f":"2018-12-01","v":200.03},{"f":"2019-01-01","v":211.3},{"f":"2019-02-01","v":202.9},{"f":"2019-03-01","v":191.88},{"f":"2019-04-01","v":194.77},{"f":"2019-05-01","v":202.59},{"f":"2019-06-01","v":215.97},{"f":"2019-07-01","v":223.71},{"f":"2019-08-01","v":207.57},{"f":"2019-09-01","v":220.15},{"f":"2019-10-01","v":220.32},{"f":"2019-11-01","v":194.1},{"f":"2019-12-01","v":176.84},{"f":"2020-01-01","v":199.27},{"f":"2020-02-01","v":211.48},{"f":"2020-03-01","v":208.83},{"f":"2020-04-01","v":212.4},{"f":"2020-05-01","v":210.34},{"f":"2020-06-01","v":208.05},{"f":"2020-07-01","v":205.57},{"f":"2020-08-01","v":208.38},{"f":"2020-09-01","v":217.6},{"f":"2020-10-01","v":232.69},{"f":"2020-11-01","v":216.47},{"f":"2020-12-01","v":218.33},{"f":"2021-01-01","v":231.63},{"f":"2021-02-01","v":218.47},{"f":"2021-03-01","v":218.57},{"f":"2021-04-01","v":216.0},{"f":"2021-05-01","v":226.42},{"f":"2021-06-01","v":217.0},{"f":"2021-07-01","v":211.14},{"f":"2021-08-01","v":226.5},{"f":"2021-09-01","v":234.3},{"f":"2021-10-01","v":238.74},{"f":"2021-11-01","v":241.21},{"f":"2021-12-01","v":244.52},{"f":"2022-01-01","v":241.27},{"f":"2022-02-01","v":249.53},{"f":"2022-03-01","v":316.06},{"f":"2022-04-01","v":347.72},{"f":"2022-05-01","v":376.0},{"f":"2022-06-01","v":374.59},{"f":"2022-07-01","v":327.85},{"f":"2022-08-01","v":307.75},{"f":"2022-09-01","v":321.34},{"f":"2022-10-01","v":361.26},{"f":"2022-11-01","v":365.98},{"f":"2022-12-01","v":331.79},{"f":"2023-01-01","v":310.43},{"f":"2023-02-01","v":303.9},{"f":"2023-03-01","v":288.64},{"f":"2023-04-01","v":283.17},{"f":"2023-05-01","v":311.35},{"f":"2023-06-01","v":310.35},{"f":"2023-07-01","v":283.43},{"f":"2023-08-01","v":265.36},{"f":"2023-09-01","v":262.57},{"f":"2023-10-01","v":276.75},{"f":"2023-11-01","v":304.57},{"f":"2023-12-01","v":261.32},{"f":"2024-01-01","v":222.91},{"f":"2024-02-01","v":215.71},{"f":"2024-03-01","v":204.89},{"f":"2024-04-01","v":215.6},{"f":"2024-05-01","v":262.26},{"f":"2024-06-01","v":256.6},{"f":"2024-07-01","v":250.43},{"f":"2024-08-01","v":249.2},{"f":"2024-09-01","v":226.0},{"f":"2024-10-01","v":217.39},{"f":"2024-11-01","v":194.86},{"f":"2024-12-01","v":194.9},{"f":"2025-01-01","v":195.38},{"f":"2025-02-01","v":210.76},{"f":"2025-03-01","v":216.89},{"f":"2025-04-01","v":222.2},{"f":"2025-05-01","v":202.2},{"f":"2025-06-01","v":198.9},{"f":"2025-07-01","v":198.1},{"f":"2025-08-01","v":203.2},{"f":"2025-09-01","v":199.3},{"f":"2025-10-01","v":186.3},{"f":"2025-11-01","v":178.4},{"f":"2025-12-01","v":175.7},{"f":"2026-01-01","v":180.1},{"f":"2026-02-01","v":184.25},{"f":"2026-03-01","v":189.43},{"f":"2026-04-01","v":195.94},{"f":"2026-05-01","v":211.9}];
+var SERIES_Maiz_Disp_Rosario=[{"f":"2004-01-01","v":87.05},{"f":"2004-02-01","v":86.91},{"f":"2004-03-01","v":81.71},{"f":"2004-04-01","v":100.5},{"f":"2004-05-01","v":101.95},{"f":"2004-06-01","v":100.33},{"f":"2004-07-01","v":100.0},{"f":"2004-08-01","v":100.0},{"f":"2004-09-01","v":100.18},{"f":"2004-10-01","v":100.2},{"f":"2004-11-01","v":99.5},{"f":"2004-12-01","v":99.5},{"f":"2005-01-01","v":99.5},{"f":"2005-02-01","v":99.5},{"f":"2005-03-01","v":99.5},{"f":"2005-04-01","v":66.14},{"f":"2005-05-01","v":66.62},{"f":"2005-06-01","v":69.5},{"f":"2005-07-01","v":78.29},{"f":"2005-08-01","v":77.59},{"f":"2005-09-01","v":74.48},{"f":"2005-10-01","v":74.45},{"f":"2005-11-01","v":70.66},{"f":"2005-12-01","v":72.69},{"f":"2006-01-01","v":79.64},{"f":"2006-02-01","v":82.0},{"f":"2006-03-01","v":78.98},{"f":"2006-04-01","v":85.53},{"f":"2006-05-01","v":87.29},{"f":"2006-06-01","v":85.36},{"f":"2006-07-01","v":88.02},{"f":"2006-08-01","v":86.45},{"f":"2006-09-01","v":88.6},{"f":"2006-10-01","v":104.6},{"f":"2006-11-01","v":127.36},{"f":"2006-12-01","v":131.8},{"f":"2007-01-01","v":129.34},{"f":"2007-02-01","v":126.8},{"f":"2007-03-01","v":121.34},{"f":"2007-04-01","v":117.78},{"f":"2007-05-01","v":118.16},{"f":"2007-06-01","v":123.35},{"f":"2007-07-01","v":113.41},{"f":"2007-08-01","v":119.13},{"f":"2007-09-01","v":123.65},{"f":"2007-10-01","v":122.8},{"f":"2007-11-01","v":111.5},{"f":"2007-12-01","v":113.44},{"f":"2008-01-01","v":142.2},{"f":"2008-02-01","v":151.83},{"f":"2008-03-01","v":156.5},{"f":"2008-04-01","v":163.48},{"f":"2008-05-01","v":162.32},{"f":"2008-06-01","v":173.6},{"f":"2008-07-01","v":162.89},{"f":"2008-08-01","v":143.2},{"f":"2008-09-01","v":134.09},{"f":"2008-10-01","v":103.9},{"f":"2008-11-01","v":97.15},{"f":"2008-12-01","v":88.74},{"f":"2009-01-01","v":109.19},{"f":"2009-02-01","v":114.65},{"f":"2009-03-01","v":111.48},{"f":"2009-04-01","v":106.05},{"f":"2009-05-01","v":105.68},{"f":"2009-06-01","v":115.26},{"f":"2009-07-01","v":112.73},{"f":"2009-08-01","v":114.2},{"f":"2009-09-01","v":111.57},{"f":"2009-10-01","v":114.9},{"f":"2009-11-01","v":124.2},{"f":"2009-12-01","v":130.1},{"f":"2010-01-01","v":129.7},{"f":"2010-02-01","v":119.5},{"f":"2010-03-01","v":111.6},{"f":"2010-04-01","v":114.5},{"f":"2010-05-01","v":119.8},{"f":"2010-06-01","v":120.2},{"f":"2010-07-01","v":127.8},{"f":"2010-08-01","v":135.95},{"f":"2010-09-01","v":144.9},{"f":"2010-10-01","v":154.5},{"f":"2010-11-01","v":166.2},{"f":"2010-12-01","v":177.4},{"f":"2011-01-01","v":181.5},{"f":"2011-02-01","v":193.4},{"f":"2011-03-01","v":186.4},{"f":"2011-04-01","v":187.9},{"f":"2011-05-01","v":182.0},{"f":"2011-06-01","v":173.8},{"f":"2011-07-01","v":167.5},{"f":"2011-08-01","v":164.2},{"f":"2011-09-01","v":156.0},{"f":"2011-10-01","v":166.8},{"f":"2011-11-01","v":130.8},{"f":"2011-12-01","v":135.5},{"f":"2012-01-01","v":171.5},{"f":"2012-02-01","v":156.4},{"f":"2012-03-01","v":162.0},{"f":"2012-04-01","v":160.84},{"f":"2012-05-01","v":153.72},{"f":"2012-06-01","v":152.8},{"f":"2012-07-01","v":160.2},{"f":"2012-08-01","v":170.3},{"f":"2012-09-01","v":178.3},{"f":"2012-10-01","v":180.29},{"f":"2012-11-01","v":193.7},{"f":"2012-12-01","v":195.0},{"f":"2013-01-01","v":189.3},{"f":"2013-02-01","v":181.49},{"f":"2013-03-01","v":169.85},{"f":"2013-04-01","v":169.7},{"f":"2013-05-01","v":188.93},{"f":"2013-06-01","v":203.94},{"f":"2013-07-01","v":169.56},{"f":"2013-08-01","v":155.02},{"f":"2013-09-01","v":153.49},{"f":"2013-10-01","v":159.05},{"f":"2013-11-01","v":177.25},{"f":"2013-12-01","v":170.43},{"f":"2014-01-01","v":152.9},{"f":"2014-02-01","v":156.5},{"f":"2014-03-01","v":165.92},{"f":"2014-04-01","v":176.49},{"f":"2014-05-01","v":174.55},{"f":"2014-06-01","v":155.1},{"f":"2014-07-01","v":138.9},{"f":"2014-08-01","v":124.3},{"f":"2014-09-01","v":111.15},{"f":"2014-10-01","v":114.51},{"f":"2014-11-01","v":122.99},{"f":"2014-12-01","v":123.92},{"f":"2015-01-01","v":114.29},{"f":"2015-02-01","v":111.52},{"f":"2015-03-01","v":110.4},{"f":"2015-04-01","v":116.5},{"f":"2015-05-01","v":111.04},{"f":"2015-06-01","v":104.68},{"f":"2015-07-01","v":100.57},{"f":"2015-08-01","v":98.44},{"f":"2015-09-01","v":99.62},{"f":"2015-10-01","v":117.0},{"f":"2015-11-01","v":132.9},{"f":"2015-12-01","v":144.1},{"f":"2016-01-01","v":146.2},{"f":"2016-02-01","v":152.06},{"f":"2016-03-01","v":146.16},{"f":"2016-04-01","v":172.47},{"f":"2016-05-01","v":196.38},{"f":"2016-06-01","v":203.7},{"f":"2016-07-01","v":186.84},{"f":"2016-08-01","v":162.36},{"f":"2016-09-01","v":160.65},{"f":"2016-10-01","v":164.95},{"f":"2016-11-01","v":168.33},{"f":"2016-12-01","v":167.6},{"f":"2017-01-01","v":168.63},{"f":"2017-02-01","v":160.08},{"f":"2017-03-01","v":150.25},{"f":"2017-04-01","v":153.58},{"f":"2017-05-01","v":152.54},{"f":"2017-06-01","v":140.64},{"f":"2017-07-01","v":141.2},{"f":"2017-08-01","v":134.8},{"f":"2017-09-01","v":136.85},{"f":"2017-10-01","v":138.7},{"f":"2017-11-01","v":138.09},{"f":"2017-12-01","v":146.4},{"f":"2018-01-01","v":152.02},{"f":"2018-02-01","v":164.75},{"f":"2018-03-01","v":173.25},{"f":"2018-04-01","v":183.03},{"f":"2018-05-01","v":182.52},{"f":"2018-06-01","v":162.52},{"f":"2018-07-01","v":156.07},{"f":"2018-08-01","v":157.86},{"f":"2018-09-01","v":138.4},{"f":"2018-10-01","v":134.57},{"f":"2018-11-01","v":133.63},{"f":"2018-12-01","v":147.02},{"f":"2019-01-01","v":149.2},{"f":"2019-02-01","v":141.15},{"f":"2019-03-01","v":136.87},{"f":"2019-04-01","v":133.3},{"f":"2019-05-01","v":142.25},{"f":"2019-06-01","v":160.92},{"f":"2019-07-01","v":151.02},{"f":"2019-08-01","v":129.67},{"f":"2019-09-01","v":129.29},{"f":"2019-10-01","v":134.36},{"f":"2019-11-01","v":145.88},{"f":"2019-12-01","v":146.24},{"f":"2020-01-01","v":153.5},{"f":"2020-02-01","v":147.56},{"f":"2020-03-01","v":138.47},{"f":"2020-04-01","v":132.56},{"f":"2020-05-01","v":120.73},{"f":"2020-06-01","v":123.98},{"f":"2020-07-01","v":133.99},{"f":"2020-08-01","v":143.1},{"f":"2020-09-01","v":162.5},{"f":"2020-10-01","v":190.1},{"f":"2020-11-01","v":196.14},{"f":"2020-12-01","v":200.8},{"f":"2021-01-01","v":203.65},{"f":"2021-02-01","v":202.88},{"f":"2021-03-01","v":197.59},{"f":"2021-04-01","v":212.24},{"f":"2021-05-01","v":224.51},{"f":"2021-06-01","v":199.83},{"f":"2021-07-01","v":194.6},{"f":"2021-08-01","v":193.1},{"f":"2021-09-01","v":199.86},{"f":"2021-10-01","v":195.18},{"f":"2021-11-01","v":201.31},{"f":"2021-12-01","v":220.4},{"f":"2022-01-01","v":230.49},{"f":"2022-02-01","v":240.53},{"f":"2022-03-01","v":277.57},{"f":"2022-04-01","v":265.92},{"f":"2022-05-01","v":263.9},{"f":"2022-06-01","v":250.43},{"f":"2022-07-01","v":227.27},{"f":"2022-08-01","v":230.02},{"f":"2022-09-01","v":241.86},{"f":"2022-10-01","v":250.63},{"f":"2022-11-01","v":248.4},{"f":"2022-12-01","v":262.24},{"f":"2023-01-01","v":261.42},{"f":"2023-02-01","v":265.19},{"f":"2023-03-01","v":251.66},{"f":"2023-04-01","v":237.61},{"f":"2023-05-01","v":213.9},{"f":"2023-06-01","v":197.9},{"f":"2023-07-01","v":188.24},{"f":"2023-08-01","v":184.95},{"f":"2023-09-01","v":202.79},{"f":"2023-10-01","v":250.75},{"f":"2023-11-01","v":268.76},{"f":"2023-12-01","v":197.03},{"f":"2024-01-01","v":191.86},{"f":"2024-02-01","v":175.89},{"f":"2024-03-01","v":173.32},{"f":"2024-04-01","v":178.42},{"f":"2024-05-01","v":183.86},{"f":"2024-06-01","v":180.87},{"f":"2024-07-01","v":173.27},{"f":"2024-08-01","v":173.36},{"f":"2024-09-01","v":177.4},{"f":"2024-10-01","v":186.98},{"f":"2024-11-01","v":184.9},{"f":"2024-12-01","v":180.6},{"f":"2025-01-01","v":199.07},{"f":"2025-02-01","v":207.05},{"f":"2025-03-01","v":196.33},{"f":"2025-04-01","v":204.1},{"f":"2025-05-01","v":186.5},{"f":"2025-06-01","v":174.4},{"f":"2025-07-01","v":174.6},{"f":"2025-08-01","v":175.8},{"f":"2025-09-01","v":180.5},{"f":"2025-10-01","v":180.5},{"f":"2025-11-01","v":184.9},{"f":"2025-12-01","v":191.7},{"f":"2026-01-01","v":189.4},{"f":"2026-02-01","v":183.0},{"f":"2026-03-01","v":181.02},{"f":"2026-04-01","v":184.94},{"f":"2026-05-01","v":188.3}];
+var SERIES_Sorgo_Disp_Rosario=[{"f":"2011-01-01","v":166.09},{"f":"2011-02-01","v":181.5},{"f":"2011-03-01","v":179.63},{"f":"2011-04-01","v":184.84},{"f":"2011-05-01","v":178.09},{"f":"2011-06-01","v":179.26},{"f":"2011-07-01","v":163.63},{"f":"2011-08-01","v":168.93},{"f":"2011-09-01","v":186.88},{"f":"2011-10-01","v":182.85},{"f":"2011-11-01","v":172.42},{"f":"2011-12-01","v":157.97},{"f":"2012-01-01","v":179.93},{"f":"2012-02-01","v":165.55},{"f":"2012-03-01","v":165.2},{"f":"2012-04-01","v":151.0},{"f":"2012-05-01","v":145.04},{"f":"2012-06-01","v":137.07},{"f":"2012-07-01","v":157.16},{"f":"2012-08-01","v":173.04},{"f":"2012-09-01","v":179.05},{"f":"2012-10-01","v":180.13},{"f":"2012-11-01","v":178.19},{"f":"2012-12-01","v":174.66},{"f":"2013-01-01","v":169.32},{"f":"2013-02-01","v":175.64},{"f":"2013-03-01","v":171.57},{"f":"2013-04-01","v":154.45},{"f":"2013-05-01","v":166.4},{"f":"2013-06-01","v":166.77},{"f":"2013-07-01","v":156.59},{"f":"2013-08-01","v":152.66},{"f":"2013-09-01","v":150.14},{"f":"2013-10-01","v":151.02},{"f":"2013-11-01","v":159.45},{"f":"2013-12-01","v":136.73},{"f":"2014-01-01","v":126.36},{"f":"2014-02-01","v":138.1},{"f":"2014-03-01","v":136.05},{"f":"2014-04-01","v":130.31},{"f":"2014-05-01","v":135.7},{"f":"2014-06-01","v":137.25},{"f":"2014-07-01","v":114.0},{"f":"2014-08-01","v":109.3},{"f":"2014-09-01","v":103.81},{"f":"2014-10-01","v":98.02},{"f":"2014-11-01","v":112.47},{"f":"2014-12-01","v":135.05},{"f":"2015-01-01","v":116.57},{"f":"2015-02-01","v":110.38},{"f":"2015-03-01","v":117.15},{"f":"2015-04-01","v":121.45},{"f":"2015-05-01","v":115.78},{"f":"2015-06-01","v":113.5},{"f":"2015-07-01","v":105.59},{"f":"2015-08-01","v":96.9},{"f":"2015-09-01","v":105.09},{"f":"2015-10-01","v":111.47},{"f":"2015-11-01","v":124.5},{"f":"2015-12-01","v":150.33},{"f":"2016-01-01","v":144.6},{"f":"2016-02-01","v":134.36},{"f":"2016-03-01","v":138.4},{"f":"2016-04-01","v":134.47},{"f":"2016-05-01","v":146.8},{"f":"2016-06-01","v":161.45},{"f":"2016-07-01","v":143.0},{"f":"2016-08-01","v":143.84},{"f":"2016-09-01","v":130.9},{"f":"2016-10-01","v":134.85},{"f":"2016-11-01","v":133.97},{"f":"2016-12-01","v":140.3},{"f":"2017-01-01","v":140.5},{"f":"2017-02-01","v":128.61},{"f":"2017-03-01","v":125.18},{"f":"2017-04-01","v":121.33},{"f":"2017-05-01","v":117.19},{"f":"2017-06-01","v":118.78},{"f":"2017-07-01","v":118.55},{"f":"2017-08-01","v":114.86},{"f":"2017-09-01","v":117.04},{"f":"2017-10-01","v":118.04},{"f":"2017-11-01","v":116.23},{"f":"2017-12-01","v":122.6},{"f":"2018-01-01","v":127.59},{"f":"2018-02-01","v":133.33},{"f":"2018-03-01","v":156.6},{"f":"2018-04-01","v":159.05},{"f":"2018-05-01","v":137.71},{"f":"2018-06-01","v":131.24},{"f":"2018-07-01","v":127.71},{"f":"2018-08-01","v":127.87},{"f":"2018-09-01","v":122.95},{"f":"2018-10-01","v":111.41},{"f":"2018-11-01","v":108.4},{"f":"2018-12-01","v":117.5},{"f":"2019-01-01","v":115.4},{"f":"2019-02-01","v":117.5},{"f":"2019-03-01","v":108.63},{"f":"2019-04-01","v":105.89},{"f":"2019-05-01","v":120.77},{"f":"2019-06-01","v":155.22},{"f":"2019-07-01","v":158.14},{"f":"2019-08-01","v":152.08},{"f":"2019-09-01","v":154.43},{"f":"2019-10-01","v":138.27},{"f":"2019-11-01","v":140.25},{"f":"2019-12-01","v":135.95},{"f":"2020-01-01","v":131.93},{"f":"2020-02-01","v":133.68},{"f":"2020-03-01","v":129.71},{"f":"2020-04-01","v":136.21},{"f":"2020-05-01","v":134.62},{"f":"2020-06-01","v":141.02},{"f":"2020-07-01","v":150.47},{"f":"2020-08-01","v":157.89},{"f":"2020-09-01","v":180.45},{"f":"2020-10-01","v":195.0},{"f":"2020-11-01","v":215.0},{"f":"2020-12-01","v":213.98},{"f":"2021-01-01","v":211.1},{"f":"2021-02-01","v":214.17},{"f":"2021-03-01","v":224.34},{"f":"2021-04-01","v":220.32},{"f":"2021-05-01","v":201.29},{"f":"2021-06-01","v":182.84},{"f":"2021-07-01","v":172.57},{"f":"2021-08-01","v":164.62},{"f":"2021-09-01","v":167.25},{"f":"2021-10-01","v":168.34},{"f":"2021-11-01","v":179.82},{"f":"2021-12-01","v":195.81},{"f":"2022-01-01","v":205.4},{"f":"2022-02-01","v":219.2},{"f":"2022-03-01","v":246.08},{"f":"2022-04-01","v":244.22},{"f":"2022-05-01","v":272.42},{"f":"2022-06-01","v":242.93},{"f":"2022-07-01","v":220.16},{"f":"2022-08-01","v":225.74},{"f":"2022-09-01","v":232.86},{"f":"2022-10-01","v":236.47},{"f":"2022-11-01","v":241.05},{"f":"2022-12-01","v":240.07},{"f":"2023-01-01","v":251.25},{"f":"2023-02-01","v":268.26},{"f":"2023-03-01","v":257.29},{"f":"2023-04-01","v":259.89},{"f":"2023-05-01","v":286.08},{"f":"2023-06-01","v":211.18},{"f":"2023-07-01","v":239.02},{"f":"2023-08-01","v":252.11},{"f":"2023-09-01","v":248.87},{"f":"2023-10-01","v":342.57},{"f":"2023-11-01","v":395.15},{"f":"2023-12-01","v":210.79},{"f":"2024-01-01","v":188.14},{"f":"2024-02-01","v":196.82},{"f":"2024-03-01","v":178.03},{"f":"2024-04-01","v":163.06},{"f":"2024-05-01","v":165.72},{"f":"2024-06-01","v":184.21},{"f":"2024-07-01","v":178.46},{"f":"2024-08-01","v":149.77},{"f":"2024-09-01","v":142.99},{"f":"2024-10-01","v":149.57},{"f":"2024-11-01","v":165.71},{"f":"2024-12-01","v":193.7},{"f":"2025-01-01","v":170.07},{"f":"2025-02-01","v":181.69},{"f":"2025-03-01","v":194.17},{"f":"2025-04-01","v":191.54},{"f":"2026-05-01","v":198.35}];
+var SERIES_Soja_Disp_Rosario=[{"f":"2004-01-01","v":229.95},{"f":"2004-02-01","v":235.65},{"f":"2004-03-01","v":234.14},{"f":"2004-04-01","v":234.32},{"f":"2004-05-01","v":218.3},{"f":"2004-06-01","v":194.19},{"f":"2004-07-01","v":176.49},{"f":"2004-08-01","v":169.41},{"f":"2004-09-01","v":166.86},{"f":"2004-10-01","v":157.5},{"f":"2004-11-01","v":157.3},{"f":"2004-12-01","v":160.8},{"f":"2005-01-01","v":156.75},{"f":"2005-02-01","v":152.2},{"f":"2005-03-01","v":170.83},{"f":"2005-04-01","v":165.64},{"f":"2005-05-01","v":167.69},{"f":"2005-06-01","v":176.95},{"f":"2005-07-01","v":185.79},{"f":"2005-08-01","v":182.18},{"f":"2005-09-01","v":175.81},{"f":"2005-10-01","v":170.0},{"f":"2005-11-01","v":167.09},{"f":"2005-12-01","v":172.4},{"f":"2006-01-01","v":175.07},{"f":"2006-02-01","v":177.9},{"f":"2006-03-01","v":166.61},{"f":"2006-04-01","v":163.67},{"f":"2006-05-01","v":171.48},{"f":"2006-06-01","v":168.6},{"f":"2006-07-01","v":169.45},{"f":"2006-08-01","v":167.84},{"f":"2006-09-01","v":169.0},{"f":"2006-10-01","v":180.34},{"f":"2006-11-01","v":198.19},{"f":"2006-12-01","v":205.45},{"f":"2007-01-01","v":196.98},{"f":"2007-02-01","v":199.4},{"f":"2007-03-01","v":193.64},{"f":"2007-04-01","v":191.26},{"f":"2007-05-01","v":194.12},{"f":"2007-06-01","v":203.0},{"f":"2007-07-01","v":202.02},{"f":"2007-08-01","v":213.24},{"f":"2007-09-01","v":240.5},{"f":"2007-10-01","v":255.35},{"f":"2007-11-01","v":258.0},{"f":"2007-12-01","v":271.42},{"f":"2008-01-01","v":306.25},{"f":"2008-02-01","v":351.85},{"f":"2008-03-01","v":308.89},{"f":"2008-04-01","v":282.29},{"f":"2008-05-01","v":286.33},{"f":"2008-06-01","v":290.05},{"f":"2008-07-01","v":305.68},{"f":"2008-08-01","v":292.1},{"f":"2008-09-01","v":277.95},{"f":"2008-10-01","v":235.02},{"f":"2008-11-01","v":224.4},{"f":"2008-12-01","v":211.84},{"f":"2009-01-01","v":252.43},{"f":"2009-02-01","v":243.7},{"f":"2009-03-01","v":223.29},{"f":"2009-04-01","v":256.55},{"f":"2009-05-01","v":272.86},{"f":"2009-06-01","v":278.67},{"f":"2009-07-01","v":259.95},{"f":"2009-08-01","v":262.35},{"f":"2009-09-01","v":254.6},{"f":"2009-10-01","v":255.8},{"f":"2009-11-01","v":265.9},{"f":"2009-12-01","v":268.3},{"f":"2010-01-01","v":268.8},{"f":"2010-02-01","v":249.8},{"f":"2010-03-01","v":221.3},{"f":"2010-04-01","v":228.0},{"f":"2010-05-01","v":228.5},{"f":"2010-06-01","v":228.6},{"f":"2010-07-01","v":249.6},{"f":"2010-08-01","v":261.88},{"f":"2010-09-01","v":273.7},{"f":"2010-10-01","v":285.5},{"f":"2010-11-01","v":333.0},{"f":"2010-12-01","v":348.0},{"f":"2011-01-01","v":361.0},{"f":"2011-02-01","v":350.1},{"f":"2011-03-01","v":327.4},{"f":"2011-04-01","v":317.7},{"f":"2011-05-01","v":317.0},{"f":"2011-06-01","v":314.8},{"f":"2011-07-01","v":318.7},{"f":"2011-08-01","v":322.5},{"f":"2011-09-01","v":316.1},{"f":"2011-10-01","v":301.0},{"f":"2011-11-01","v":293.1},{"f":"2011-12-01","v":285.5},{"f":"2012-01-01","v":305.6},{"f":"2012-02-01","v":315.8},{"f":"2012-03-01","v":324.7},{"f":"2012-04-01","v":347.38},{"f":"2012-05-01","v":346.54},{"f":"2012-06-01","v":345.8},{"f":"2012-07-01","v":391.0},{"f":"2012-08-01","v":408.7},{"f":"2012-09-01","v":429.3},{"f":"2012-10-01","v":407.5},{"f":"2012-11-01","v":409.4},{"f":"2012-12-01","v":406.78},{"f":"2013-01-01","v":377.2},{"f":"2013-02-01","v":358.24},{"f":"2013-03-01","v":338.88},{"f":"2013-04-01","v":319.6},{"f":"2013-05-01","v":330.61},{"f":"2013-06-01","v":326.08},{"f":"2013-07-01","v":321.3},{"f":"2013-08-01","v":316.26},{"f":"2013-09-01","v":339.15},{"f":"2013-10-01","v":356.5},{"f":"2013-11-01","v":348.22},{"f":"2013-12-01","v":337.58},{"f":"2014-01-01","v":326.41},{"f":"2014-02-01","v":352.5},{"f":"2014-03-01","v":333.78},{"f":"2014-04-01","v":310.15},{"f":"2014-05-01","v":320.4},{"f":"2014-06-01","v":309.9},{"f":"2014-07-01","v":298.3},{"f":"2014-08-01","v":292.3},{"f":"2014-09-01","v":272.31},{"f":"2014-10-01","v":275.7},{"f":"2014-11-01","v":290.07},{"f":"2014-12-01","v":289.67},{"f":"2015-01-01","v":285.66},{"f":"2015-02-01","v":273.72},{"f":"2015-03-01","v":245.75},{"f":"2015-04-01","v":218.4},{"f":"2015-05-01","v":216.39},{"f":"2015-06-01","v":216.54},{"f":"2015-07-01","v":231.64},{"f":"2015-08-01","v":228.35},{"f":"2015-09-01","v":230.47},{"f":"2015-10-01","v":235.3},{"f":"2015-11-01","v":252.2},{"f":"2015-12-01","v":246.0},{"f":"2016-01-01","v":234.5},{"f":"2016-02-01","v":238.15},{"f":"2016-03-01","v":222.6},{"f":"2016-04-01","v":240.04},{"f":"2016-05-01","v":277.16},{"f":"2016-06-01","v":297.3},{"f":"2016-07-01","v":290.86},{"f":"2016-08-01","v":281.06},{"f":"2016-09-01","v":266.04},{"f":"2016-10-01","v":266.47},{"f":"2016-11-01","v":265.3},{"f":"2016-12-01","v":264.2},{"f":"2017-01-01","v":276.27},{"f":"2017-02-01","v":272.19},{"f":"2017-03-01","v":247.06},{"f":"2017-04-01","v":234.66},{"f":"2017-05-01","v":244.31},{"f":"2017-06-01","v":237.9},{"f":"2017-07-01","v":245.4},{"f":"2017-08-01","v":245.1},{"f":"2017-09-01","v":250.59},{"f":"2017-10-01","v":253.54},{"f":"2017-11-01","v":257.52},{"f":"2017-12-01","v":260.75},{"f":"2018-01-01","v":271.84},{"f":"2018-02-01","v":294.22},{"f":"2018-03-01","v":296.38},{"f":"2018-04-01","v":311.66},{"f":"2018-05-01","v":314.31},{"f":"2018-06-01","v":287.31},{"f":"2018-07-01","v":282.97},{"f":"2018-08-01","v":266.82},{"f":"2018-09-01","v":251.5},{"f":"2018-10-01","v":255.02},{"f":"2018-11-01","v":252.15},{"f":"2018-12-01","v":242.91},{"f":"2019-01-01","v":250.9},{"f":"2019-02-01","v":242.7},{"f":"2019-03-01","v":229.0},{"f":"2019-04-01","v":215.84},{"f":"2019-05-01","v":221.34},{"f":"2019-06-01","v":230.86},{"f":"2019-07-01","v":228.4},{"f":"2019-08-01","v":239.71},{"f":"2019-09-01","v":239.14},{"f":"2019-10-01","v":242.46},{"f":"2019-11-01","v":252.05},{"f":"2019-12-01","v":246.79},{"f":"2020-01-01","v":260.9},{"f":"2020-02-01","v":245.31},{"f":"2020-03-01","v":220.37},{"f":"2020-04-01","v":214.18},{"f":"2020-05-01","v":218.32},{"f":"2020-06-01","v":225.03},{"f":"2020-07-01","v":237.81},{"f":"2020-08-01","v":246.5},{"f":"2020-09-01","v":275.07},{"f":"2020-10-01","v":323.66},{"f":"2020-11-01","v":345.86},{"f":"2020-12-01","v":334.39},{"f":"2021-01-01","v":339.76},{"f":"2021-02-01","v":328.47},{"f":"2021-03-01","v":330.84},{"f":"2021-04-01","v":335.69},{"f":"2021-05-01","v":347.16},{"f":"2021-06-01","v":323.45},{"f":"2021-07-01","v":331.48},{"f":"2021-08-01","v":339.33},{"f":"2021-09-01","v":344.98},{"f":"2021-10-01","v":351.29},{"f":"2021-11-01","v":353.74},{"f":"2021-12-01","v":362.3},{"f":"2022-01-01","v":388.83},{"f":"2022-02-01","v":422.65},{"f":"2022-03-01","v":447.1},{"f":"2022-04-01","v":437.65},{"f":"2022-05-01","v":428.32},{"f":"2022-06-01","v":407.98},{"f":"2022-07-01","v":386.14},{"f":"2022-08-01","v":387.25},{"f":"2022-09-01","v":340.02},{"f":"2022-10-01","v":393.47},{"f":"2022-11-01","v":413.52},{"f":"2022-12-01","v":412.45},{"f":"2023-01-01","v":483.35},{"f":"2023-02-01","v":461.06},{"f":"2023-03-01","v":444.18},{"f":"2023-04-01","v":370.37},{"f":"2023-05-01","v":351.85},{"f":"2023-06-01","v":377.8},{"f":"2023-07-01","v":367.86},{"f":"2023-08-01","v":378.05},{"f":"2023-09-01","v":452.67},{"f":"2023-10-01","v":521.7},{"f":"2023-11-01","v":549.62},{"f":"2023-12-01","v":359.37},{"f":"2024-01-01","v":333.23},{"f":"2024-02-01","v":302.53},{"f":"2024-03-01","v":298.26},{"f":"2024-04-01","v":289.9},{"f":"2024-05-01","v":312.14},{"f":"2024-06-01","v":318.91},{"f":"2024-07-01","v":312.5},{"f":"2024-08-01","v":307.95},{"f":"2024-09-01","v":314.86},{"f":"2024-10-01","v":317.55},{"f":"2024-11-01","v":301.0},{"f":"2024-12-01","v":291.6},{"f":"2025-01-01","v":284.34},{"f":"2025-02-01","v":308.15},{"f":"2025-03-01","v":309.19},{"f":"2025-04-01","v":297.7},{"f":"2025-05-01","v":274.4},{"f":"2025-06-01","v":273.9},{"f":"2025-07-01","v":268.8},{"f":"2025-08-01","v":294.4},{"f":"2025-09-01","v":311.9},{"f":"2025-10-01","v":338.0},{"f":"2025-11-01","v":342.7},{"f":"2025-12-01","v":346.2},{"f":"2026-01-01","v":340.0},{"f":"2026-02-01","v":332.65},{"f":"2026-03-01","v":335.2},{"f":"2026-04-01","v":318.66},{"f":"2026-05-01","v":320.8}];
+var SERIES_Girasol_Disp_Rosario=[{"f":"2004-01-01","v":210.33},{"f":"2004-02-01","v":201.35},{"f":"2004-03-01","v":199.24},{"f":"2004-04-01","v":197.37},{"f":"2004-05-01","v":199.0},{"f":"2004-06-01","v":181.29},{"f":"2004-07-01","v":171.52},{"f":"2004-08-01","v":168.52},{"f":"2004-09-01","v":178.95},{"f":"2004-10-01","v":182.55},{"f":"2004-11-01","v":182.09},{"f":"2004-12-01","v":177.7},{"f":"2005-01-01","v":171.88},{"f":"2005-02-01","v":170.0},{"f":"2005-03-01","v":178.95},{"f":"2005-04-01","v":177.19},{"f":"2005-05-01","v":175.79},{"f":"2005-06-01","v":176.33},{"f":"2005-07-01","v":189.62},{"f":"2005-08-01","v":199.0},{"f":"2005-09-01","v":185.7},{"f":"2005-10-01","v":171.8},{"f":"2005-11-01","v":158.73},{"f":"2005-12-01","v":158.76},{"f":"2006-01-01","v":162.41},{"f":"2006-02-01","v":158.5},{"f":"2006-03-01","v":161.86},{"f":"2006-04-01","v":174.72},{"f":"2006-05-01","v":187.33},{"f":"2006-06-01","v":177.67},{"f":"2006-07-01","v":179.9},{"f":"2006-08-01","v":190.05},{"f":"2006-09-01","v":190.19},{"f":"2006-10-01","v":190.19},{"f":"2006-11-01","v":191.0},{"f":"2006-12-01","v":191.0},{"f":"2007-01-01","v":189.73},{"f":"2007-02-01","v":192.7},{"f":"2007-03-01","v":209.54},{"f":"2007-04-01","v":214.53},{"f":"2007-05-01","v":244.29},{"f":"2007-06-01","v":286.95},{"f":"2007-07-01","v":315.43},{"f":"2007-08-01","v":358.45},{"f":"2007-09-01","v":397.15},{"f":"2007-10-01","v":430.75},{"f":"2007-11-01","v":404.36},{"f":"2007-12-01","v":350.83},{"f":"2008-01-01","v":416.32},{"f":"2008-02-01","v":428.76},{"f":"2008-03-01","v":410.61},{"f":"2008-04-01","v":373.86},{"f":"2008-05-01","v":362.71},{"f":"2008-06-01","v":356.15},{"f":"2008-07-01","v":320.86},{"f":"2008-08-01","v":284.2},{"f":"2008-09-01","v":265.82},{"f":"2008-10-01","v":219.64},{"f":"2008-11-01","v":190.2},{"f":"2008-12-01","v":171.16},{"f":"2009-01-01","v":186.24},{"f":"2009-02-01","v":190.35},{"f":"2009-03-01","v":184.14},{"f":"2009-04-01","v":187.42},{"f":"2009-05-01","v":208.21},{"f":"2009-06-01","v":214.43},{"f":"2009-07-01","v":201.82},{"f":"2009-08-01","v":200.0},{"f":"2009-09-01","v":196.59},{"f":"2009-10-01","v":196.9},{"f":"2009-11-01","v":211.2},{"f":"2009-12-01","v":234.3},{"f":"2010-01-01","v":240.8},{"f":"2010-02-01","v":240.0},{"f":"2010-03-01","v":240.0},{"f":"2010-04-01","v":235.3},{"f":"2010-05-01","v":239.4},{"f":"2010-06-01","v":259.4},{"f":"2010-07-01","v":260.0},{"f":"2010-08-01","v":267.5},{"f":"2010-09-01","v":280.0},{"f":"2010-10-01","v":258.5},{"f":"2010-11-01","v":330.8},{"f":"2010-12-01","v":334.1},{"f":"2011-01-01","v":382.6},{"f":"2011-02-01","v":394.0},{"f":"2011-03-01","v":369.8},{"f":"2011-04-01","v":363.0},{"f":"2011-05-01","v":336.4},{"f":"2011-06-01","v":349.3},{"f":"2011-07-01","v":334.3},{"f":"2011-08-01","v":324.9},{"f":"2011-09-01","v":328.6},{"f":"2011-10-01","v":310.3},{"f":"2011-11-01","v":296.7},{"f":"2011-12-01","v":289.1},{"f":"2012-01-01","v":296.9},{"f":"2012-02-01","v":304.4},{"f":"2012-03-01","v":307.1},{"f":"2012-04-01","v":322.11},{"f":"2012-05-01","v":325.0},{"f":"2012-06-01","v":325.0},{"f":"2012-07-01","v":335.1},{"f":"2012-08-01","v":369.2},{"f":"2012-09-01","v":389.7},{"f":"2012-10-01","v":378.63},{"f":"2012-11-01","v":336.8},{"f":"2012-12-01","v":357.0},{"f":"2013-01-01","v":359.3},{"f":"2013-02-01","v":360.0},{"f":"2013-03-01","v":361.58},{"f":"2013-04-01","v":366.25},{"f":"2013-05-01","v":347.05},{"f":"2013-06-01","v":320.56},{"f":"2013-07-01","v":315.0},{"f":"2013-08-01","v":295.95},{"f":"2013-09-01","v":267.62},{"f":"2013-10-01","v":257.73},{"f":"2013-11-01","v":250.0},{"f":"2013-12-01","v":250.0},{"f":"2014-01-01","v":271.59},{"f":"2014-02-01","v":301.0},{"f":"2014-03-01","v":305.0},{"f":"2014-04-01","v":305.0},{"f":"2014-05-01","v":310.45},{"f":"2014-06-01","v":308.7},{"f":"2014-07-01","v":295.0},{"f":"2014-08-01","v":292.1},{"f":"2014-09-01","v":280.23},{"f":"2014-10-01","v":261.36},{"f":"2014-11-01","v":267.89},{"f":"2014-12-01","v":267.78},{"f":"2015-01-01","v":272.86},{"f":"2015-02-01","v":260.11},{"f":"2015-03-01","v":218.95},{"f":"2015-04-01","v":204.9},{"f":"2015-05-01","v":210.73},{"f":"2015-06-01","v":209.95},{"f":"2015-07-01","v":203.4},{"f":"2015-08-01","v":201.0},{"f":"2015-09-01","v":199.04},{"f":"2015-10-01","v":196.5},{"f":"2015-11-01","v":204.4},{"f":"2015-12-01","v":232.4},{"f":"2016-01-01","v":266.5},{"f":"2016-02-01","v":271.84},{"f":"2016-03-01","v":265.71},{"f":"2016-04-01","v":283.33},{"f":"2016-05-01","v":304.42},{"f":"2016-06-01","v":332.7},{"f":"2016-07-01","v":339.75},{"f":"2016-08-01","v":358.59},{"f":"2016-09-01","v":341.7},{"f":"2016-10-01","v":301.35},{"f":"2016-11-01","v":311.38},{"f":"2016-12-01","v":288.15},{"f":"2017-01-01","v":293.04},{"f":"2017-02-01","v":299.44},{"f":"2017-03-01","v":285.81},{"f":"2017-04-01","v":277.77},{"f":"2017-05-01","v":290.47},{"f":"2017-06-01","v":303.8},{"f":"2017-07-01","v":306.19},{"f":"2017-08-01","v":311.4},{"f":"2017-09-01","v":307.71},{"f":"2017-10-01","v":322.38},{"f":"2017-11-01","v":318.33},{"f":"2017-12-01","v":298.95},{"f":"2018-01-01","v":304.2},{"f":"2018-02-01","v":307.06},{"f":"2018-03-01","v":308.6},{"f":"2018-04-01","v":303.21},{"f":"2018-05-01","v":312.86},{"f":"2018-06-01","v":305.0},{"f":"2018-07-01","v":301.95},{"f":"2018-08-01","v":299.45},{"f":"2018-09-01","v":270.65},{"f":"2018-10-01","v":262.41},{"f":"2018-11-01","v":257.5},{"f":"2018-12-01","v":225.0},{"f":"2019-01-01","v":222.2},{"f":"2019-02-01","v":225.3},{"f":"2019-03-01","v":227.2},{"f":"2019-04-01","v":217.15},{"f":"2019-05-01","v":212.5},{"f":"2019-06-01","v":216.17},{"f":"2019-07-01","v":230.95},{"f":"2019-08-01","v":240.95},{"f":"2019-09-01","v":240.76},{"f":"2019-10-01","v":241.73},{"f":"2019-11-01","v":248.8},{"f":"2019-12-01","v":237.63},{"f":"2020-01-01","v":239.9},{"f":"2020-02-01","v":245.22},{"f":"2020-03-01","v":224.95},{"f":"2020-04-01","v":237.2},{"f":"2020-05-01","v":247.5},{"f":"2020-06-01","v":250.0},{"f":"2020-07-01","v":263.52},{"f":"2020-08-01","v":270.0},{"f":"2020-09-01","v":285.1},{"f":"2020-10-01","v":327.0},{"f":"2020-11-01","v":361.11},{"f":"2020-12-01","v":402.22},{"f":"2021-01-01","v":454.35},{"f":"2021-02-01","v":455.0},{"f":"2021-03-01","v":452.0},{"f":"2021-04-01","v":460.65},{"f":"2021-05-01","v":450.0},{"f":"2021-06-01","v":414.05},{"f":"2021-07-01","v":346.1},{"f":"2021-08-01","v":384.1},{"f":"2021-09-01","v":431.96},{"f":"2021-10-01","v":472.0},{"f":"2021-11-01","v":471.71},{"f":"2021-12-01","v":460.85},{"f":"2022-01-01","v":470.95},{"f":"2022-02-01","v":502.63},{"f":"2022-03-01","v":603.1},{"f":"2022-04-01","v":590.79},{"f":"2022-05-01","v":654.1},{"f":"2022-06-01","v":640.75},{"f":"2022-07-01","v":528.77},{"f":"2022-08-01","v":508.0},{"f":"2022-09-01","v":467.73},{"f":"2022-10-01","v":388.81},{"f":"2022-11-01","v":497.42},{"f":"2022-12-01","v":425.66},{"f":"2023-01-01","v":445.69},{"f":"2023-02-01","v":413.54},{"f":"2023-03-01","v":366.21},{"f":"2023-04-01","v":337.0},{"f":"2023-05-01","v":394.22},{"f":"2023-06-01","v":267.7},{"f":"2023-07-01","v":320.66},{"f":"2023-08-01","v":352.4},{"f":"2023-09-01","v":331.0},{"f":"2023-10-01","v":372.51},{"f":"2023-11-01","v":395.15},{"f":"2023-12-01","v":314.02},{"f":"2024-01-01","v":337.73},{"f":"2024-02-01","v":342.62},{"f":"2024-03-01","v":287.5},{"f":"2024-04-01","v":282.64},{"f":"2024-05-01","v":301.62},{"f":"2024-06-01","v":324.65},{"f":"2024-07-01","v":335.22},{"f":"2024-08-01","v":331.03},{"f":"2024-09-01","v":322.8},{"f":"2024-10-01","v":348.11},{"f":"2024-11-01","v":362.63},{"f":"2024-12-01","v":337.8},{"f":"2025-01-01","v":344.53},{"f":"2025-02-01","v":345.5},{"f":"2025-03-01","v":312.17},{"f":"2025-04-01","v":297.2},{"f":"2025-05-01","v":330.9},{"f":"2025-06-01","v":338.0},{"f":"2025-07-01","v":335.5},{"f":"2025-08-01","v":354.0},{"f":"2025-09-01","v":347.2},{"f":"2025-10-01","v":334.9},{"f":"2025-11-01","v":346.4},{"f":"2025-12-01","v":343.0},{"f":"2026-01-01","v":327.8},{"f":"2026-02-01","v":362.5},{"f":"2026-03-01","v":385.1},{"f":"2026-04-01","v":402.58},{"f":"2026-05-01","v":420.0}];
+var SERIES_Nov_430_460=[{"f":"2019-01-01","v":56.6},{"f":"2019-02-01","v":66.15},{"f":"2019-03-01","v":66.05},{"f":"2019-04-01","v":66.2},{"f":"2019-05-01","v":64.8},{"f":"2019-06-01","v":64.25},{"f":"2019-07-01","v":64.3},{"f":"2019-08-01","v":68.85},{"f":"2019-09-01","v":67.95},{"f":"2019-10-01","v":72.05},{"f":"2019-11-01","v":78.4},{"f":"2019-12-01","v":86.9},{"f":"2020-01-01","v":87.9},{"f":"2020-02-01","v":92.1},{"f":"2020-03-01","v":96.8},{"f":"2020-04-01","v":91.95},{"f":"2020-05-01","v":92.05},{"f":"2020-06-01","v":95.65},{"f":"2020-07-01","v":99.2},{"f":"2020-08-01","v":104.7},{"f":"2020-09-01","v":103.6},{"f":"2020-10-01","v":109.2},{"f":"2020-11-01","v":122.75},{"f":"2020-12-01","v":152.5},{"f":"2021-01-01","v":156.55},{"f":"2021-02-01","v":167.4},{"f":"2021-03-01","v":175.0},{"f":"2021-04-01","v":185.4},{"f":"2021-05-01","v":190.75},{"f":"2021-06-01","v":189.05},{"f":"2021-07-01","v":179.55},{"f":"2021-08-01","v":181.0},{"f":"2021-09-01","v":186.4},{"f":"2021-10-01","v":191.6},{"f":"2021-11-01","v":228.6},{"f":"2021-12-01","v":242.1},{"f":"2022-01-01","v":236.95},{"f":"2022-02-01","v":259.8},{"f":"2022-03-01","v":289.9},{"f":"2022-04-01","v":306.8},{"f":"2022-05-01","v":311.15},{"f":"2022-06-01","v":301.65},{"f":"2022-07-01","v":296.35},{"f":"2022-08-01","v":315.4},{"f":"2022-09-01","v":314.35},{"f":"2022-10-01","v":302.75},{"f":"2022-11-01","v":298.3},{"f":"2022-12-01","v":314.35},{"f":"2023-01-01","v":367.2},{"f":"2023-02-01","v":473.0},{"f":"2023-03-01","v":479.65},{"f":"2023-04-01","v":497.6},{"f":"2023-05-01","v":498.8},{"f":"2023-06-01","v":503.65},{"f":"2023-07-01","v":526.7},{"f":"2023-08-01","v":748.6},{"f":"2023-09-01","v":750.25},{"f":"2023-10-01","v":877.15},{"f":"2023-11-01","v":1030.85},{"f":"2023-12-01","v":1485.95},{"f":"2024-01-01","v":1524.4},{"f":"2024-02-01","v":1794.65},{"f":"2024-03-01","v":1859.1},{"f":"2024-04-01","v":1947.5},{"f":"2024-05-01","v":1973.65},{"f":"2024-06-01","v":2020.3},{"f":"2024-07-01","v":2085.95},{"f":"2024-08-01","v":2068.25},{"f":"2024-09-01","v":1995.95},{"f":"2024-10-01","v":2045.75},{"f":"2024-11-01","v":2210.1},{"f":"2024-12-01","v":2404.45},{"f":"2025-01-01","v":2483.35},{"f":"2025-02-01","v":2815.9},{"f":"2025-03-01","v":2934.65},{"f":"2025-04-01","v":3021.35},{"f":"2025-05-01","v":3008.2},{"f":"2025-06-01","v":3072.1},{"f":"2025-07-01","v":3124.65},{"f":"2025-08-01","v":3221.1},{"f":"2025-09-01","v":3327.45},{"f":"2025-10-01","v":3434.3},{"f":"2025-11-01","v":4049.15},{"f":"2025-12-01","v":4288.9},{"f":"2026-01-01","v":4395.2},{"f":"2026-02-01","v":4758.8},{"f":"2026-03-01","v":4736.65},{"f":"2026-04-01","v":4580.0},{"f":"2026-05-01","v":4532.0}];
+var SERIES_Nov_390_430=[{"f":"2019-01-01","v":57.75},{"f":"2019-02-01","v":68.45},{"f":"2019-03-01","v":67.75},{"f":"2019-04-01","v":67.35},{"f":"2019-05-01","v":65.95},{"f":"2019-06-01","v":65.9},{"f":"2019-07-01","v":66.15},{"f":"2019-08-01","v":70.3},{"f":"2019-09-01","v":68.35},{"f":"2019-10-01","v":72.3},{"f":"2019-11-01","v":79.4},{"f":"2019-12-01","v":87.75},{"f":"2020-01-01","v":89.05},{"f":"2020-02-01","v":94.3},{"f":"2020-03-01","v":99.45},{"f":"2020-04-01","v":95.85},{"f":"2020-05-01","v":96.6},{"f":"2020-06-01","v":99.2},{"f":"2020-07-01","v":102.95},{"f":"2020-08-01","v":107.95},{"f":"2020-09-01","v":105.7},{"f":"2020-10-01","v":111.35},{"f":"2020-11-01","v":125.25},{"f":"2020-12-01","v":156.35},{"f":"2021-01-01","v":159.55},{"f":"2021-02-01","v":169.5},{"f":"2021-03-01","v":178.2},{"f":"2021-04-01","v":189.4},{"f":"2021-05-01","v":195.15},{"f":"2021-06-01","v":193.8},{"f":"2021-07-01","v":186.95},{"f":"2021-08-01","v":187.45},{"f":"2021-09-01","v":190.95},{"f":"2021-10-01","v":194.5},{"f":"2021-11-01","v":231.25},{"f":"2021-12-01","v":244.15},{"f":"2022-01-01","v":243.45},{"f":"2022-02-01","v":276.8},{"f":"2022-03-01","v":292.8},{"f":"2022-04-01","v":315.3},{"f":"2022-05-01","v":321.8},{"f":"2022-06-01","v":314.4},{"f":"2022-07-01","v":309.05},{"f":"2022-08-01","v":324.4},{"f":"2022-09-01","v":320.85},{"f":"2022-10-01","v":304.65},{"f":"2022-11-01","v":309.4},{"f":"2022-12-01","v":317.55},{"f":"2023-01-01","v":366.45},{"f":"2023-02-01","v":484.8},{"f":"2023-03-01","v":499.1},{"f":"2023-04-01","v":509.9},{"f":"2023-05-01","v":513.75},{"f":"2023-06-01","v":508.45},{"f":"2023-07-01","v":527.25},{"f":"2023-08-01","v":763.4},{"f":"2023-09-01","v":757.7},{"f":"2023-10-01","v":903.15},{"f":"2023-11-01","v":1030.3},{"f":"2023-12-01","v":1513.85},{"f":"2024-01-01","v":1543.0},{"f":"2024-02-01","v":1814.9},{"f":"2024-03-01","v":1919.65},{"f":"2024-04-01","v":2171.75},{"f":"2024-05-01","v":2053.25},{"f":"2024-06-01","v":2072.75},{"f":"2024-07-01","v":2113.2},{"f":"2024-08-01","v":2109.9},{"f":"2024-09-01","v":2043.95},{"f":"2024-10-01","v":2037.6},{"f":"2024-11-01","v":2216.9},{"f":"2024-12-01","v":2456.4},{"f":"2025-01-01","v":2569.25},{"f":"2025-02-01","v":2899.4},{"f":"2025-03-01","v":3034.75},{"f":"2025-04-01","v":3121.35},{"f":"2025-05-01","v":3091.75},{"f":"2025-06-01","v":3152.15},{"f":"2025-07-01","v":3157.25},{"f":"2025-08-01","v":3230.0},{"f":"2025-09-01","v":3328.05},{"f":"2025-10-01","v":3516.5},{"f":"2025-11-01","v":4059.85},{"f":"2025-12-01","v":4382.35},{"f":"2026-01-01","v":4455.55},{"f":"2026-02-01","v":4913.65},{"f":"2026-03-01","v":4852.8},{"f":"2026-04-01","v":4774.0},{"f":"2026-05-01","v":4723.0}];
+var SERIES_Vaca_Buena=[{"f":"2026-02-01","v":3484.0},{"f":"2026-03-01","v":3381.0},{"f":"2026-04-01","v":3351.0},{"f":"2026-05-01","v":3195.0}];
+var SERIES_Nov_260_300=[{"f":"2019-01-01","v":50.15},{"f":"2019-02-01","v":59.1},{"f":"2019-03-01","v":57.15},{"f":"2019-04-01","v":57.45},{"f":"2019-05-01","v":60.35},{"f":"2019-06-01","v":61.15},{"f":"2019-07-01","v":63.15},{"f":"2019-08-01","v":70.5},{"f":"2019-09-01","v":74.65},{"f":"2019-10-01","v":74.85},{"f":"2019-11-01","v":86.35},{"f":"2019-12-01","v":88.1},{"f":"2020-01-01","v":86.55},{"f":"2020-02-01","v":92.35},{"f":"2020-03-01","v":92.45},{"f":"2020-04-01","v":91.15},{"f":"2020-05-01","v":94.7},{"f":"2020-06-01","v":104.25},{"f":"2020-07-01","v":117.95},{"f":"2020-08-01","v":127.65},{"f":"2020-09-01","v":123.2},{"f":"2020-10-01","v":126.6},{"f":"2020-11-01","v":139.05},{"f":"2020-12-01","v":163.05},{"f":"2021-01-01","v":164.85},{"f":"2021-02-01","v":173.6},{"f":"2021-03-01","v":180.9},{"f":"2021-04-01","v":184.05},{"f":"2021-05-01","v":186.75},{"f":"2021-06-01","v":191.85},{"f":"2021-07-01","v":196.25},{"f":"2021-08-01","v":203.3},{"f":"2021-09-01","v":216.85},{"f":"2021-10-01","v":238.2},{"f":"2021-11-01","v":266.35},{"f":"2021-12-01","v":280.75},{"f":"2022-01-01","v":271.3},{"f":"2022-02-01","v":287.35},{"f":"2022-03-01","v":311.45},{"f":"2022-04-01","v":315.9},{"f":"2022-05-01","v":326.25},{"f":"2022-06-01","v":314.25},{"f":"2022-07-01","v":340.4},{"f":"2022-08-01","v":370.75},{"f":"2022-09-01","v":363.05},{"f":"2022-10-01","v":332.35},{"f":"2022-11-01","v":334.35},{"f":"2022-12-01","v":328.45},{"f":"2023-01-01","v":368.35},{"f":"2023-02-01","v":436.45},{"f":"2023-03-01","v":423.35},{"f":"2023-04-01","v":450.15},{"f":"2023-05-01","v":451.3},{"f":"2023-06-01","v":454.85},{"f":"2023-07-01","v":554.75},{"f":"2023-08-01","v":857.45},{"f":"2023-09-01","v":866.85},{"f":"2023-10-01","v":1057.45},{"f":"2023-11-01","v":1134.85},{"f":"2023-12-01","v":1632.35},{"f":"2024-01-01","v":1662.2},{"f":"2024-02-01","v":1871.45},{"f":"2024-03-01","v":1868.35},{"f":"2024-04-01","v":1778.25},{"f":"2024-05-01","v":1816.85},{"f":"2024-06-01","v":1929.35},{"f":"2024-07-01","v":2293.1},{"f":"2024-08-01","v":2378.55},{"f":"2024-09-01","v":2417.85},{"f":"2024-10-01","v":2424.25},{"f":"2024-11-01","v":2607.05},{"f":"2024-12-01","v":2794.75},{"f":"2025-01-01","v":2749.15},{"f":"2025-02-01","v":2960.45},{"f":"2025-03-01","v":3013.65},{"f":"2025-04-01","v":3141.25},{"f":"2025-05-01","v":3244.55},{"f":"2025-06-01","v":3228.2},{"f":"2025-07-01","v":3383.55},{"f":"2025-08-01","v":3637.75},{"f":"2025-09-01","v":3977.1},{"f":"2025-10-01","v":4155.75},{"f":"2025-11-01","v":4652.45},{"f":"2025-12-01","v":5100.0},{"f":"2026-01-01","v":5000.0},{"f":"2026-02-01","v":5500.0},{"f":"2026-03-01","v":5700.0},{"f":"2026-04-01","v":5300.0},{"f":"2026-05-01","v":5300.0}];
+var SERIES_Ternero_160_180=[{"f":"2019-01-01","v":55.35},{"f":"2019-02-01","v":68.45},{"f":"2019-03-01","v":65.2},{"f":"2019-04-01","v":64.45},{"f":"2019-05-01","v":67.55},{"f":"2019-06-01","v":69.25},{"f":"2019-07-01","v":68.8},{"f":"2019-08-01","v":74.05},{"f":"2019-09-01","v":77.4},{"f":"2019-10-01","v":79.8},{"f":"2019-11-01","v":93.2},{"f":"2019-12-01","v":95.15},{"f":"2020-01-01","v":99.55},{"f":"2020-02-01","v":106.8},{"f":"2020-03-01","v":105.2},{"f":"2020-04-01","v":107.05},{"f":"2020-05-01","v":113.3},{"f":"2020-06-01","v":129.95},{"f":"2020-07-01","v":139.25},{"f":"2020-08-01","v":146.25},{"f":"2020-09-01","v":146.7},{"f":"2020-10-01","v":150.25},{"f":"2020-11-01","v":170.95},{"f":"2020-12-01","v":197.25},{"f":"2021-01-01","v":198.2},{"f":"2021-02-01","v":220.95},{"f":"2021-03-01","v":224.95},{"f":"2021-04-01","v":226.9},{"f":"2021-05-01","v":230.65},{"f":"2021-06-01","v":236.35},{"f":"2021-07-01","v":233.15},{"f":"2021-08-01","v":237.7},{"f":"2021-09-01","v":245.3},{"f":"2021-10-01","v":285.55},{"f":"2021-11-01","v":313.25},{"f":"2021-12-01","v":353.75},{"f":"2022-01-01","v":325.95},{"f":"2022-02-01","v":348.9},{"f":"2022-03-01","v":390.45},{"f":"2022-04-01","v":395.15},{"f":"2022-05-01","v":395.75},{"f":"2022-06-01","v":381.85},{"f":"2022-07-01","v":396.5},{"f":"2022-08-01","v":434.4},{"f":"2022-09-01","v":429.1},{"f":"2022-10-01","v":392.55},{"f":"2022-11-01","v":398.6},{"f":"2022-12-01","v":416.85},{"f":"2023-01-01","v":425.15},{"f":"2023-02-01","v":513.45},{"f":"2023-03-01","v":490.5},{"f":"2023-04-01","v":500.45},{"f":"2023-05-01","v":498.85},{"f":"2023-06-01","v":515.2},{"f":"2023-07-01","v":614.35},{"f":"2023-08-01","v":877.3},{"f":"2023-09-01","v":938.35},{"f":"2023-10-01","v":1207.05},{"f":"2023-11-01","v":1325.35},{"f":"2023-12-01","v":1947.75},{"f":"2024-01-01","v":1953.15},{"f":"2024-02-01","v":2206.05},{"f":"2024-03-01","v":2222.22},{"f":"2024-04-01","v":2113.05},{"f":"2024-05-01","v":2189.1},{"f":"2024-06-01","v":2206.15},{"f":"2024-07-01","v":2510.4},{"f":"2024-08-01","v":2528.05},{"f":"2024-09-01","v":2635.45},{"f":"2024-10-01","v":2657.65},{"f":"2024-11-01","v":3043.15},{"f":"2024-12-01","v":3385.05},{"f":"2025-01-01","v":3206.0},{"f":"2025-02-01","v":3430.0},{"f":"2025-03-01","v":3615.3},{"f":"2025-04-01","v":3799.55},{"f":"2025-05-01","v":3900.25},{"f":"2025-06-01","v":3930.5},{"f":"2025-07-01","v":3984.35},{"f":"2025-08-01","v":4139.35},{"f":"2025-09-01","v":4392.7},{"f":"2025-10-01","v":4664.65},{"f":"2025-11-01","v":5500.0},{"f":"2025-12-01","v":5900.0},{"f":"2026-01-01","v":5900.0},{"f":"2026-02-01","v":6700.0},{"f":"2026-03-01","v":7000.0},{"f":"2026-04-01","v":6800.0},{"f":"2026-05-01","v":6700.0}];
+var SERIES_Vaca_Prenada=[{"f":"2019-01-01","v":18093.0},{"f":"2019-02-01","v":22268.0},{"f":"2019-03-01","v":24305.0},{"f":"2019-04-01","v":24560.0},{"f":"2019-05-01","v":23859.0},{"f":"2019-06-01","v":24394.0},{"f":"2019-07-01","v":27089.0},{"f":"2019-08-01","v":27576.0},{"f":"2019-09-01","v":29009.0},{"f":"2019-10-01","v":29555.0},{"f":"2019-11-01","v":33371.0},{"f":"2019-12-01","v":37679.0},{"f":"2020-01-01","v":28993.0},{"f":"2020-02-01","v":37492.0},{"f":"2020-03-01","v":37961.0},{"f":"2020-04-01","v":40366.0},{"f":"2020-05-01","v":42392.0},{"f":"2020-06-01","v":46000.0},{"f":"2020-07-01","v":49800.0},{"f":"2020-08-01","v":50900.0},{"f":"2020-09-01","v":55700.0},{"f":"2020-10-01","v":61700.0},{"f":"2020-11-01","v":69200.0},{"f":"2020-12-01","v":71800.0},{"f":"2021-01-01","v":60300.0},{"f":"2021-02-01","v":76200.0},{"f":"2021-03-01","v":76700.0},{"f":"2021-04-01","v":86800.0},{"f":"2021-05-01","v":80900.0},{"f":"2021-06-01","v":87300.0},{"f":"2021-07-01","v":81500.0},{"f":"2021-08-01","v":78700.0},{"f":"2021-09-01","v":89200.0},{"f":"2021-10-01","v":92800.0},{"f":"2021-11-01","v":97500.0},{"f":"2021-12-01","v":119200.0},{"f":"2022-01-01","v":104000.0},{"f":"2022-02-01","v":115900.0},{"f":"2022-03-01","v":128500.0},{"f":"2022-04-01","v":157000.0},{"f":"2022-05-01","v":147600.0},{"f":"2022-06-01","v":143400.0},{"f":"2022-07-01","v":182200.0},{"f":"2022-08-01","v":161300.0},{"f":"2022-09-01","v":151800.0},{"f":"2022-10-01","v":148700.0},{"f":"2022-11-01","v":158700.0},{"f":"2022-12-01","v":160100.0},{"f":"2023-01-01","v":161300.0},{"f":"2023-02-01","v":208100.0},{"f":"2023-03-01","v":169500.0},{"f":"2023-04-01","v":182500.0},{"f":"2023-05-01","v":187600.0},{"f":"2023-06-01","v":187600.0},{"f":"2023-07-01","v":205900.0},{"f":"2023-08-01","v":268100.0},{"f":"2023-09-01","v":267500.0},{"f":"2023-10-01","v":302700.0},{"f":"2023-11-01","v":416100.0},{"f":"2023-12-01","v":571400.0},{"f":"2024-01-01","v":592300.0},{"f":"2024-02-01","v":707000.0},{"f":"2024-03-01","v":752800.0},{"f":"2024-04-01","v":792200.0},{"f":"2024-05-01","v":779200.0},{"f":"2024-06-01","v":811200.0},{"f":"2024-07-01","v":852900.0},{"f":"2024-08-01","v":845900.0},{"f":"2024-09-01","v":909400.0},{"f":"2024-10-01","v":867100.0},{"f":"2024-11-01","v":923500.0},{"f":"2024-12-01","v":1066300.0},{"f":"2025-01-01","v":887000.0},{"f":"2025-02-01","v":1059200.0},{"f":"2025-03-01","v":1117100.0},{"f":"2025-04-01","v":1168200.0},{"f":"2025-05-01","v":1257400.0},{"f":"2025-06-01","v":1241400.0},{"f":"2025-07-01","v":1354700.0},{"f":"2025-08-01","v":1389800.0},{"f":"2025-09-01","v":1407200.0},{"f":"2025-10-01","v":1518700.0},{"f":"2025-11-01","v":1823600.0},{"f":"2025-12-01","v":2015500.0},{"f":"2026-01-01","v":1848400.0},{"f":"2026-02-01","v":2203300.0},{"f":"2026-03-01","v":2310700.0},{"f":"2026-04-01","v":2306600.0},{"f":"2026-05-01","v":2463600.0}];
+var SERIES_Leche=[{"f":"2003-07-01","v":0.45},{"f":"2003-08-01","v":0.43},{"f":"2003-09-01","v":0.41},{"f":"2003-10-01","v":0.42},{"f":"2003-11-01","v":0.41},{"f":"2003-12-01","v":0.41},{"f":"2004-01-01","v":0.42},{"f":"2004-02-01","v":0.44},{"f":"2004-03-01","v":0.43},{"f":"2004-04-01","v":0.43},{"f":"2004-05-01","v":0.42},{"f":"2004-06-01","v":0.42},{"f":"2004-07-01","v":0.41},{"f":"2004-08-01","v":0.4},{"f":"2004-09-01","v":0.4},{"f":"2004-10-01","v":0.4},{"f":"2004-11-01","v":0.4},{"f":"2004-12-01","v":0.4},{"f":"2005-01-01","v":0.45},{"f":"2005-02-01","v":0.49},{"f":"2005-03-01","v":0.51},{"f":"2005-04-01","v":0.51},{"f":"2005-05-01","v":0.53},{"f":"2005-06-01","v":0.54},{"f":"2005-07-01","v":0.54},{"f":"2005-08-01","v":0.53},{"f":"2005-09-01","v":0.52},{"f":"2005-10-01","v":0.51},{"f":"2005-11-01","v":0.5},{"f":"2005-12-01","v":0.49},{"f":"2006-01-01","v":0.49},{"f":"2006-02-01","v":0.49},{"f":"2006-03-01","v":0.49},{"f":"2006-04-01","v":0.49},{"f":"2006-05-01","v":0.5},{"f":"2006-06-01","v":0.53},{"f":"2006-07-01","v":0.5},{"f":"2006-08-01","v":0.5},{"f":"2006-09-01","v":0.49},{"f":"2006-10-01","v":0.49},{"f":"2006-11-01","v":0.5},{"f":"2006-12-01","v":0.52},{"f":"2007-01-01","v":0.55},{"f":"2007-02-01","v":0.57},{"f":"2007-03-01","v":0.59},{"f":"2007-04-01","v":0.69},{"f":"2007-05-01","v":0.76},{"f":"2007-06-01","v":0.82},{"f":"2007-07-01","v":0.84},{"f":"2007-08-01","v":0.83},{"f":"2007-09-01","v":0.83},{"f":"2007-10-01","v":0.82},{"f":"2007-11-01","v":0.82},{"f":"2007-12-01","v":0.82},{"f":"2008-01-01","v":0.82},{"f":"2008-02-01","v":0.83},{"f":"2008-03-01","v":0.83},{"f":"2008-04-01","v":0.84},{"f":"2008-05-01","v":0.85},{"f":"2008-06-01","v":0.85},{"f":"2008-07-01","v":0.94},{"f":"2008-08-01","v":0.94},{"f":"2008-09-01","v":0.94},{"f":"2008-10-01","v":0.86},{"f":"2008-11-01","v":0.78},{"f":"2008-12-01","v":0.71},{"f":"2009-01-01","v":0.7},{"f":"2009-02-01","v":0.7},{"f":"2009-03-01","v":0.71},{"f":"2009-04-01","v":0.71},{"f":"2009-05-01","v":0.71},{"f":"2009-06-01","v":0.76},{"f":"2009-07-01","v":0.79},{"f":"2009-08-01","v":0.79},{"f":"2009-09-01","v":0.83},{"f":"2009-10-01","v":0.85},{"f":"2009-11-01","v":0.91},{"f":"2009-12-01","v":0.97},{"f":"2010-01-01","v":1.03},{"f":"2010-02-01","v":1.09},{"f":"2010-03-01","v":1.16},{"f":"2010-04-01","v":1.27},{"f":"2010-05-01","v":1.37},{"f":"2010-06-01","v":1.39},{"f":"2010-07-01","v":1.36},{"f":"2010-08-01","v":1.3},{"f":"2010-09-01","v":1.31},{"f":"2010-10-01","v":1.31},{"f":"2010-11-01","v":1.33},{"f":"2010-12-01","v":1.37},{"f":"2011-01-01","v":1.42},{"f":"2011-02-01","v":1.48},{"f":"2011-03-01","v":1.54},{"f":"2011-04-01","v":1.54},{"f":"2011-05-01","v":1.54},{"f":"2011-06-01","v":1.54},{"f":"2011-07-01","v":1.51},{"f":"2011-08-01","v":1.48},{"f":"2011-09-01","v":1.48},{"f":"2011-10-01","v":1.5},{"f":"2011-11-01","v":1.48},{"f":"2011-12-01","v":1.5},{"f":"2012-01-01","v":1.48},{"f":"2012-02-01","v":1.5},{"f":"2012-03-01","v":1.55},{"f":"2012-04-01","v":1.57},{"f":"2012-05-01","v":1.57},{"f":"2012-06-01","v":1.55},{"f":"2012-07-01","v":1.59},{"f":"2012-08-01","v":1.58},{"f":"2012-09-01","v":1.55},{"f":"2012-10-01","v":1.56},{"f":"2012-11-01","v":1.57},{"f":"2012-12-01","v":1.63},{"f":"2013-01-01","v":1.67},{"f":"2013-02-01","v":1.8},{"f":"2013-03-01","v":1.93},{"f":"2013-04-01","v":2.04},{"f":"2013-05-01","v":2.08},{"f":"2013-06-01","v":2.09},{"f":"2013-07-01","v":2.12},{"f":"2013-08-01","v":2.11},{"f":"2013-09-01","v":2.16},{"f":"2013-10-01","v":2.19},{"f":"2013-11-01","v":2.25},{"f":"2013-12-01","v":2.27},{"f":"2014-01-01","v":2.44},{"f":"2014-02-01","v":2.55},{"f":"2014-03-01","v":2.69},{"f":"2014-04-01","v":2.89},{"f":"2014-05-01","v":2.94},{"f":"2014-06-01","v":3.06},{"f":"2014-07-01","v":3.1},{"f":"2014-08-01","v":3.18},{"f":"2014-09-01","v":3.19},{"f":"2014-10-01","v":3.23},{"f":"2014-11-01","v":3.26},{"f":"2014-12-01","v":3.27},{"f":"2015-01-01","v":3.2},{"f":"2015-02-01","v":3.18},{"f":"2015-03-01","v":3.22},{"f":"2015-04-01","v":3.21},{"f":"2015-05-01","v":3.23},{"f":"2015-06-01","v":3.16},{"f":"2015-07-01","v":3.12},{"f":"2015-08-01","v":2.81},{"f":"2015-09-01","v":2.65},{"f":"2015-10-01","v":2.57},{"f":"2015-11-01","v":2.5},{"f":"2015-12-01","v":2.51},{"f":"2016-01-01","v":2.48},{"f":"2016-02-01","v":2.67},{"f":"2016-03-01","v":2.77},{"f":"2016-04-01","v":3.4},{"f":"2016-05-01","v":3.7},{"f":"2016-06-01","v":3.96},{"f":"2016-07-01","v":4.14},{"f":"2016-08-01","v":4.15},{"f":"2016-09-01","v":4.27},{"f":"2016-10-01","v":4.32},{"f":"2016-11-01","v":4.46},{"f":"2016-12-01","v":4.56},{"f":"2017-01-01","v":4.85},{"f":"2017-02-01","v":5.0},{"f":"2017-03-01","v":5.13},{"f":"2017-04-01","v":5.17},{"f":"2017-05-01","v":5.41},{"f":"2017-06-01","v":5.41},{"f":"2017-07-01","v":5.54},{"f":"2017-08-01","v":5.62},{"f":"2017-09-01","v":5.62},{"f":"2017-10-01","v":5.64},{"f":"2017-11-01","v":5.66},{"f":"2017-12-01","v":5.68},{"f":"2018-01-01","v":5.71},{"f":"2018-02-01","v":5.76},{"f":"2018-03-01","v":5.84},{"f":"2018-04-01","v":6.0},{"f":"2018-05-01","v":6.18},{"f":"2018-06-01","v":6.56},{"f":"2018-07-01","v":6.92},{"f":"2018-08-01","v":7.25},{"f":"2018-09-01","v":7.65},{"f":"2018-10-01","v":8.19},{"f":"2018-11-01","v":8.67},{"f":"2018-12-01","v":9.08},{"f":"2019-01-01","v":9.54},{"f":"2019-02-01","v":10.49},{"f":"2019-03-01","v":11.94},{"f":"2019-04-01","v":13.48},{"f":"2019-05-01","v":14.65},{"f":"2019-06-01","v":15.1},{"f":"2019-07-01","v":15.22},{"f":"2019-08-01","v":15.25},{"f":"2019-09-01","v":15.45},{"f":"2019-10-01","v":16.08},{"f":"2019-11-01","v":16.29},{"f":"2019-12-01","v":16.84},{"f":"2020-01-01","v":17.26},{"f":"2020-02-01","v":17.84},{"f":"2020-03-01","v":18.08},{"f":"2020-04-01","v":18.16},{"f":"2020-05-01","v":18.24},{"f":"2020-06-01","v":18.25},{"f":"2020-07-01","v":18.33},{"f":"2020-08-01","v":18.57},{"f":"2020-09-01","v":19.1},{"f":"2020-10-01","v":19.6},{"f":"2020-11-01","v":20.5},{"f":"2020-12-01","v":21.49},{"f":"2021-01-01","v":22.67},{"f":"2021-02-01","v":24.13},{"f":"2021-03-01","v":26.07},{"f":"2021-04-01","v":28.17},{"f":"2021-05-01","v":29.77},{"f":"2021-06-01","v":31.32},{"f":"2021-07-01","v":32.15},{"f":"2021-08-01","v":32.51},{"f":"2021-09-01","v":33.03},{"f":"2021-10-01","v":33.27},{"f":"2021-11-01","v":33.7},{"f":"2021-12-01","v":34.35},{"f":"2022-01-01","v":35.82},{"f":"2022-02-01","v":37.69},{"f":"2022-03-01","v":40.42},{"f":"2022-04-01","v":43.38},{"f":"2022-05-01","v":45.52},{"f":"2022-06-01","v":47.81},{"f":"2022-07-01","v":50.51},{"f":"2022-08-01","v":52.88},{"f":"2022-09-01","v":55.5},{"f":"2022-10-01","v":58.39},{"f":"2022-11-01","v":61.59},{"f":"2022-12-01","v":66.24},{"f":"2023-01-01","v":69.98},{"f":"2023-02-01","v":74.04},{"f":"2023-03-01","v":81.53},{"f":"2023-04-01","v":89.4},{"f":"2023-05-01","v":96.6},{"f":"2023-06-01","v":102.2},{"f":"2023-07-01","v":106.74},{"f":"2023-08-01","v":111.1},{"f":"2023-09-01","v":118.36},{"f":"2023-10-01","v":130.17},{"f":"2023-11-01","v":150.01},{"f":"2023-12-01","v":193.65},{"f":"2024-01-01","v":242.95},{"f":"2024-02-01","v":291.69},{"f":"2024-03-01","v":331.68},{"f":"2024-04-01","v":354.87},{"f":"2024-05-01","v":389.3},{"f":"2024-06-01","v":403.38},{"f":"2024-07-01","v":411.7},{"f":"2024-08-01","v":418.74},{"f":"2024-09-01","v":426.18},{"f":"2024-10-01","v":434.86},{"f":"2024-11-01","v":439.73},{"f":"2024-12-01","v":441.1},{"f":"2025-01-01","v":444.11},{"f":"2025-02-01","v":447.42},{"f":"2025-03-01","v":453.14},{"f":"2025-04-01","v":461.01},{"f":"2025-05-01","v":467.92},{"f":"2025-06-01","v":472.87},{"f":"2025-07-01","v":473.26},{"f":"2025-08-01","v":473.74},{"f":"2025-09-01","v":474.6},{"f":"2025-10-01","v":475.43},{"f":"2025-11-01","v":475.44},{"f":"2025-12-01","v":476.6},{"f":"2026-01-01","v":478.19},{"f":"2026-02-01","v":481.03},{"f":"2026-03-01","v":489.16},{"f":"2026-04-01","v":489.16},{"f":"2026-05-01","v":498.18}];</script>
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+var FECHA_DATOS='2026-05-29';
+
+// chart: 'line' para dólar+IPC, 'bar' para granos/hacienda/leche
+var VARS=[
+  {k:'IPC_Pampeana',         n:'Inflación Mensual',     u:'%',       src:'INDEC',     grp:'macro', cls:'ipc', col:'#6E1F2A', pill:'p-macro', d:1, tipo:'tasa',      chart:'line'},
+  {k:'IPC_Nivel',            n:'IPC Nivel (índice)',   u:'índice',  src:'INDEC',     grp:'macro', cls:'ipn', col:'#8B2E3C', pill:'p-macro', d:0, tipo:'nivel',     chart:'line'},
+  {k:'TC_Oficial_Venta',     n:'U$S oficial venta',    u:'$/USD',   src:'BCRA',      grp:'macro', cls:'tco', col:'#A8434F', pill:'p-macro', d:0, tipo:'tc',        chart:'line'},
+  {k:'TC_MEP_Venta',         n:'U$S MEP venta',        u:'$/USD',   src:'Ámbito',    grp:'macro', cls:'tcm', col:'#C25E5E', pill:'p-macro', d:0, tipo:'tc',        chart:'line'},
+  {k:'TC_Blue_Venta',        n:'U$S Blue venta',       u:'$/USD',   src:'Ámbito',    grp:'macro', cls:'tcb', col:'#D08A7E', pill:'p-macro', d:0, tipo:'tc',        chart:'line'},
+  {k:'Trigo_Disp_Rosario',   n:'Trigo disp Rosario',   u:'U$S/ton', src:'Agroseries',grp:'granos',cls:'trg', col:'#3B6D11', pill:'p-granos',d:1, tipo:'usd_ton',   chart:'bar'},
+  {k:'Maiz_Disp_Rosario',    n:'Maíz disp Rosario',    u:'U$S/ton', src:'Agroseries',grp:'granos',cls:'mai', col:'#639922', pill:'p-granos',d:1, tipo:'usd_ton',   chart:'bar'},
+  {k:'Sorgo_Disp_Rosario',   n:'Sorgo disp Rosario',   u:'U$S/ton', src:'Agroseries',grp:'granos',cls:'sor', col:'#86A832', pill:'p-granos',d:1, tipo:'usd_ton',   chart:'bar'},
+  {k:'Soja_Disp_Rosario',    n:'Soja disp Rosario',    u:'U$S/ton', src:'Agroseries',grp:'granos',cls:'soj', col:'#4A6533', pill:'p-granos',d:1, tipo:'usd_ton',   chart:'bar'},
+  {k:'Girasol_Disp_Rosario', n:'Girasol disp Rosario', u:'U$S/ton', src:'Agroseries',grp:'granos',cls:'gir', col:'#A8B84A', pill:'p-granos',d:1, tipo:'usd_ton',   chart:'bar'},
+  {k:'Nov_430_460',          n:'Nov. 430-460',         u:'$/kg',    src:'Campo a Campo',       grp:'hac',   cls:'h1',  col:'#C8642D', pill:'p-hac',   d:0, tipo:'pesos_kg',  chart:'bar'},
+  {k:'Nov_390_430',          n:'Nov. 390-430',         u:'$/kg',    src:'Campo a Campo',       grp:'hac',   cls:'h2',  col:'#A84D1F', pill:'p-hac',   d:0, tipo:'pesos_kg',  chart:'bar'},
+  {k:'Vaca_Buena',           n:'Vaca buena',           u:'$/kg',    src:'Campo a Campo',       grp:'hac',   cls:'h3',  col:'#D87E3A', pill:'p-hac',   d:0, tipo:'pesos_kg',  chart:'bar'},
+  {k:'Nov_260_300',          n:'Nov. 260-300',         u:'$/kg',    src:'Campo a Campo',       grp:'hac',   cls:'h4',  col:'#B5602A', pill:'p-hac',   d:0, tipo:'pesos_kg',  chart:'bar'},
+  {k:'Ternero_160_180',      n:'Ternero 160-180',      u:'$/kg',    src:'Campo a Campo',       grp:'hac',   cls:'h5',  col:'#E0934A', pill:'p-hac',   d:0, tipo:'pesos_kg',  chart:'bar'},
+  {k:'Vaca_Prenada',         n:'Vaca nueva preñada',   u:'$/cab',   src:'Campo a Campo',       grp:'hac',   cls:'h6',  col:'#8A3D15', pill:'p-hac',   d:0, tipo:'pesos_cab', chart:'bar'},
+  {k:'Leche',                n:'Leche',                u:'$/lt',    src:'SIGLEA',    grp:'leche', cls:'lec', col:'#C99A2E', pill:'p-leche', d:2, tipo:'pesos_unit',chart:'bar'}
+];
+
+var SERIE={};
+for(var i=0;i<VARS.length;i++){var k=VARS[i].k;SERIE[k]=window['SERIES_'+k]||[];}
+
+var ML=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// ── Estado ────────────────────────────────────────────────────────────────────
+var vista='nom';
+var tcSel='TC_Oficial_Venta';
+function getTC(){return SERIE[tcSel]||SERIE.TC_Oficial_Venta;}
+var TC_NOMBRE={TC_Oficial_Venta:'Oficial',TC_MEP_Venta:'MEP',TC_Blue_Venta:'Blue'};
+var periodo=12;
+var customFrom=null, customTo=null;
+var actV={};
+for(var j=0;j<VARS.length;j++){actV[VARS[j].k]=false;}
+actV.IPC_Nivel=true;
+actV.TC_Oficial_Venta=true;
+actV.Soja_Disp_Rosario=true;
+actV.Maiz_Disp_Rosario=true;
+actV.Nov_430_460=true;
+actV.Leche=true;
+
+var bigC=null;
+var sparks={};
+var blockCollapsed={macro:false,granos:false,hac:false,leche:false};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function f(v,d){d=d==null?0:d;if(v==null||isNaN(Number(v)))return'—';return Number(v).toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fp(v,d){d=d==null?1:d;if(v==null||isNaN(Number(v)))return'—';var s=Number(v)>=0?'+':'';return s+Number(v).toFixed(d)+'%';}
+function fpp(v,d){d=d==null?1:d;if(v==null||isNaN(Number(v)))return'—';var s=Number(v)>=0?'+':'';return s+Number(v).toFixed(d)+' pp';}
+function parseISO(s){var p=s.split('-');return{a:parseInt(p[0],10),m:parseInt(p[1],10)};}
+function isoFromAM(a,m){return a+'-'+(m<10?'0':'')+m+'-01';}
+function lblMA(iso){var p=parseISO(iso);return ML[p.m]+'-'+String(p.a).slice(2);}
+function getVar(k){for(var i=0;i<VARS.length;i++)if(VARS[i].k===k)return VARS[i];return null;}
+function lookup(serie,iso){for(var i=serie.length-1;i>=0;i--){if(serie[i].f===iso)return serie[i].v;}return null;}
+function hexToRgba(hex,a){hex=hex.replace('#','');var r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);return'rgba('+r+','+g+','+b+','+a+')';}
+
+// ── IPC nivel acumulado para vista Real ──────────────────────────────────────
+var IPC_NIVEL_CACHE=null;
+function buildIPCNivel(){
+  if(IPC_NIVEL_CACHE)return IPC_NIVEL_CACHE;
+  // Usar la serie IPC_Nivel directamente si existe; sino calcular de m/m
+  if(SERIE.IPC_Nivel&&SERIE.IPC_Nivel.length){IPC_NIVEL_CACHE=SERIE.IPC_Nivel.slice();return IPC_NIVEL_CACHE;}
+  var s=SERIE.IPC_Pampeana, nivel=100, out=[];
+  for(var i=0;i<s.length;i++){nivel=nivel*(1+s[i].v/100);out.push({f:s[i].f,v:nivel});}
+  IPC_NIVEL_CACHE=out;
+  return out;
+}
+
+function transformar(varK){
+  var v=getVar(varK), raw=SERIE[varK]||[];
+  if(!raw.length)return[];
+
+  if(vista==='nom'){
+    if(v.tipo==='usd_ton'){
+      var tcN=getTC();
+      return raw.map(function(p){
+        var tcF=lookup(tcN,p.f);
+        if(tcF==null)return{f:p.f,v:null};
+        return{f:p.f,v:p.v*tcF};
+      });
+    }
+    return raw.slice();
+  }
+
+  if(vista==='real'){
+    if(v.tipo==='tasa'||v.tipo==='nivel')return raw.slice();
+    var ipcNiv=buildIPCNivel();
+    if(!ipcNiv.length)return raw.slice();
+    var ipcUlt=ipcNiv[ipcNiv.length-1].v;
+    if(v.tipo==='usd_ton'){
+      var tcR=getTC();
+      return raw.map(function(p){
+        var tcF=lookup(tcR,p.f), ipcF=lookup(ipcNiv,p.f);
+        if(tcF==null||ipcF==null)return{f:p.f,v:null};
+        return{f:p.f,v:p.v*tcF*ipcUlt/ipcF};
+      });
+    }
+    return raw.map(function(p){
+      var ipcF=lookup(ipcNiv,p.f);
+      if(ipcF==null)return{f:p.f,v:null};
+      return{f:p.f,v:p.v*ipcUlt/ipcF};
+    });
+  }
+
+  if(vista==='usd'){
+    if(v.tipo==='tasa')return raw.slice();
+    if(v.tipo==='usd_ton')return raw.slice();
+    if(v.tipo==='nivel'){
+      var tcI=getTC();
+      return raw.map(function(p){
+        var tcF=lookup(tcI,p.f);
+        if(tcF==null||tcF===0)return{f:p.f,v:null};
+        return{f:p.f,v:p.v/tcF};
+      });
+    }
+    if(v.tipo==='tc'){
+      var tcBase=getTC();
+      return raw.map(function(p){
+        var tcF=lookup(tcBase,p.f);
+        if(tcF==null||tcF===0)return{f:p.f,v:null};
+        return{f:p.f,v:p.v/tcF};
+      });
+    }
+    var tc=getTC();
+    return raw.map(function(p){
+      var tcF=lookup(tc,p.f);
+      if(tcF==null||tcF===0)return{f:p.f,v:null};
+      return{f:p.f,v:p.v/tcF};
+    });
+  }
+  return raw.slice();
+}
+
+// ── Período ──────────────────────────────────────────────────────────────────
+function getRango(){
+  var maxIso=null;
+  for(var i=0;i<VARS.length;i++){
+    var s=SERIE[VARS[i].k];
+    if(s.length){var u=s[s.length-1].f;if(!maxIso||u>maxIso)maxIso=u;}
+  }
+  if(!maxIso)maxIso='2026-05-01';
+  var hp=parseISO(maxIso);
+  if(periodo==='all')return{desde:'2004-01-01',hasta:maxIso};
+  if(periodo==='custom'&&customFrom&&customTo){return{desde:isoFromAM(customFrom.a,customFrom.m),hasta:isoFromAM(customTo.a,customTo.m)};}
+  if(periodo==='ytd')return{desde:hp.a+'-01-01',hasta:maxIso};
+  var n=parseInt(periodo,10);
+  var dM=hp.m-n+1, dA=hp.a;
+  while(dM<=0){dM+=12;dA-=1;}
+  return{desde:isoFromAM(dA,dM),hasta:maxIso};
+}
+function filtrarRango(s,d,h){return s.filter(function(p){return p.f>=d&&p.f<=h;});}
+function normalizar(s){
+  if(!s.length)return[];
+  var base=null;
+  for(var i=0;i<s.length;i++){if(s[i].v!=null){base=s[i].v;break;}}
+  if(base==null||base===0)return s.map(function(p){return{f:p.f,v:null};});
+  return s.map(function(p){return{f:p.f,v:p.v==null?null:p.v/base*100};});
+}
+
+// ── Variación del período (último vs primero del período) ───────────────────
+// Devuelve {val, tipo:'pp'|'pct', cls, arrow}
+function calcVarPeriodo(varK){
+  var rango=getRango();
+  var sTr=transformar(varK);
+  var fil=filtrarRango(sTr,rango.desde,rango.hasta);
+  var prim=null, ult=null;
+  for(var i=0;i<fil.length;i++){if(fil[i].v!=null){prim=fil[i].v;break;}}
+  for(var j=fil.length-1;j>=0;j--){if(fil[j].v!=null){ult=fil[j].v;break;}}
+  if(prim==null||ult==null)return{abs:null,pct:null,tipo:null,cls:'neutral',arrow:'·'};
+  var v=getVar(varK);
+  var absDelta=ult-prim;
+  var pctDelta=(v.tipo==='tasa')?null:(prim!==0?(ult/prim-1)*100:null);
+  var tipo=(v.tipo==='tasa')?'pp':'pct';
+  if(Math.abs(absDelta)<0.005)return{abs:0,pct:0,tipo:tipo,cls:'neutral',arrow:'·',prim:prim,ult:ult};
+  var cls;
+  if(v.grp==='macro')cls=absDelta>0?'down':'up';
+  else cls=absDelta>0?'up':'down';
+  return{abs:absDelta,pct:pctDelta,tipo:tipo,cls:cls,arrow:absDelta>0?'↑':'↓',prim:prim,ult:ult};
+}
+
+function inicioHistorico(varK){
+  var s=SERIE[varK];
+  if(!s||!s.length)return null;
+  return s[0].f;
+}
+
+// ── Percentil histórico (vs toda la serie en la vista activa) ───────────────
+function calcPercentil(valActual, varK){
+  if(valActual==null)return{pct:null,cls:'neutral',arrow:'·'};
+  var serieFull=transformar(varK);
+  var vals=[];
+  for(var i=0;i<serieFull.length;i++){if(serieFull[i].v!=null)vals.push(serieFull[i].v);}
+  if(vals.length<2)return{pct:null,cls:'neutral',arrow:'·'};
+  var menores=0;
+  for(var j=0;j<vals.length;j++){if(vals[j]<=valActual)menores++;}
+  var pct=Math.round(menores/vals.length*100);
+  var v=getVar(varK);
+  var cls='neutral', arrow='·';
+  if(pct>=70){cls=v.grp==='macro'?'down':'up';arrow='↑';}
+  else if(pct<=30){cls=v.grp==='macro'?'up':'down';arrow='↓';}
+  return{pct:pct,cls:cls,arrow:arrow};
+}
+
+// ── Render: pills ────────────────────────────────────────────────────────────
+function renderPills(){
+  var html='';
+  for(var i=0;i<VARS.length;i++){
+    var v=VARS[i];
+    var cls=actV[v.k]?('pill '+v.pill):'pill';
+    html+='<button class="'+cls+'" onclick="togVar(\''+v.k+'\')">'+v.n+'</button>';
+  }
+  document.getElementById('pillsRow').innerHTML=html;
+}
+
+function renderBlockCounts(){
+  var counts={macro:[0,0],granos:[0,0],hac:[0,0],leche:[0,0]};
+  for(var i=0;i<VARS.length;i++){
+    var v=VARS[i], hasData=SERIE[v.k].length>0;
+    counts[v.grp][1]++;
+    if(hasData)counts[v.grp][0]++;
+  }
+  document.getElementById('cnt-macro').textContent=counts.macro[0]+' de '+counts.macro[1];
+  document.getElementById('cnt-granos').textContent=counts.granos[0]+' de '+counts.granos[1];
+  document.getElementById('cnt-hac').textContent=counts.hac[0]+' de '+counts.hac[1];
+  document.getElementById('cnt-leche').textContent=counts.leche[0]+' de '+counts.leche[1];
+}
+
+// ── Render: tarjetas (métricas: período + pctil) ────────────────────────────
+function renderCards(){
+  var rango=getRango();
+  var grupos={macro:[],granos:[],hac:[],leche:[]};
+  for(var i=0;i<VARS.length;i++)grupos[VARS[i].grp].push(VARS[i]);
+  var elIds={macro:'grpMacro',granos:'grpGranos',hac:'grpHacienda',leche:'grpLeche'};
+
+  for(var g in elIds){
+    var html='';
+    for(var i=0;i<grupos[g].length;i++){
+      var v=grupos[g][i];
+      var sNom=SERIE[v.k]||[];
+      if(!sNom.length){
+        html+='<div class="vc-empty"><div class="vc-empty-name">'+v.n+'</div><div>sin datos cargados</div></div>';
+        continue;
+      }
+      var sTr=transformar(v.k);
+      var fil=filtrarRango(sTr,rango.desde,rango.hasta);
+      var ultPto=null;
+      for(var j=fil.length-1;j>=0;j--){if(fil[j].v!=null){ultPto=fil[j];break;}}
+      var ultNom=sNom[sNom.length-1];
+
+      var nomDol=TC_NOMBRE[tcSel]||'Oficial';
+      var valMostr=null, unMostr=v.u;
+      if(vista==='nom'){
+        valMostr=ultPto?ultPto.v:null;
+        if(v.tipo==='usd_ton')unMostr='$/ton';
+      }
+      else if(vista==='real'){
+        valMostr=ultPto?ultPto.v:null;
+        if(v.tipo==='tasa'||v.tipo==='nivel'){}
+        else if(v.tipo==='usd_ton'){unMostr='$/ton const.';}
+        else{unMostr=v.u+' const.';}
+      } else {
+        valMostr=ultPto?ultPto.v:null;
+        if(v.tipo==='tasa'){}
+        else if(v.tipo==='usd_ton'){}
+        else if(v.tipo==='nivel'){unMostr='índice U$S';}
+        else if(v.tipo==='tc'){unMostr='ratio vs '+nomDol;}
+        else{unMostr=v.u.replace('$','U$S');}
+      }
+
+      var dPer=calcVarPeriodo(v.k);
+      var dPctil=calcPercentil(ultPto?ultPto.v:null, v.k);
+      var rango2=getRango();
+
+      var decTarj=(vista==='usd')?2:v.d;
+      if(v.tipo==='tc'&&vista==='usd')decTarj=2;
+      if(v.tipo==='nivel'&&vista==='usd')decTarj=2;
+      if(v.tipo==='usd_ton'&&(vista==='nom'||vista==='real'))decTarj=0;
+      var fmtVal=function(val){if(val==null)return'—';return f(val,decTarj);};
+
+      var unidadSimple=(unMostr==='índice U$S'||unMostr.indexOf('ratio')===0);
+      var pre='', post='';
+      if(unidadSimple){post=' '+unMostr;}
+      else if(unMostr.indexOf('U$S')===0){pre='U$S ';post=' '+unMostr.replace('U$S','').trim();}
+      else if(unMostr.indexOf('$')===0){pre='$ ';post=' '+unMostr.replace('$','').trim();}
+      else{post=' '+unMostr;}
+      if(post.trim()==='')post='';
+
+      // Variación del período en VALOR ABSOLUTO (unidad de la variable)
+      var varAbsStr='—', varPctStr='';
+      if(dPer.abs!=null){
+        if(dPer.abs===0){varAbsStr='0';}
+        else{
+          var signo=dPer.abs>0?'+':'−';
+          var absNum=Math.abs(dPer.abs);
+          if(v.tipo==='tasa'){varAbsStr=signo+f(absNum,1)+' pp';}
+          else if(pre){varAbsStr=signo+pre+f(absNum,decTarj);}
+          else{varAbsStr=signo+f(absNum,decTarj);}
+        }
+        if(dPer.pct!=null&&dPer.abs!==0){varPctStr=fp(dPer.pct,1);}
+      }
+
+      // Tooltip percentil con inicio del histórico
+      var iniIso=inicioHistorico(v.k);
+      var iniLbl=iniIso?lblMA(iniIso):'—';
+      var pctilTitle=dPctil.pct!=null?('Percentil '+dPctil.pct+' · histórico desde '+iniLbl):'Sin histórico suficiente';
+
+      var actCls=actV[v.k]?'':' off';
+      html+='<div class="vc vc-s-'+v.cls+actCls+'" onclick="togVar(\''+v.k+'\')">';
+      html+='<div class="vc-top">';
+      html+='<div class="vc-head"><span class="vc-name">'+v.n+'</span>';
+      html+='<span class="vc-pctil vc-delta-'+dPctil.cls+'" title="'+pctilTitle+'">'+(dPctil.pct!=null?'P'+dPctil.pct:'—')+'</span></div>';
+      html+='<div class="vc-mes">'+lblMA(ultNom.f)+' · dato actual</div>';
+      html+='<div class="vc-valrow"><span class="vc-val">'+pre+fmtVal(valMostr)+'</span><span class="vc-unit">'+post+'</span></div>';
+      html+='</div>';
+      html+='<div class="vc-bottom">';
+      html+='<div class="vc-per-lbl">Variación período · '+lblMA(rango2.desde)+' → '+lblMA(rango2.hasta)+'</div>';
+      html+='<div class="vc-per-row"><span class="vc-per-abs vc-delta-'+dPer.cls+'"><span class="vc-delta-arrow">'+dPer.arrow+'</span> '+varAbsStr+'</span>'+(varPctStr?'<span class="vc-per-pct">'+varPctStr+'</span>':'')+'</div>';
+      html+='</div>';
+      html+='<div class="vc-spark-area"><canvas id="spark_'+v.k+'"></canvas></div>';
+      html+='</div>';
+    }
+    document.getElementById(elIds[g]).innerHTML=html;
+  }
+}
+
+// ── Render: sparklines ──────────────────────────────────────────────────────
+function renderSparks(){
+  var rango=getRango();
+  for(var k in sparks){if(sparks[k]){sparks[k].destroy();}}
+  sparks={};
+  for(var i=0;i<VARS.length;i++){
+    var v=VARS[i];
+    var canvas=document.getElementById('spark_'+v.k);
+    if(!canvas)continue;
+    var sTr=transformar(v.k);
+    var fil=filtrarRango(sTr,rango.desde,rango.hasta);
+    if(fil.length<2){canvas.style.display='none';continue;}
+    canvas.style.display='block';
+    var data=fil.map(function(p){return p.v;});
+    var labels=fil.map(function(p){return lblMA(p.f);});
+    // Prefijo/sufijo de unidad para el tooltip (según vista, igual que el gráfico grande)
+    var pre, post, dec;
+    if(vista==='usd'&&v.tipo==='tc'){pre='';post=' ratio';dec=3;}
+    else if(vista==='usd'&&v.tipo==='nivel'){pre='';post=' idx U$S';dec=2;}
+    else if(vista==='usd'&&(v.tipo==='pesos_kg'||v.tipo==='pesos_cab'||v.tipo==='pesos_unit')){pre='U$S ';post=' '+v.u.replace('$','').trim();dec=2;}
+    else if(vista==='usd'&&v.tipo==='usd_ton'){pre='U$S ';post=' /ton';dec=2;}
+    else if((vista==='nom'||vista==='real')&&v.tipo==='usd_ton'){pre='$ ';post=' /ton'+(vista==='real'?' const.':'');dec=0;}
+    else if(vista==='usd'&&v.tipo==='tasa'){pre='';post='%';dec=v.d;}
+    else{pre=v.u.indexOf('U$S')===0?'U$S ':(v.u.indexOf('$')===0?'$ ':'');post=pre?'':' '+v.u;dec=(vista==='usd')?2:v.d;}
+    var tipUnit=(function(pre,post,dec){
+      return function(ctx){
+        var val=ctx.parsed.y;
+        if(val==null)return '';
+        return pre+f(val,dec)+post;
+      };
+    })(pre,post,dec);
+    sparks[v.k]=new Chart(canvas,{
+      type:'line',
+      data:{labels:labels,datasets:[{
+        data:data,
+        borderColor:v.col,
+        borderWidth:1.8,
+        backgroundColor:hexToRgba(v.col,0.12),
+        pointRadius:0,
+        pointHoverRadius:0,
+        pointHitRadius:8,
+        fill:true,
+        tension:0.35,
+        spanGaps:false
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},
+          tooltip:{
+            enabled:true,
+            displayColors:false,
+            position:'nearest',
+            yAlign:'bottom',
+            backgroundColor:'rgba(15,25,35,0.92)',
+            padding:6,
+            titleFont:{size:10,family:'DM Mono',weight:'600'},
+            bodyFont:{size:11,family:'DM Mono',weight:'600'},
+            titleMarginBottom:2,
+            caretSize:4,
+            callbacks:{
+              title:function(items){return items.length?items[0].label:'';},
+              label:tipUnit
+            }
+          }
+        },
+        scales:{x:{display:false},y:{display:false}},
+        animation:false,elements:{point:{radius:0}},
+        interaction:{mode:'index',intersect:false}
+      }
+    });
+  }
+}
+
+// ── Render: panel "variación del período" (barras horizontales) ─────────────
+function renderVarPanel(){
+  var rows=[], maxAbs=0;
+  for(var i=0;i<VARS.length;i++){
+    var v=VARS[i];
+    if(!actV[v.k])continue;                          // SOLO variables seleccionadas
+    if(!SERIE[v.k]||SERIE[v.k].length<2)continue;
+    var d=calcVarPeriodo(v.k);
+    var magnitud=(d.tipo==='pp')?d.abs:d.pct;        // % (o pp) para la barra comparable
+    if(magnitud==null)continue;
+    rows.push({v:v,d:d,mag:magnitud});
+    if(Math.abs(magnitud)>maxAbs)maxAbs=Math.abs(magnitud);
+  }
+  rows.sort(function(a,b){return Math.abs(b.mag)-Math.abs(a.mag);});
+  var html='';
+  if(!rows.length){
+    html='<div style="font-size:12px;color:var(--muted);padding:8px 0">Activá variables para ver su variación.</div>';
+  }
+  for(var r=0;r<rows.length;r++){
+    var row=rows[r], v=row.v, pct=maxAbs?Math.min(50,Math.abs(row.mag)/maxAbs*50):0;
+    var fillCls=row.mag>0?'varbar-fill-pos':(row.mag<0?'varbar-fill-neg':'');
+    var valCls=row.d.cls==='up'?'varbar-val-pos':(row.d.cls==='down'?'varbar-val-neg':'varbar-val-neutral');
+    var pctStr=row.mag===0?'·':(row.d.tipo==='pp'?fpp(row.mag,1):fp(row.mag,1));
+    // Valor absoluto fin - inicio en la unidad de la variable
+    var absStr='';
+    if(row.d.abs!=null&&row.d.abs!==0){
+      var signo=row.d.abs>0?'+':'−';
+      var absNum=Math.abs(row.d.abs);
+      var pre=v.u.indexOf('$')===0?'$ ':(v.u.indexOf('U$S')===0?'U$S ':'');
+      if(row.d.tipo==='pp'){absStr=signo+f(absNum,1)+' pp';}
+      else if(pre){absStr=signo+pre+f(absNum,v.d);}
+      else{absStr=signo+f(absNum,v.d);}
+    } else if(row.d.abs===0){absStr='0';}
+    html+='<div class="varbar-row">';
+    html+='<div class="varbar-name"><span class="varbar-dot" style="background:'+v.col+'"></span>'+v.n+'</div>';
+    html+='<div class="varbar-track">'+(row.mag!==0?'<div class="varbar-fill '+fillCls+'" style="width:'+pct+'%"></div>':'')+'</div>';
+    html+='<div class="varbar-abs">'+absStr+'</div>';
+    html+='<div class="varbar-val '+valCls+'">'+pctStr+'</div>';
+    html+='</div>';
+  }
+  document.getElementById('varBars').innerHTML=html;
+  var rango=getRango();
+  document.getElementById('varpanelSub').textContent=lblMA(rango.desde)+' → '+lblMA(rango.hasta)+' · valor y % · vista '+(vista==='nom'?'Nominal':vista==='real'?'Constante':'USD');
+}
+
+// ── Render: gráfico grande (líneas + columnas, base 100) ────────────────────
+function renderBig(){
+  var rango=getRango();
+  var datasets=[], labelsOrdered=null;
+  var activas=[];
+  for(var i=0;i<VARS.length;i++){
+    var v=VARS[i];
+    if(!actV[v.k])continue;
+    if(!SERIE[v.k]||!SERIE[v.k].length)continue;
+    activas.push(v);
+  }
+  if(activas.length){
+    var d0=parseISO(rango.desde), d1=parseISO(rango.hasta);
+    labelsOrdered=[];
+    var ca=d0.a, cm=d0.m;
+    while((ca<d1.a)||(ca===d1.a&&cm<=d1.m)){
+      labelsOrdered.push(isoFromAM(ca,cm));
+      cm++;if(cm===13){cm=1;ca++;}
+    }
+  }
+  for(var z=0;z<activas.length;z++){
+    var v=activas[z];
+    var sTr=transformar(v.k);
+    var fil=filtrarRango(sTr,rango.desde,rango.hasta);
+    if(!fil.length)continue;
+    var norm=normalizar(fil);
+    var map={};
+    for(var jj=0;jj<norm.length;jj++)map[norm[jj].f]=norm[jj].v;
+    var data=labelsOrdered.map(function(iso){return map[iso]==null?null:map[iso];});
+    if(v.chart==='bar'){
+      datasets.push({
+        type:'bar',label:v.n,data:data,
+        backgroundColor:hexToRgba(v.col,0.65),
+        borderColor:v.col,borderWidth:0,
+        barPercentage:0.92,categoryPercentage:0.88,
+        order:2
+      });
+    } else {
+      datasets.push({
+        type:'line',label:v.n,data:data,
+        borderColor:v.col,backgroundColor:'transparent',
+        borderWidth:2.4,pointRadius:0,pointHoverRadius:5,
+        pointHoverBackgroundColor:v.col,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,
+        tension:0.3,spanGaps:false,order:1
+      });
+    }
+  }
+  if(bigC){bigC.destroy();bigC=null;}
+  if(!labelsOrdered||!datasets.length){
+    document.getElementById('baseInfo').textContent='(sin variables activas)';
+    document.getElementById('legRow').innerHTML='';
+    return;
+  }
+  var nomDolB=TC_NOMBRE[tcSel]||'Oficial';
+  var vistaTxt=vista==='nom'?'Nominal':vista==='real'?'Constante':'USD';
+  var extraTxt=' · dólar '+nomDolB+(vista==='usd'?' · dólares en brecha (base='+nomDolB+'=1,00)':'');
+  document.getElementById('baseInfo').textContent='base 100 = '+lblMA(labelsOrdered[0])+' · '+labelsOrdered.length+' meses · vista '+vistaTxt+extraTxt;
+  var legHTML='';
+  for(var z=0;z<datasets.length;z++){
+    var isBar=datasets[z].type==='bar';
+    var marker=isBar?'<span class="leg-bar" style="background:'+datasets[z].backgroundColor+'"></span>':'<span class="leg-line" style="background:'+datasets[z].borderColor+'"></span>';
+    legHTML+='<span class="leg">'+marker+datasets[z].label+'</span>';
+  }
+  document.getElementById('legRow').innerHTML=legHTML;
+  var dispLabels=labelsOrdered.map(lblMA);
+  bigC=new Chart(document.getElementById('bigChart'),{
+    data:{labels:dispLabels,datasets:datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          enabled:false,
+          mode:'index',intersect:false,
+          external:function(context){
+            var tt=context.tooltip;
+            var el=document.getElementById('bigTooltip');
+            if(!el){
+              el=document.createElement('div');el.id='bigTooltip';
+              el.style.cssText='position:absolute;pointer-events:none;z-index:50;background:rgba(15,25,35,0.94);color:#fff;border-radius:8px;padding:8px 10px;font-family:DM Mono,monospace;font-size:11px;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity .08s;max-width:340px';
+              document.getElementById('bigChart').parentNode.appendChild(el);
+            }
+            if(tt.opacity===0){el.style.opacity='0';return;}
+            var rows=[];
+            var dpts=tt.dataPoints||[];
+            for(var i=0;i<dpts.length;i++){
+              var dp=dpts[i];if(dp.parsed.y==null)continue;
+              var vMatch=null;
+              for(var j=0;j<VARS.length;j++)if(VARS[j].n===dp.dataset.label){vMatch=VARS[j];break;}
+              var iso=labelsOrdered[dp.dataIndex];
+              var valReal=null, dec=(vista==='usd')?2:(vMatch?vMatch.d:1), preT='', postT='';
+              if(vMatch){
+                var sTr2=transformar(vMatch.k);
+                for(var p=0;p<sTr2.length;p++)if(sTr2[p].f===iso){valReal=sTr2[p].v;break;}
+                if(vista==='usd'&&vMatch.tipo==='tc'){dec=3;postT=' ratio';}
+                else if(vista==='usd'&&vMatch.tipo==='nivel'){postT=' idx U$S';}
+                else if(vista==='usd'&&(vMatch.tipo==='pesos_kg'||vMatch.tipo==='pesos_cab'||vMatch.tipo==='pesos_unit')){preT='U$S ';postT=' '+vMatch.u.replace('$','').trim();}
+                else if((vista==='nom'||vista==='real')&&vMatch.tipo==='usd_ton'){preT='$ ';postT=' /ton'+(vista==='real'?' const.':'');dec=0;}
+                else{preT=vMatch.u.indexOf('$')===0?'$ ':(vMatch.u.indexOf('U$S')===0?'U$S ':'');postT=preT?'':' '+vMatch.u;}
+              }
+              rows.push({
+                idx:dp.parsed.y,
+                color:dp.dataset.borderColor,
+                name:dp.dataset.label,
+                real:(valReal!=null?'  ·  '+preT+f(valReal,dec)+postT:'')
+              });
+            }
+            rows.sort(function(a,b){return b.idx-a.idx;});
+            var title=dpts.length?dpts[0].label:'';
+            var html='<div style="font-weight:600;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.18);padding-bottom:3px">'+title+'</div>';
+            for(var r=0;r<rows.length;r++){
+              var R=rows[r];
+              html+='<div style="display:flex;align-items:center;gap:6px">'
+                +'<span style="width:9px;height:9px;border-radius:2px;background:'+R.color+';flex-shrink:0"></span>'
+                +'<span>'+R.name+': '+f(R.idx,2)+R.real+'</span></div>';
+            }
+            el.innerHTML=html;
+            var canvasRect=context.chart.canvas.getBoundingClientRect();
+            var x=tt.caretX, y=tt.caretY;
+            // posicionar evitando borde derecho
+            el.style.opacity='1';
+            var ew=el.offsetWidth;
+            var px=x+14; if(px+ew>context.chart.width)px=x-ew-14;
+            el.style.left=px+'px';
+            el.style.top=(y-10)+'px';
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{font:{size:9,family:'DM Mono'},maxRotation:45,autoSkip:true,maxTicksLimit:16},grid:{color:'rgba(0,0,0,0.03)'}},
+        y:{ticks:{font:{size:9,family:'DM Mono'},callback:function(v){return f(v,0);}},grid:{color:'rgba(0,0,0,0.05)'},
+           title:{display:true,text:'índice (base 100)',font:{size:10,family:'DM Sans'},color:'#7A8899'}}
+      },
+      interaction:{mode:'index',axis:'x',intersect:false}
+    }
+  });
+}
+
+// ── Bloques colapsables ──────────────────────────────────────────────────────
+function togBlock(g){blockCollapsed[g]=!blockCollapsed[g];applyBlockState(g);}
+function applyBlockState(g){
+  var gridId={macro:'grpMacro',granos:'grpGranos',hac:'grpHacienda',leche:'grpLeche'}[g];
+  var grid=document.getElementById(gridId), block=document.getElementById('block-'+g), tg=document.getElementById('tg-'+g);
+  if(blockCollapsed[g]){grid.classList.add('collapsed');block.classList.add('collapsed');tg.textContent='▸';}
+  else{grid.classList.remove('collapsed');block.classList.remove('collapsed');tg.textContent='▾';}
+}
+
+// ── Eventos ──────────────────────────────────────────────────────────────────
+function setVista(v,btn){
+  vista=v;
+  var btns=document.querySelectorAll('.inst-btn:not(.dol)');
+  for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
+  btn.classList.add('active');
+  actualizarVistaDesc();
+  renderAll();
+}
+function setDolar(k,btn){
+  tcSel=k;
+  var btns=document.querySelectorAll('.inst-btn.dol');
+  for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
+  btn.classList.add('active');
+  actualizarVistaDesc();
+  renderAll();
+}
+function actualizarVistaDesc(){
+  var nom=TC_NOMBRE[tcSel]||'Oficial';
+  var d={
+    nom:'Valores en pesos corrientes · granos convertidos por dólar '+nom,
+    real:'Pesos constantes (deflactados por IPC) · granos vía dólar '+nom,
+    usd:'Valores en USD por dólar '+nom+' · dólares en brecha (base = '+nom+') · IPC dolarizado'
+  };
+  document.getElementById('vistaDesc').textContent=d[vista];
+}
+function setPer(p,btn){
+  periodo=p;
+  var btns=document.querySelectorAll('.per-btn');
+  for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');
+  if(btn)btn.classList.add('on');
+  document.getElementById('perCustom').classList.remove('show');
+  renderAll();
+}
+function toggleCustom(btn){
+  var el=document.getElementById('perCustom');
+  el.classList.toggle('show');
+  if(el.classList.contains('show')){
+    var btns=document.querySelectorAll('.per-btn');
+    for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');
+    btn.classList.add('on');
+  }
+}
+function applyCustom(){
+  var fv=document.getElementById('cFrom').value, tv=document.getElementById('cTo').value;
+  if(!fv||!tv)return;
+  var fp=fv.split('-'), tp=tv.split('-');
+  customFrom={a:parseInt(fp[0],10),m:parseInt(fp[1],10)};
+  customTo={a:parseInt(tp[0],10),m:parseInt(tp[1],10)};
+  periodo='custom';renderAll();
+}
+function togVar(k){actV[k]=!actV[k];renderPills();renderCards();renderSparks();renderVarPanel();renderBig();applyAllBlockStates();}
+
+function seleccionarTodas(){
+  for(var i=0;i<VARS.length;i++){if(SERIE[VARS[i].k]&&SERIE[VARS[i].k].length)actV[VARS[i].k]=true;}
+  renderPills();renderCards();renderSparks();renderVarPanel();renderBig();applyAllBlockStates();
+}
+function limpiarSeleccion(){
+  for(var i=0;i<VARS.length;i++){actV[VARS[i].k]=false;}
+  renderPills();renderCards();renderSparks();renderVarPanel();renderBig();applyAllBlockStates();
+}
+
+function applyAllBlockStates(){applyBlockState('macro');applyBlockState('granos');applyBlockState('hac');applyBlockState('leche');}
+
+function renderAll(){
+  renderPills();renderBlockCounts();renderCards();renderSparks();renderVarPanel();renderBig();applyAllBlockStates();
+  document.getElementById('fts').textContent=new Date().toLocaleString('es-AR');
+}
+
+function initCustom(){
+  var todasFechas={};
+  for(var i=0;i<VARS.length;i++){var s=SERIE[VARS[i].k];for(var j=0;j<s.length;j++)todasFechas[s[j].f]=1;}
+  var arr=Object.keys(todasFechas).sort();
+  if(!arr.length)return;
+  var html='';
+  for(var k=0;k<arr.length;k++){
+    var p=parseISO(arr[k]);
+    html+='<option value="'+(p.a+'-'+(p.m<10?'0':'')+p.m)+'">'+ML[p.m]+'-'+String(p.a).slice(2)+'</option>';
+  }
+  document.getElementById('cFrom').innerHTML=html;
+  document.getElementById('cTo').innerHTML=html;
+  document.getElementById('cFrom').value=arr[Math.max(0,arr.length-13)].substring(0,7);
+  document.getElementById('cTo').value=arr[arr.length-1].substring(0,7);
+}
+
+document.getElementById('updBadge').textContent='Datos al '+FECHA_DATOS;
+initCustom();
+renderAll();
+</script>
+</body>
+</html>

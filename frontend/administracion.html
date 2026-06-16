@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administración · Puntal Agro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0F2F5;--card:#fff;--border:#E4E8EE;--text:#0F1923;--muted:#7A8899;--olive:#4A6533;--ochre:#A86A1F;--terra:#C8642D;--radius:12px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo-title{font-size:13px;font-weight:600}.logo-sub{font-size:11px;color:var(--muted)}
+.h-actions{display:flex;gap:8px}
+.lnk{font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:20px;padding:5px 12px;cursor:pointer;text-decoration:none}
+.lnk:hover{color:var(--olive);border-color:var(--olive)}
+.intro{padding:18px 24px 0}
+.intro h1{font-size:20px;font-weight:600;letter-spacing:-.3px}
+.intro p{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5;max-width:760px}
+main{padding:16px 24px 28px;display:grid;grid-template-columns:340px 1fr;gap:16px;flex:1;align-items:start}
+.tree{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-height:300px}
+.tree-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tree-head h2{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.node{border-radius:8px;margin-bottom:2px}
+.node-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px}
+.node-row:hover{background:var(--bg)}
+.node-row.sel{background:#EEF3E8;color:#3A5128;font-weight:600}
+.node-row .tw{width:14px;text-align:center;color:var(--muted);font-size:11px;flex-shrink:0;cursor:pointer}
+.node-row .ic{width:16px;flex-shrink:0;font-size:12px}
+.node-row .lbl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node-row .cnt{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.lvl-emp{margin-left:18px}.lvl-campo{margin-left:36px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%}
+.dot-cli{background:var(--olive)}.dot-emp{background:var(--ochre)}.dot-campo{background:var(--terra)}
+.add-row{font-size:11px;color:var(--olive);cursor:pointer;padding:4px 8px;font-weight:600}
+.add-row:hover{text-decoration:underline}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-height:300px}
+.panel .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.panel h2{font-size:15px;font-weight:600}
+.panel .kind{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:10px;background:var(--bg);color:var(--muted)}
+.panel .path{font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)}
+.placeholder{color:var(--muted);font-size:13px;text-align:center;padding:60px 20px;line-height:1.6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:4px}
+.fld.full{grid-column:1 / -1}
+.fld label{font-size:11px;font-weight:600;color:var(--muted)}
+.fld input,.fld select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:var(--sans);font-size:13px}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--olive)}
+.fld .opt{font-weight:400;color:var(--muted);font-size:10px}
+.sec-sep{grid-column:1 / -1;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;margin-top:6px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px}.chk input{width:auto}
+.actions{display:flex;gap:8px;margin-top:18px;align-items:center}
+.btn{background:var(--olive);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{background:#3c5429}
+.btn-out{background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer}
+.btn-out:hover{color:var(--terra);border-color:var(--terra)}
+.btn-link{background:none;border:none;color:var(--olive);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;font-family:var(--sans)}
+.msg{font-size:11px;color:var(--muted)}
+.note{font-size:11px;color:var(--muted);background:#FBF1E0;border:1px solid #EAD9B8;border-radius:8px;padding:9px 12px;line-height:1.5;margin:0 24px}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-title">Administración · Puntal Agro</div>
+    <div class="logo-sub">Clientes, empresas y campos (modo demo)</div>
+  </div>
+  <div class="h-actions">
+    <a class="lnk" href="index.html">← Menú</a>
+    <a class="lnk" href="usuarios.html">Usuarios</a>
+    <button class="lnk" onclick="resetDemo()">Reiniciar demo</button>
+  </div>
+</header>
+
+<div class="intro">
+  <h1>Estructura de clientes</h1>
+  <p>Alta y edición de la estructura: <strong>Cliente → Empresa → Campo</strong>. El cliente es el titular del servicio; cada cliente tiene una o más empresas (razones sociales), y cada empresa tiene sus campos. Sobre esta estructura se reparten luego los permisos de los usuarios.</p>
+</div>
+<div class="note">Quién puede dar de alta cada nivel lo resuelve el backend según el rol (el admin general gestiona clientes y empresas; el alta de campos puede delegarse). En modo demo todo está habilitado y se guarda en localStorage.</div>
+
+<main>
+  <div class="tree">
+    <div class="tree-head">
+      <h2>Jerarquía</h2>
+      <span class="add-row" onclick="nuevoCliente()">+ Cliente</span>
+    </div>
+    <div id="tree"></div>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="placeholder" id="ph">Seleccioná un elemento del árbol para ver y editar sus datos,<br>o creá uno nuevo con los botones <strong>+</strong>.</div>
+    <div id="form" style="display:none"></div>
+  </div>
+</main>
+
+<script src="pa-core.js"></script>
+<script>
+var sel = { kind:null, id:null };       // selección actual
+var expand = {};                          // nodos expandidos {id:true}
+
+/* ---------------- ÁRBOL ---------------- */
+function renderTree(){
+  var cont = document.getElementById('tree');
+  cont.innerHTML='';
+  var clientes = PA.demo.listarClientes();
+  for (var i=0;i<clientes.length;i++){
+    (function(cli){
+      var node=document.createElement('div'); node.className='node';
+      var row=document.createElement('div');
+      row.className='node-row'+(sel.kind==='cliente'&&sel.id===cli.id?' sel':'');
+      var abierto = !!expand[cli.id];
+      row.innerHTML='<span class="tw">'+(abierto?'▾':'▸')+'</span><span class="ic"><span class="dot dot-cli"></span></span><span class="lbl">'+cli.nombre+'</span>';
+      row.querySelector('.tw').onclick=function(ev){ ev.stopPropagation(); expand[cli.id]=!expand[cli.id]; renderTree(); };
+      row.onclick=function(){ seleccionar('cliente',cli.id); };
+      node.appendChild(row);
+      if (abierto){
+        var emps=PA.demo.empresasDeCliente(cli.id);
+        for (var j=0;j<emps.length;j++){
+          (function(emp){
+            var er=document.createElement('div');
+            er.className='node-row lvl-emp'+(sel.kind==='empresa'&&sel.id===emp.id?' sel':'');
+            var eAbierto=!!expand[emp.id];
+            er.innerHTML='<span class="tw">'+(eAbierto?'▾':'▸')+'</span><span class="ic"><span class="dot dot-emp"></span></span><span class="lbl">'+emp.razonSocial+'</span>';
+            er.querySelector('.tw').onclick=function(ev){ ev.stopPropagation(); expand[emp.id]=!expand[emp.id]; renderTree(); };
+            er.onclick=function(){ seleccionar('empresa',emp.id); };
+            node.appendChild(er);
+            if (eAbierto){
+              var campos=PA.demo.camposDeEmpresa(emp.id);
+              for (var k=0;k<campos.length;k++){
+                (function(campo){
+                  var kr=document.createElement('div');
+                  kr.className='node-row lvl-campo'+(sel.kind==='campo'&&sel.id===campo.id?' sel':'');
+                  kr.innerHTML='<span class="tw"></span><span class="ic"><span class="dot dot-campo"></span></span><span class="lbl">'+campo.nombre+'</span><span class="cnt">'+(campo.haTotales||'')+(campo.haTotales?' ha':'')+'</span>';
+                  kr.onclick=function(){ seleccionar('campo',campo.id); };
+                  node.appendChild(kr);
+                })(campos[k]);
+              }
+              var addk=document.createElement('div'); addk.className='add-row lvl-campo'; addk.textContent='+ Campo';
+              addk.onclick=function(){ nuevoCampo(emp.id); };
+              node.appendChild(addk);
+            }
+          })(emps[j]);
+        }
+        var adde=document.createElement('div'); adde.className='add-row lvl-emp'; adde.textContent='+ Empresa';
+        adde.onclick=function(){ nuevaEmpresa(cli.id); };
+        node.appendChild(adde);
+      }
+      cont.appendChild(node);
+    })(clientes[i]);
+  }
+}
+
+function seleccionar(kind,id){ sel={kind:kind,id:id}; renderTree(); renderForm(); }
+
+/* ---------------- FORMULARIOS ---------------- */
+function field(label, id, val, opcional, type){
+  return '<div class="fld"><label>'+label+(opcional?' <span class="opt">(opcional)</span>':'')+'</label>'+
+    '<input id="'+id+'" type="'+(type||'text')+'" value="'+(val==null?'':String(val).replace(/"/g,'&quot;'))+'"></div>';
+}
+
+function renderForm(){
+  var ph=document.getElementById('ph'), f=document.getElementById('form');
+  if(!sel.kind){ ph.style.display=''; f.style.display='none'; return; }
+  ph.style.display='none'; f.style.display='';
+
+  if (sel.kind==='cliente') return formCliente();
+  if (sel.kind==='empresa') return formEmpresa();
+  if (sel.kind==='campo') return formCampo();
+}
+
+/* CLIENTE — campos según §2.1 del modelo */
+function formCliente(){
+  var nuevo = sel.id===null;
+  var c = nuevo ? {} : buscar(PA.demo.listarClientes(), sel.id);
+  var f=document.getElementById('form');
+  f.innerHTML =
+    '<div class="ph"><h2>'+(nuevo?'Nuevo cliente':c.nombre)+'</h2><span class="kind">Cliente</span></div>'+
+    '<div class="path">Titular del servicio Puntal Agro</div>'+
+    '<div class="grid2">'+
+      field('Nombre','c-nombre',c.nombre)+
+      field('Persona de contacto','c-contacto',c.nombreContacto,true)+
+      field('Email','c-email',c.email,true,'email')+
+      field('Teléfono','c-tel',c.telefono,true)+
+      '<div class="sec-sep">Facturación del servicio (cobro de Puntal al cliente)</div>'+
+      field('Razón social','c-rs',c.razonSocial,true)+
+      field('CUIT','c-cuit',c.cuit,true)+
+      '<div class="fld full">'+field('Dirección','c-dir',c.direccion,true).replace('<div class="fld">','').replace(/<\/div>$/,'')+'</div>'+
+      '<div class="fld full"><label class="chk"><input type="checkbox" id="c-central" '+((nuevo|| c.facturaCentralizada)?'checked':'')+'> Facturación centralizada (se factura todo al cliente; si se desmarca, factura cada empresa con sus datos)</label></div>'+
+    '</div>'+
+    '<div class="actions">'+
+      '<button class="btn" onclick="guardarCliente()">Guardar</button>'+
+      (nuevo?'':'<button class="btn-out" onclick="borrarCliente()">Eliminar cliente</button>')+
+      (nuevo?'':'<button class="btn-link" onclick="irAUsuarios()">Asignar usuario admin a este cliente →</button>')+
+      '<span class="msg" id="msg"></span>'+
+    '</div>';
+}
+
+/* EMPRESA — §2.2 */
+function formEmpresa(){
+  var nuevo = sel.id===null || sel._nuevoEnCliente;
+  var e = (sel.id && !sel._nuevoEnCliente) ? buscar(PA.demo.listarEmpresas(), sel.id) : { clienteId: sel._clienteId };
+  var cli = buscar(PA.demo.listarClientes(), e.clienteId);
+  var f=document.getElementById('form');
+  f.innerHTML =
+    '<div class="ph"><h2>'+(nuevo?'Nueva empresa':e.razonSocial)+'</h2><span class="kind">Empresa</span></div>'+
+    '<div class="path">Cliente: '+(cli?cli.nombre:'—')+'</div>'+
+    '<div class="grid2">'+
+      '<div class="fld full">'+inner(field('Razón social','e-rs',e.razonSocial))+'</div>'+
+      field('CUIT','e-cuit',e.cuit)+
+      field('Condición IVA','e-iva',e.condicionIVA,true)+
+      '<div class="fld full">'+inner(field('Dirección','e-dir',e.direccion,true))+'</div>'+
+    '</div>'+
+    '<div class="actions">'+
+      '<button class="btn" onclick="guardarEmpresa(\''+(e.clienteId||'')+'\')">Guardar</button>'+
+      (nuevo?'':'<button class="btn-out" onclick="borrarEmpresa()">Eliminar empresa</button>')+
+      '<span class="msg" id="msg"></span>'+
+    '</div>';
+}
+
+/* CAMPO — §2.3 */
+function formCampo(){
+  var nuevo = sel.id===null || sel._nuevoEnEmpresa;
+  var k = (sel.id && !sel._nuevoEnEmpresa) ? buscar(PA.demo.listarCampos(), sel.id) : { empresaId: sel._empresaId };
+  var emp = buscar(PA.demo.listarEmpresas(), k.empresaId);
+  var f=document.getElementById('form');
+  f.innerHTML =
+    '<div class="ph"><h2>'+(nuevo?'Nuevo campo':k.nombre)+'</h2><span class="kind">Campo</span></div>'+
+    '<div class="path">Empresa: '+(emp?emp.razonSocial:'—')+'</div>'+
+    '<div class="grid2">'+
+      '<div class="fld full">'+inner(field('Nombre del establecimiento','k-nombre',k.nombre))+'</div>'+
+      field('Localidad','k-loc',k.localidad,true)+
+      field('Partido / Depto','k-part',k.partido,true)+
+      field('Provincia','k-prov',k.provincia,true)+
+      field('Hectáreas totales','k-ha',k.haTotales,true,'number')+
+    '</div>'+
+    '<div class="actions">'+
+      '<button class="btn" onclick="guardarCampo(\''+(k.empresaId||'')+'\')">Guardar</button>'+
+      (nuevo?'':'<button class="btn-out" onclick="borrarCampo()">Eliminar campo</button>')+
+      '<span class="msg" id="msg"></span>'+
+    '</div>';
+}
+
+function inner(html){ return html.replace('<div class="fld">','').replace(/<\/div>$/,''); }
+function buscar(arr,id){ for(var i=0;i<arr.length;i++){ if(arr[i].id===id) return arr[i]; } return {}; }
+function val(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+function setMsg(t){ var m=document.getElementById('msg'); if(m) m.textContent=t; }
+
+/* ---------------- NUEVOS ---------------- */
+function nuevoCliente(){ sel={kind:'cliente',id:null}; renderTree(); renderForm(); }
+function nuevaEmpresa(clienteId){ sel={kind:'empresa',id:null,_nuevoEnCliente:true,_clienteId:clienteId}; renderForm(); }
+function nuevoCampo(empresaId){ sel={kind:'campo',id:null,_nuevoEnEmpresa:true,_empresaId:empresaId}; renderForm(); }
+
+/* ---------------- GUARDAR / BORRAR ---------------- */
+function guardarCliente(){
+  if(!val('c-nombre')){ setMsg('Falta el nombre.'); return; }
+  var existente = (sel.id&&!sel._nuevoEnCliente)?buscar(PA.demo.listarClientes(),sel.id):{};
+  var c = {
+    id: sel.id||undefined, nombre: val('c-nombre'), nombreContacto: val('c-contacto'),
+    email: val('c-email'), telefono: val('c-tel'),
+    razonSocial: val('c-rs'), cuit: val('c-cuit'), direccion: val('c-dir'),
+    facturaCentralizada: document.getElementById('c-central').checked,
+    activo: existente.activo!==undefined?existente.activo:true,
+    fechaAlta: existente.fechaAlta || new Date().toISOString().slice(0,10)
+  };
+  var saved=PA.demo.guardarCliente(c);
+  expand[saved.id]=true; sel={kind:'cliente',id:saved.id};
+  renderTree(); renderForm(); setMsg('Guardado.');
+}
+function borrarCliente(){ if(confirm('¿Eliminar el cliente con todas sus empresas y campos?')){ PA.demo.borrarCliente(sel.id); sel={kind:null,id:null}; renderTree(); renderForm(); } }
+
+function guardarEmpresa(clienteId){
+  if(!val('e-rs')){ setMsg('Falta la razón social.'); return; }
+  var existente=(sel.id&&!sel._nuevoEnCliente)?buscar(PA.demo.listarEmpresas(),sel.id):{};
+  var e={ id:sel._nuevoEnCliente?undefined:(sel.id||undefined), clienteId:clienteId,
+    razonSocial:val('e-rs'), cuit:val('e-cuit'), condicionIVA:val('e-iva'), direccion:val('e-dir'),
+    activo: existente.activo!==undefined?existente.activo:true };
+  var saved=PA.demo.guardarEmpresa(e);
+  expand[clienteId]=true; expand[saved.id]=true; sel={kind:'empresa',id:saved.id};
+  renderTree(); renderForm(); setMsg('Guardado.');
+}
+function borrarEmpresa(){ if(confirm('¿Eliminar la empresa y sus campos?')){ PA.demo.borrarEmpresa(sel.id); sel={kind:null,id:null}; renderTree(); renderForm(); } }
+
+function guardarCampo(empresaId){
+  if(!val('k-nombre')){ setMsg('Falta el nombre del campo.'); return; }
+  var k={ id:sel._nuevoEnEmpresa?undefined:(sel.id||undefined), empresaId:empresaId,
+    nombre:val('k-nombre'), localidad:val('k-loc'), partido:val('k-part'), provincia:val('k-prov'),
+    haTotales: val('k-ha')?Number(val('k-ha')):undefined };
+  var saved=PA.demo.guardarCampo(k);
+  expand[empresaId]=true; sel={kind:'campo',id:saved.id};
+  renderTree(); renderForm(); setMsg('Guardado.');
+}
+function borrarCampo(){ if(confirm('¿Eliminar el campo?')){ PA.demo.borrarCampo(sel.id); sel={kind:null,id:null}; renderTree(); renderForm(); } }
+
+function irAUsuarios(){ location.href='usuarios.html'; }
+function resetDemo(){ if(confirm('¿Reiniciar todos los datos demo?')){ PA.demo.resetDemo(); expand={}; sel={kind:null,id:null}; renderTree(); renderForm(); } }
+
+PA.init({ modo:'demo' }, function(){
+  // expandir el primer cliente por defecto
+  var cls=PA.demo.listarClientes(); if(cls.length) expand[cls[0].id]=true;
+  renderTree();
+});
+</script>
+
+</body>
+</html>

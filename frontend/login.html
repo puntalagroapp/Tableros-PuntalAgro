@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingreso · Puntal Agro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0F2F5;--card:#fff;--border:#E4E8EE;--text:#0F1923;--muted:#7A8899;--olive:#4A6533;--ochre:#A86A1F;--terra:#C8642D;--radius:12px;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--sans:'DM Sans',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:380px;overflow:hidden;box-shadow:0 8px 30px rgba(15,25,35,.08)}
+.top{background:var(--olive);padding:22px 24px;border-bottom:4px solid var(--terra);display:flex;align-items:center;gap:12px}
+.top .top-logo{width:42px;height:42px;flex-shrink:0;background:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:5px}
+.top .top-logo img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+.top .logo-sub{font-size:11px;font-family:var(--sans);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.9)}
+.top h1{font-size:18px;font-weight:700;letter-spacing:-.3px;margin-top:3px;color:#fff;line-height:1.2}
+.body{padding:22px 24px 24px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;margin-top:14px}
+label:first-child{margin-top:0}
+input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--sans);font-size:14px;color:var(--text)}
+input:focus{outline:none;border-color:var(--olive)}
+.btn{width:100%;margin-top:20px;background:var(--olive);color:#fff;border:none;border-radius:8px;padding:11px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:background .12s}
+.btn:hover{background:#3c5429}
+.err{margin-top:14px;font-size:12.5px;color:var(--terra);min-height:16px}
+.hint{margin-top:18px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--border);padding-top:14px}
+.hint code{font-family:var(--mono);background:var(--bg);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="top">
+    <div class="top-logo"><img src="logo-iso.png" alt="Puntal Agro"></div>
+    <div>
+      <div class="logo-sub">Puntal Agro</div>
+      <h1>Herramientas de Gestión y Tableros de Decisión</h1>
+    </div>
+  </div>
+  <div class="body">
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="usuario@empresa.com" autocomplete="username" onkeydown="if(event.key==='Enter')entrar()">
+    <label for="pass">Contraseña</label>
+    <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
+    <button class="btn" onclick="entrar()">Ingresar</button>
+    <div class="err" id="err"></div>
+    <div class="hint">
+      <strong>Modo demo</strong> — sin backend, la contraseña no se valida todavía.
+      Usuarios de prueba: <code>admin@puntal.com</code> (acceso total) ·
+      <code>maria@albor.com</code> (acceso parcial).
+    </div>
+  </div>
+</div>
+
+<script src="pa-core.js"></script>
+<script>
+PA.init({ modo: 'demo' }, function(){
+  // si ya hay sesión, ir directo al menú
+  if (PA.haySesion()) { location.href = 'index.html'; }
+});
+function entrar(){
+  var email = document.getElementById('email').value.trim();
+  var err = document.getElementById('err');
+  err.textContent = '';
+  if (!email) { err.textContent = 'Ingresá tu email.'; return; }
+  PA.login(email, function(e){
+    if (e) { err.textContent = e; return; }
+    location.href = 'index.html';
+  });
+}
+</script>
+
+</body>
+</html>
