@@ -1,0 +1,29 @@
+services:
+  base_datos:
+    image: postgres:16-alpine
+    container_name: pa_postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: clave_secreta_postgres
+      POSTGRES_DB: puntal_agro
+    ports:
+      - "5432:5432"
+    volumes:
+      - datos_postgres:/var/lib/postgresql/data
+
+  api_server:
+    container_name: pa_express_api
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://postgres:clave_secreta_postgres@base_datos:5432/puntal_agro
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./frontend:/usr/src/frontend
+    depends_on:
+      - base_datos
+
+volumes:
+  datos_postgres:

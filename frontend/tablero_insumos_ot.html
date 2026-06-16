@@ -861,9 +861,16 @@ function baseStateForNewWs(){ return baseStateEmpty(); }
 var root={espacios:{}, activoId:null};
 var state=null; // referencia al state del espacio activo
 
+// En tu tablero_insumos_ot.html busca y deja la función así:
 function saveRoot(){
-  try{ localStorage.setItem(LS_ROOT, JSON.stringify(root)); }catch(e){ console.warn('No se pudo guardar', e); }
+  // En vez de escribir directo a localStorage, llamamos al puente híbrido:
+  if (typeof PA !== 'undefined' && PA.demo && PA.demo.sincronizarTableroCompleto) {
+    PA.demo.sincronizarTableroCompleto('agroTablerosRoot', root);
+  } else {
+    localStorage.setItem('agroTablerosRoot', JSON.stringify(root));
+  }
 }
+
 function loadRoot(){
   var migratedFromV2=false;
   try{
