@@ -6,6 +6,28 @@
 <title>Insumos &amp; OT · Puntal Agro</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="/pa-core.js"></script>
+<script>
+// Producción: si localStorage está vacío, trae el estado guardado desde la API
+// antes de que loadRoot() lo lea. XHR síncrono intencional (ocurre una sola vez
+// por sesión, antes del primer render, no hay alternativa async aquí).
+(function () {
+  var CLAVE = 'puntalagro_insumos_v3';
+  if (localStorage.getItem(CLAVE)) return;
+  var esLocal = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:');
+  if (esLocal) return;
+  try {
+    var sesion = JSON.parse(localStorage.getItem('pa_sesion_activa') || 'null');
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/tablero/' + encodeURIComponent(CLAVE), false);
+    if (sesion && sesion.token) xhr.setRequestHeader('Authorization', 'Bearer ' + sesion.token);
+    xhr.send(null);
+    if (xhr.status === 200) {
+      var d = JSON.parse(xhr.responseText);
+      if (d && Object.keys(d).length > 0) localStorage.setItem(CLAVE, JSON.stringify(d));
+    }
+  } catch (e) {}
+}());
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#E8ECF2;--card:#fff;--border:#D4DAE4;--text:#0F1923;--muted:#7A8899;--radius:12px;--mono:'DM Sans',sans-serif;--sans:'DM Sans',sans-serif;}
@@ -864,11 +886,10 @@ var state=null; // referencia al state del espacio activo
 
 // En tu tablero_insumos_ot.html busca y deja la función así:
 function saveRoot(){
-  // En vez de escribir directo a localStorage, llamamos al puente híbrido:
   if (typeof PA !== 'undefined' && PA.demo && PA.demo.sincronizarTableroCompleto) {
-    PA.demo.sincronizarTableroCompleto('agroTablerosRoot', root);
+    PA.demo.sincronizarTableroCompleto(LS_ROOT, root);
   } else {
-    localStorage.setItem('agroTablerosRoot', JSON.stringify(root));
+    localStorage.setItem(LS_ROOT, JSON.stringify(root));
   }
 }
 
