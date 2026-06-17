@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Insumos &amp; OT · Puntal Agro</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="/pa-core.js"></script>
+<script src="pa-core.js"></script>
 <script>
 // Producción: si localStorage está vacío, trae el estado guardado desde la API
 // antes de que loadRoot() lo lea. XHR síncrono intencional (ocurre una sola vez
@@ -18,7 +18,7 @@
   try {
     var sesion = JSON.parse(localStorage.getItem('pa_sesion_activa') || 'null');
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/api/tablero/' + encodeURIComponent(CLAVE), false);
+    xhr.open('GET', 'api/tablero/' + encodeURIComponent(CLAVE), false);
     if (sesion && sesion.token) xhr.setRequestHeader('Authorization', 'Bearer ' + sesion.token);
     xhr.send(null);
     if (xhr.status === 200) {
