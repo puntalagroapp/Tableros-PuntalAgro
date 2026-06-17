@@ -3,13 +3,14 @@ services:
     image: postgres:16-alpine
     container_name: pa_postgres_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: clave_secreta_postgres
-      POSTGRES_DB: puntal_agro
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - datos_postgres:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d   # init.sql se ejecuta al crear el volumen
 
   api_server:
     container_name: pa_express_api
@@ -17,7 +18,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=postgresql://postgres:clave_secreta_postgres@base_datos:5432/puntal_agro
+      - DATABASE_URL=${DATABASE_URL}
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
