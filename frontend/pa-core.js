@@ -532,11 +532,11 @@
 
     // ── TABLERO COMPLETO (blob JSON para tableros con objeto root propio) ─────
     sincronizarTableroCompleto: function (claveRaiz, estructuraCompleta) {
-      if (!usaApi()) {
-        // Local: persiste en localStorage como hacía antes
-        try { localStorage.setItem(claveRaiz, JSON.stringify(estructuraCompleta)); } catch (e) {}
-      } else {
-        // Producción: solo va al backend, sin tocar localStorage
+      // Siempre escribe en localStorage: en local es la fuente de verdad,
+      // en producción es caché de sesión para que loadRoot() lo encuentre
+      // en el próximo acceso sin esperar respuesta async.
+      try { localStorage.setItem(claveRaiz, JSON.stringify(estructuraCompleta)); } catch (e) {}
+      if (usaApi()) {
         apiXHR('PUT', '/api/tablero/' + encodeURIComponent(claveRaiz),
           { datos: estructuraCompleta }, function (err) {
             if (err) console.error('PA: error sincronizando tablero:', err.msg || err);
