@@ -166,8 +166,17 @@ app.get('/api/maestros-empresa/:empresaId', async (req, res) => {
       pool.query('SELECT datos FROM depositos       WHERE empresa_id = $1', [empresaId]),
       pool.query('SELECT datos FROM insumos         WHERE empresa_id = $1', [empresaId]),
       pool.query('SELECT datos FROM tipos_actividad WHERE empresa_id = $1', [empresaId]),
-      pool.query('SELECT datos FROM lotes           WHERE empresa_id = $1', [empresaId]),
-      pool.query('SELECT datos FROM actividades     WHERE empresa_id = $1', [empresaId]),
+      pool.query(
+        `SELECT jsonb_build_object('id',id,'campoId',campo_id,'empresaId',empresa_id,'nombre',nombre,'ha',ha) AS datos
+           FROM lotes WHERE empresa_id = $1`,
+        [empresaId]
+      ),
+      pool.query(
+        `SELECT jsonb_build_object('id',id,'empresaId',empresa_id,'loteId',lote_id,'campaniaId',campania_id,
+                                   'tipoActividadId',tipo_actividad_id,'ha',ha,'esSegunda',es_segunda) AS datos
+           FROM actividades WHERE empresa_id = $1`,
+        [empresaId]
+      ),
     ]);
 
     res.json({
@@ -307,14 +316,32 @@ app.post('/api/maestros/:coleccion', async (req, res) => {
 
     if (cfg.porEmpresa) {
       if (!obj.empresaId) return res.status(400).json({ error: 'Falta empresaId' });
-      await pool.query(
-        `INSERT INTO ${cfg.tabla} (id, empresa_id${cfg.tabla === 'choferes' ? ', tercero_id' : ''}, datos)
-         VALUES ($1, $2${cfg.tabla === 'choferes' ? ', $3, $4' : ', $3'})
-         ON CONFLICT (id, empresa_id) DO UPDATE SET datos = EXCLUDED.datos`,
-        cfg.tabla === 'choferes'
-          ? [obj.id, obj.empresaId, obj.terceroId || null, obj]
-          : [obj.id, obj.empresaId, obj]
-      );
+      if (cfg.tabla === 'lotes') {
+        await pool.query(
+          `INSERT INTO lotes (id, campo_id, empresa_id, nombre, ha)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (id) DO UPDATE SET campo_id=$2, nombre=$4, ha=$5`,
+          [obj.id, obj.campoId || null, obj.empresaId, obj.nombre || null, obj.ha || null]
+        );
+      } else if (cfg.tabla === 'actividades') {
+        await pool.query(
+          `INSERT INTO actividades (id, empresa_id, lote_id, campania_id, tipo_actividad_id, ha, es_segunda)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (id, empresa_id) DO UPDATE
+             SET lote_id=$3, campania_id=$4, tipo_actividad_id=$5, ha=$6, es_segunda=$7`,
+          [obj.id, obj.empresaId, obj.loteId || null, obj.campaniaId || null,
+           obj.tipoActividadId || null, obj.ha || null, obj.esSegunda || false]
+        );
+      } else {
+        await pool.query(
+          `INSERT INTO ${cfg.tabla} (id, empresa_id${cfg.tabla === 'choferes' ? ', tercero_id' : ''}, datos)
+           VALUES ($1, $2${cfg.tabla === 'choferes' ? ', $3, $4' : ', $3'})
+           ON CONFLICT (id, empresa_id) DO UPDATE SET datos = EXCLUDED.datos`,
+          cfg.tabla === 'choferes'
+            ? [obj.id, obj.empresaId, obj.terceroId || null, obj]
+            : [obj.id, obj.empresaId, obj]
+        );
+      }
     } else {
       await _upsertGlobal(cfg.tabla, obj);
     }
@@ -334,13 +361,27 @@ app.put('/api/maestros/:coleccion/:id', async (req, res) => {
 
     if (cfg.porEmpresa) {
       if (!obj.empresaId) return res.status(400).json({ error: 'Falta empresaId' });
-      await pool.query(
-        `UPDATE ${cfg.tabla} SET datos = $3${cfg.tabla === 'choferes' ? ', tercero_id = $4' : ''}
-          WHERE id = $1 AND empresa_id = $2`,
-        cfg.tabla === 'choferes'
-          ? [obj.id, obj.empresaId, obj, obj.terceroId || null]
-          : [obj.id, obj.empresaId, obj]
-      );
+      if (cfg.tabla === 'lotes') {
+        await pool.query(
+          `UPDATE lotes SET campo_id=$2, nombre=$3, ha=$4 WHERE id=$1`,
+          [obj.id, obj.campoId || null, obj.nombre || null, obj.ha || null]
+        );
+      } else if (cfg.tabla === 'actividades') {
+        await pool.query(
+          `UPDATE actividades SET lote_id=$3, campania_id=$4, tipo_actividad_id=$5, ha=$6, es_segunda=$7
+            WHERE id=$1 AND empresa_id=$2`,
+          [obj.id, obj.empresaId, obj.loteId || null, obj.campaniaId || null,
+           obj.tipoActividadId || null, obj.ha || null, obj.esSegunda || false]
+        );
+      } else {
+        await pool.query(
+          `UPDATE ${cfg.tabla} SET datos = $3${cfg.tabla === 'choferes' ? ', tercero_id = $4' : ''}
+            WHERE id = $1 AND empresa_id = $2`,
+          cfg.tabla === 'choferes'
+            ? [obj.id, obj.empresaId, obj, obj.terceroId || null]
+            : [obj.id, obj.empresaId, obj]
+        );
+      }
     } else {
       await _upsertGlobal(cfg.tabla, obj);
     }
@@ -359,7 +400,9 @@ app.delete('/api/maestros/:coleccion/:id', async (req, res) => {
     const empresaId = req.query.empresaId;
     if (cfg.porEmpresa && !empresaId) return res.status(400).json({ error: 'Falta empresaId en query' });
 
-    if (cfg.porEmpresa) {
+    if (cfg.tabla === 'lotes') {
+      await pool.query('DELETE FROM lotes WHERE id = $1', [req.params.id]);
+    } else if (cfg.porEmpresa) {
       await pool.query(`DELETE FROM ${cfg.tabla} WHERE id = $1 AND empresa_id = $2`, [req.params.id, empresaId]);
     } else {
       await _deleteGlobal(cfg.tabla, req.params.id);
@@ -410,11 +453,18 @@ async function _upsertGlobal(tabla, obj) {
        ON CONFLICT (id) DO UPDATE SET nombre = $2`,
       [obj.id, obj.nombre]
     );
+  } else if (tabla === 'campanias') {
+    await pool.query(
+      `INSERT INTO campanias (id, nombre, orden, activa)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (id) DO UPDATE SET nombre=$2, orden=$3, activa=$4`,
+      [obj.id, obj.nombre, obj.orden || 0, obj.activa || false]
+    );
   }
 }
 
 async function _deleteGlobal(tabla, id) {
-  const tablas = ['labores','especies','unidades','modos_accion','tipos_proveedor'];
+  const tablas = ['labores','especies','unidades','modos_accion','tipos_proveedor','campanias'];
   if (tablas.indexOf(tabla) < 0) throw new Error('Tabla no permitida: ' + tabla);
   await pool.query(`DELETE FROM ${tabla} WHERE id = $1`, [id]);
 }

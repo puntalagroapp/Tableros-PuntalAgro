@@ -103,9 +103,9 @@ CREATE TABLE campos (
 
 CREATE TABLE lotes (
     id         TEXT PRIMARY KEY,
-    campo_id   TEXT NOT NULL REFERENCES campos(id) ON DELETE CASCADE,
-    empresa_id TEXT NOT NULL REFERENCES empresas(id),   -- denormalizado para filtros
-    nombre     TEXT NOT NULL,
+    campo_id   TEXT REFERENCES campos(id) ON DELETE CASCADE,
+    empresa_id TEXT NOT NULL REFERENCES empresas(id),
+    nombre     TEXT,
     ha         NUMERIC(10,2)
 );
 
@@ -125,10 +125,11 @@ CREATE TABLE usuarios (
 );
 
 CREATE TABLE sesiones (
-    token      TEXT PRIMARY KEY,
-    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    creada_en  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    expira_en  TIMESTAMPTZ
+    token              TEXT PRIMARY KEY,
+    usuario_id         TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    creada_en          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expira_en          TIMESTAMPTZ,
+    empresa_id_activa  TEXT
 );
 
 -- Un usuario tiene UN permiso por empresa. campoIds=[] significa todos los campos.
@@ -204,9 +205,9 @@ CREATE INDEX idx_tipos_actividad_empresa ON tipos_actividad(empresa_id);
 CREATE TABLE actividades (
     id                TEXT NOT NULL,
     empresa_id        TEXT NOT NULL REFERENCES empresas(id),
-    lote_id           TEXT NOT NULL REFERENCES lotes(id) ON DELETE CASCADE,
-    campania_id       TEXT NOT NULL REFERENCES campanias(id),
-    tipo_actividad_id TEXT NOT NULL,
+    lote_id           TEXT REFERENCES lotes(id) ON DELETE CASCADE,
+    campania_id       TEXT REFERENCES campanias(id),
+    tipo_actividad_id TEXT,
     ha                NUMERIC(10,2),
     es_segunda        BOOLEAN NOT NULL DEFAULT false,
     PRIMARY KEY (id, empresa_id)
