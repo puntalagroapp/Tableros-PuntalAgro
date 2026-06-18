@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Insumos &amp; OT · Puntal Agro</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="pa-core.js"></script>
 <script>
-// Producción: si localStorage está vacío, trae el estado guardado desde la API
-// antes de que loadRoot() lo lea. XHR síncrono intencional (ocurre una sola vez
-// por sesión, antes del primer render, no hay alternativa async aquí).
+// Producción: pre-carga el blob del tablero desde la API en localStorage
+// antes de que loadRoot() lo lea. Sync XHR intencional — ocurre una sola vez.
 (function () {
-  var CLAVE = 'puntalagro_insumos_v3';
+  var CLAVE = 'puntalagro_insumos_v4';
   if (localStorage.getItem(CLAVE)) return;
   var esLocal = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:');
   if (esLocal) return;
@@ -28,7 +28,6 @@
   } catch (e) {}
 }());
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#E8ECF2;--card:#fff;--border:#D4DAE4;--text:#0F1923;--muted:#7A8899;--radius:12px;--mono:'DM Sans',sans-serif;--sans:'DM Sans',sans-serif;}
 [style*="--mono"],.num,.kpi-val,.ot-meta-i .v,.ot-row-num,td,input[type=number]{font-variant-numeric:tabular-nums}
@@ -367,12 +366,14 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
   </div>
   <div class="h-right">
     <div class="ws-sel">
-      <span class="ws-sel-lbl">Espacio:</span>
+      <span class="ws-sel-lbl">Empresa:</span>
       <select id="wsSel" onchange="switchWs(this.value)"></select>
-      <button class="btn-icon" onclick="openWsModal()" title="Administrar espacios">⚙</button>
     </div>
-    <span class="h-context" id="hCtx">—</span>
-    <button class="btn" onclick="openCtxModal()">Editar contexto</button>
+    <div class="ws-sel">
+      <span class="ws-sel-lbl">Campaña por defecto:</span>
+      <select id="campaniaDefSel" onchange="setCampaniaDefecto(this.value)" title="Campaña sugerida al registrar OT y movimientos. En cada registro podés elegir otra."></select>
+    </div>
+    <button class="btn" onclick="openCierreStock()" title="Conciliar stock teórico vs real al cierre de campaña y registrar ajustes">📋 Cerrar stock</button>
     <button class="btn btn-primary" onclick="exportExcel()">Exportar Excel</button>
   </div>
 </header>
@@ -428,26 +429,28 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
         <div class="fld"><label>Tipo de movimiento</label>
           <select id="m_tipo" required onchange="onMovTipoChange()"><option value="">— Seleccionar —</option></select>
         </div>
+        <div class="fld"><label>Campaña</label><select id="m_campania"></select></div>
+        <div class="fld" id="m_prov_wrap"><label>Proveedor</label><select id="m_proveedor"><option value="">— Sin proveedor —</option></select></div>
+      </div>
+      <div class="form-row r4">
         <div class="fld"><label>Tipo comprobante</label>
           <select id="m_comp_tipo">
-            <option value="">—</option><option>Orden de compra</option><option>Remito externo</option><option>Remito interno</option><option>Factura</option><option>Parte trabajo</option><option>OT</option><option>Otro</option>
+            <option value="">—</option><option>Orden de compra</option><option>Remito externo</option><option>Remito interno</option><option>Factura</option><option>Parte trabajo</option><option>Otro</option>
           </select>
         </div>
         <div class="fld"><label>N° comprobante</label><input type="text" id="m_comp_nro" placeholder="—"></div>
+        <div class="fld" style="grid-column: span 2"><label>Observaciones</label><input type="text" id="m_obs" placeholder="—"></div>
       </div>
-      <div class="form-row r4">
-        <div class="fld"><label>Insumo</label>
-          <select id="m_insumo" required onchange="onMovInsumoChange()"><option value="">— Seleccionar —</option></select>
-        </div>
-        <div class="fld"><label>Unidad</label><div class="fld-read" id="m_unidad">—</div></div>
-        <div class="fld"><label>Cantidad</label><input type="number" id="m_cant" step="0.01" min="0" required></div>
-        <div class="fld" id="m_signo_wrap" style="display:none"><label>Signo</label><div class="fld-read" id="m_signo">—</div></div>
-      </div>
-      <div class="form-row r3">
-        <div class="fld"><label id="m_origen_lbl">Origen</label><select id="m_origen"><option value="">—</option></select></div>
-        <div class="fld"><label id="m_destino_lbl">Destino</label><select id="m_destino"><option value="">—</option></select></div>
-        <div class="fld"><label>Observaciones</label><input type="text" id="m_obs" placeholder="—"></div>
-      </div>
+      <div style="margin:6px 0 4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Líneas de insumo</div>
+      <div class="tw"><table id="mlineasTbl"><thead><tr>
+        <th style="width:34%">Insumo</th>
+        <th style="width:14%">Cantidad</th>
+        <th style="width:8%">Un.</th>
+        <th class="mcol-origen" style="width:20%">Origen</th>
+        <th class="mcol-destino" style="width:20%">Destino</th>
+        <th style="width:4%"></th>
+      </tr></thead><tbody id="mlineasBody"></tbody></table></div>
+      <div style="margin-top:8px"><button type="button" class="btn btn-sm" onclick="addMovLinea()">+ Agregar línea</button></div>
       <div class="fact">
         <button type="button" class="btn" onclick="resetMovForm()">Limpiar</button>
         <button type="submit" class="btn btn-primary">Registrar movimiento</button>
@@ -461,6 +464,7 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
       <div class="tools">
         <input type="text" id="movSearch" placeholder="Buscar…" oninput="renderMovtos()" style="width:140px">
         <select id="movCampoFilter" onchange="renderMovtos()"><option value="">Todos los campos</option></select>
+        <select id="movCampaniaFilter" onchange="renderMovtos()"><option value="">Todas las campañas</option></select>
         <select id="movTipoFilter" onchange="renderMovtos()"><option value="">Todos los tipos</option></select>
         <select id="movOrigenFilter" onchange="renderMovtos()"><option value="">Manual + automático</option><option value="manual">Solo manual</option><option value="auto">Solo automático (OT)</option></select>
         <input type="date" id="movDesde" onchange="renderMovtos()" title="Desde">
@@ -492,6 +496,7 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
           <div class="paso-bd">
             <div class="form-row r4">
               <div class="fld"><label>Fecha OT</label><input type="date" id="o_fecha" required></div>
+              <div class="fld"><label>Campaña</label><select id="o_campania"></select></div>
               <div class="fld"><label>Tipo de labor</label>
                 <select id="o_labor_tipo" required onchange="onLaborTipoChange()">
                   <option value="LP">Labor propia</option><option value="LC">Labor contratada</option>
@@ -566,6 +571,7 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
         <div class="tools">
           <input type="text" id="otSearch" placeholder="Buscar…" oninput="renderOtList()" style="width:140px">
           <select id="otCampoFilter" onchange="renderOtList()"><option value="">Todos los campos</option></select>
+          <select id="otCampaniaFilter" onchange="renderOtList()"><option value="">Todas las campañas</option></select>
           <select id="otActFilter" onchange="renderOtList()"><option value="">Todas las actividades</option></select>
           <select id="otEstadoFilter" onchange="renderOtList()">
             <option value="">Todos los estados</option>
@@ -680,6 +686,7 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
     <div class="chd">
       <span class="ct-lg">Filtros</span>
       <div class="tools">
+        <select id="costCampaniaFilter" onchange="renderCostos()"><option value="">Todas las campañas</option></select>
         <select id="costCampoFilter" onchange="renderCostos()"><option value="">Todos los campos</option></select>
         <select id="costLoteFilter" onchange="renderCostos()"><option value="">Todos los lotes</option></select>
         <select id="costActFilter" onchange="renderCostos()"><option value="">Todas las actividades</option></select>
@@ -737,7 +744,7 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
     <button class="pill on" data-mtab="insumos" onclick="setMTab('insumos',this)">Insumos</button>
     <button class="pill" data-mtab="campos" onclick="setMTab('campos',this)">Campos</button>
     <button class="pill" data-mtab="lotes" onclick="setMTab('lotes',this)">Lotes</button>
-    <button class="pill" data-mtab="depositos" onclick="setMTab('depositos',this)">Depósitos</button>
+    <button class="pill" data-mtab="depositos" onclick="setMTab('depositos',this)">Depósitos / Acopios</button>
     <button class="pill" data-mtab="actividades" onclick="setMTab('actividades',this)">Actividades</button>
     <button class="pill" data-mtab="laboresLP" onclick="setMTab('laboresLP',this)">Labores propias</button>
     <button class="pill" data-mtab="laboresLC" onclick="setMTab('laboresLC',this)">Labores contratadas</button>
@@ -762,7 +769,7 @@ footer{padding:10px 24px;border-top:1px solid var(--border);background:var(--car
 /* ================================================================
    PERSISTENCIA Y ESPACIOS DE TRABAJO
 ================================================================ */
-var LS_ROOT='puntalagro_insumos_v3';
+var LS_ROOT='puntalagro_insumos_v4';
 var LS_OLD_V2='puntalagro_insumos_v2';
 
 // Estado base "vacío" (con maestros mínimos para arrancar)
@@ -771,6 +778,8 @@ function baseStateEmpty(){
   var depDefId=uid();
   return {
     contexto:{empresa:'', campaña:''},
+    campanias:[{id:'24-25',nombre:'24-25',orden:1,activa:false},{id:'25-26',nombre:'25-26',orden:2,activa:true}],
+    campaniaActivaId:'25-26',
     catInsumos:['Semillas','Curasemillas/Inoculantes','Herbicidas','Insecticidas','Fungicidas','Fertilizantes','Combustibles y lubricantes','Sanidad animal','Varios'],
     insumos:[],
     campos:[{id:campoDefId,nombre:'Campo principal',localidad:''}],
@@ -795,6 +804,7 @@ function baseStateEmpty(){
       {nombre:'Fertilización voleo'},{nombre:'Rolo triturador'},{nombre:'Cosecha contratada'},{nombre:'Cosecha'},{nombre:'Picado+Embolsado'}
     ],
     tiposMov:[
+      {nombre:'Stock inicial',signo:1,requiereDestino:true,requiereOrigen:false},
       {nombre:'Compra',signo:1,requiereDestino:true,requiereOrigen:false},
       {nombre:'Ingreso por prod. propia',signo:1,requiereDestino:true,requiereOrigen:false},
       {nombre:'Ajuste inventario (+)',signo:1,requiereDestino:true,requiereOrigen:false},
@@ -809,6 +819,8 @@ function baseStateEmpty(){
       {nombre:'Venta',signo:-1,requiereOrigen:true,requiereDestino:false}
     ],
     movtos:[],
+    comprobantes:[],
+    proveedores:[],
     contratistas:[],
     ots:[],
     nextOt:1,
@@ -819,174 +831,284 @@ function baseStateEmpty(){
   };
 }
 
-// Estado base con datos demo (para hacer pruebas rápido)
-function baseStateDemo(){
-  var s=baseStateEmpty();
-  s.contexto={empresa:'Demo Agropecuaria SA', campaña:'24-25'};
-  // 2 campos
-  var c1={id:uid(),nombre:'El Puntal',localidad:'Trenque Lauquen'};
-  var c2={id:uid(),nombre:'La Esperanza',localidad:'Pehuajó'};
-  s.campos=[c1,c2];
-  // Depósitos: uno por campo + uno general
-  s.depositos=[
-    {id:uid(),nombre:'Galpón El Puntal',campoId:c1.id},
-    {id:uid(),nombre:'Galpón La Esperanza',campoId:c2.id},
-    {id:uid(),nombre:'Galpón central (Ciudad)',campoId:''}
-  ];
-  // Insumos típicos
-  var depElPuntal=s.depositos[0].nombre, depCentral=s.depositos[2].nombre;
-  s.insumos=[
-    {id:uid(),nombre:'Glifosato 48%',cat:'Herbicidas',un:'L',stockInicial:600,stockMin:200,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'2,4-D 100%',cat:'Herbicidas',un:'L',stockInicial:200,stockMin:80,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'Atrazina 50',cat:'Herbicidas',un:'L',stockInicial:300,stockMin:100,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'Urea',cat:'Fertilizantes',un:'Kg',stockInicial:8000,stockMin:2000,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'Fosfato diamónico (PDA)',cat:'Fertilizantes',un:'Kg',stockInicial:5000,stockMin:1500,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'Soja DM 53R57',cat:'Semillas',un:'Kg',stockInicial:1200,stockMin:300,deposito:depElPuntal,precioUnitario:0,moneda:'USD'},
-    {id:uid(),nombre:'Maíz DK 73-10',cat:'Semillas',un:'Bolsa',stockInicial:80,stockMin:20,deposito:depElPuntal,precioUnitario:0,moneda:'USD'},
-    {id:uid(),nombre:'Inoculante soja',cat:'Curasemillas/Inoculantes',un:'L',stockInicial:60,stockMin:20,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'Cipermetrina 25%',cat:'Insecticidas',un:'L',stockInicial:80,stockMin:30,deposito:depCentral,precioUnitario:0,moneda:'ARS'},
-    {id:uid(),nombre:'Gasoil',cat:'Combustibles y lubricantes',un:'L',stockInicial:2000,stockMin:500,deposito:depElPuntal,precioUnitario:0,moneda:'ARS'}
-  ];
-  // Lotes (5 por campo)
-  s.lotes=[
-    {id:uid(),nombre:'L1',ha:120,campoId:c1.id,actividades:['Soja 1ª']},
-    {id:uid(),nombre:'L2',ha:95,campoId:c1.id,actividades:['Soja 1ª','Sementera Trigo']},
-    {id:uid(),nombre:'L3',ha:140,campoId:c1.id,actividades:['Maíz']},
-    {id:uid(),nombre:'L4',ha:80,campoId:c1.id,actividades:['Trigo']},
-    {id:uid(),nombre:'L5',ha:60,campoId:c1.id,actividades:['Verdeo invierno']},
-    {id:uid(),nombre:'L1',ha:100,campoId:c2.id,actividades:['Soja 1ª']},
-    {id:uid(),nombre:'L2',ha:110,campoId:c2.id,actividades:['Maíz tardío']},
-    {id:uid(),nombre:'L3',ha:90,campoId:c2.id,actividades:['Trigo','Soja 2ª']},
-    {id:uid(),nombre:'L4',ha:75,campoId:c2.id,actividades:['Girasol']},
-    {id:uid(),nombre:'L5',ha:50,campoId:c2.id,actividades:['Verdeo verano']}
-  ];
-  // Tarifas demo en algunas labores propias
-  for(var i=0;i<s.laboresLP.length;i++){
-    var n=s.laboresLP[i].nombre;
-    if(n==='Siembra') s.laboresLP[i].tarifaDefault=45000;
-    else if(n==='Pulv. Terrestre') s.laboresLP[i].tarifaDefault=12000;
-    else if(n==='Fertilización voleo') s.laboresLP[i].tarifaDefault=10000;
-    else if(n==='Cosecha' || n==='Cosecha propia') s.laboresLP[i].tarifaDefault=80000;
-  }
-  // Contratistas demo
-  s.contratistas=[
-    {id:uid(),nombre:'Servicios Agrícolas El Surco'},
-    {id:uid(),nombre:'Pulverizaciones Don Juan'},
-    {id:uid(),nombre:'Cosechas del Oeste SRL'}
-  ];
-  return s;
-}
-
-// Default usado en migraciones / reset (mantengo el nombre por compat)
-function baseStateForNewWs(){ return baseStateEmpty(); }
-
-// Wrapper raíz: { espacios:{id:{nombre, state}}, activoId }
+// Wrapper raíz: { espacios:{empresaId:{nombre, state}}, activoId }
+// En el sistema unificado, cada "espacio" se corresponde con una EMPRESA del
+// contexto (pa-core). La clave del espacio ES el empresaId; activoId = empresa activa.
 var root={espacios:{}, activoId:null};
-var state=null; // referencia al state del espacio activo
+var state=null; // referencia al state del espacio (empresa) activo
 
-// En tu tablero_insumos_ot.html busca y deja la función así:
+// ── Contexto Puntal Agro (pa-core.js) ──────────────────────────
+// HERRAMIENTA: id para chequeo de permisos (declarativo; el backend lo aplica).
+// CTX: contexto cargado desde PA (usuario/empresa/permisos). null en fallback sin PA.
+var HERRAMIENTA = 'tablero_insumos_ot';
+var CTX = null;
+
 function saveRoot(){
   if (typeof PA !== 'undefined' && PA.demo && PA.demo.sincronizarTableroCompleto) {
     PA.demo.sincronizarTableroCompleto(LS_ROOT, root);
   } else {
-    localStorage.setItem(LS_ROOT, JSON.stringify(root));
+    try{ localStorage.setItem(LS_ROOT, JSON.stringify(root)); }catch(e){ console.warn('No se pudo guardar', e); }
   }
 }
-
 function loadRoot(){
-  var migratedFromV2=false;
+  // Esquema v4: root.espacios indexado por empresaId del contexto.
+  // Cada espacio = una empresa, con su estado OPERATIVO propio (movimientos, OTs, tc…).
+  // No se crea demo automático: la empresa activa se sincroniza desde el contexto
+  // en el boot (ver syncRootConContexto). Arranca vacío si no hay nada guardado.
   try{
     var raw=localStorage.getItem(LS_ROOT);
     if(raw){ root=JSON.parse(raw); }
   }catch(e){ console.warn('No se pudo cargar', e); }
-  // Si no hay v3, intentar migrar desde v2
-  if(!root || !root.espacios || !Object.keys(root.espacios).length){
-    try{
-      var rawV2=localStorage.getItem(LS_OLD_V2);
-      if(rawV2){
-        var v2=JSON.parse(rawV2);
-        if(v2 && v2.espacios){
-          // Migrar cada espacio v2 al modelo v3
-          root={espacios:{}, activoId:v2.activoId||null};
-          var keys=Object.keys(v2.espacios);
-          for(var i=0;i<keys.length;i++){
-            var k=keys[i], ws=v2.espacios[k];
-            var st=ws.state;
-            if(!st) continue;
-            migrateStateV2toV3(st);
-            root.espacios[k]={nombre:ws.nombre||'Espacio', state:st};
-          }
-          if(!root.activoId || !root.espacios[root.activoId]) root.activoId=Object.keys(root.espacios)[0];
-          migratedFromV2=true;
-        }
-      }
-    }catch(e){ console.warn('Migración v2 falló', e); }
-  }
-  // Si todavía no hay nada, crear espacio demo
-  if(!root || !root.espacios || !Object.keys(root.espacios).length){
-    root={espacios:{}, activoId:null};
-    var firstId=uid();
-    root.espacios[firstId]={nombre:'Demo Agropecuaria', state: baseStateDemo()};
-    root.activoId=firstId;
-    saveRoot();
-  }
-  if(!root.activoId || !root.espacios[root.activoId]){
-    root.activoId=Object.keys(root.espacios)[0];
-  }
-  state=root.espacios[root.activoId].state;
-  // Migrar/limpiar TODOS los espacios (no solo el activo) y persistir
-  var huboLimpieza=false;
-  var espIds=Object.keys(root.espacios);
-  for(var ei=0;ei<espIds.length;ei++){
-    var stx=root.espacios[espIds[ei]].state;
-    if(migrarOTsADestinos(stx)) huboLimpieza=true;
-  }
-  if(migratedFromV2 || huboLimpieza){ saveRoot(); }
-  if(migratedFromV2){ setTimeout(function(){ toast('Datos migrados al modelo Cliente / Campos / Lotes'); }, 600); }
+  if(!root || !root.espacios){ root={espacios:{}, activoId:null}; }
 }
 
-// Migra un state v2 (sin Campos, con contexto.campo) al modelo v3
-function migrateStateV2toV3(st){
-  if(!st) return;
-  if(st.campos && Array.isArray(st.campos)) return; // ya está en v3
-  var nombreCampo = (st.contexto && st.contexto.campo) ? String(st.contexto.campo) : 'Campo principal';
-  var campoId=uid();
-  st.campos=[{id:campoId, nombre:nombreCampo, localidad:''}];
-  // Asignar lotes y depósitos al campo creado
-  if(st.lotes){ for(var i=0;i<st.lotes.length;i++) if(!st.lotes[i].campoId) st.lotes[i].campoId=campoId; }
-  if(st.depositos){ for(var j=0;j<st.depositos.length;j++) if(!st.depositos[j].hasOwnProperty('campoId')) st.depositos[j].campoId=campoId; }
-  // Limpiar campo del contexto
-  if(st.contexto) delete st.contexto.campo;
+// Asegura que exista un espacio (estado operativo) para la empresa activa del
+// contexto y lo deja activo. Llamada en el boot y al cambiar de empresa.
+// nombreEmpresa es opcional (para mostrar en el selector / header).
+function syncRootConContexto(empresaId, nombreEmpresa){
+  if(!empresaId){
+    // Fallback sin contexto: usar (o crear) un espacio demo local único.
+    if(!Object.keys(root.espacios).length){
+      root.espacios['__local__']={nombre:'Local (sin servidor)', state: baseStateEmpty()};
+    }
+    root.activoId = root.activoId && root.espacios[root.activoId] ? root.activoId : Object.keys(root.espacios)[0];
+  } else {
+    if(!root.espacios[empresaId]){
+      root.espacios[empresaId]={nombre: nombreEmpresa||empresaId, state: baseStateEmpty()};
+    } else if(nombreEmpresa){
+      root.espacios[empresaId].nombre = nombreEmpresa;
+    }
+    root.activoId = empresaId;
+  }
+  state = root.espacios[root.activoId].state;
+  // La empresa del "contexto" interno se deriva del CTX (no se edita a mano).
+  if(state.contexto && nombreEmpresa){ state.contexto.empresa = nombreEmpresa; }
+  // Inyectar catálogos COMPARTIDOS (campos, lotes, actividades, contratistas, labores)
+  // desde pa-core, filtrados por la empresa activa. Son de SOLO LECTURA en este tablero:
+  // se crean/editan en Plan de Uso y Maestros (modelo §8). Insumos NO se migra todavía.
+  inyectarCatalogosDesdePA(empresaId);
+  // Migrar/limpiar el estado operativo si hiciera falta.
+  if(migrarOTsADestinos(state)) {/* limpieza aplicada */}
+  saveRoot();
 }
+
+// Rellena en state los catálogos compartidos desde PA.demo.*, mapeando al formato
+// que el tablero ya espera. Si PA no está (archivo suelto), deja los del state local.
+// Marca catalogosReadOnly=true cuando el origen es el contexto (para bloquear edición).
+function inyectarCatalogosDesdePA(empresaId){
+  if(typeof PA==='undefined' || !PA.demo || !empresaId){ state.catalogosReadOnly=false; return; }
+  state.catalogosReadOnly=true;
+
+  // CAMPOS: {id, empresaId, nombre, localidad,...} -> {id, nombre, localidad}
+  var campos = PA.demo.camposDeEmpresa(empresaId) || [];
+  state.campos = campos.map(function(c){ return { id:c.id, nombre:c.nombre, localidad:c.localidad||'' }; });
+
+  // TIPOS DE ACTIVIDAD (cultivos/usos) -> lista de NOMBRES (formato del tablero)
+  var tipos = PA.demo.listarTiposActividad(empresaId) || [];
+  var nombresAct=[], byId={}, bySigla={};
+  for(var t=0;t<tipos.length;t++){
+    if(tipos[t].activo===false) continue;
+    nombresAct.push(tipos[t].nombre);
+    byId[tipos[t].id]=tipos[t].nombre;
+    if(tipos[t].sigla) bySigla[tipos[t].sigla]=tipos[t].nombre;
+  }
+  state.actividades = nombresAct;
+
+  // LOTES: {id, campoId, nombre, ha, ambiente} + actividades[] reconstruidas
+  // desde las ACTIVIDADES (lote+cultivo+campaña). El tablero espera lote.actividades
+  // como lista de nombres de cultivo; tomamos los distintos cultivos del lote.
+  var lotesPA = PA.demo.listarLotes(empresaId) || [];
+  var actsPA  = PA.demo.listarActividades(empresaId) || [];
+  var actsPorLote={};
+  for(var a=0;a<actsPA.length;a++){
+    var ac=actsPA[a];
+    var nom = byId[ac.tipoActividadId] || bySigla[ac.sigla] || ac.sigla || null;
+    if(!nom) continue;
+    if(!actsPorLote[ac.loteId]) actsPorLote[ac.loteId]={};
+    actsPorLote[ac.loteId][nom]=true;
+  }
+  state.lotes = lotesPA.map(function(l){
+    var acts = actsPorLote[l.id] ? Object.keys(actsPorLote[l.id]) : [];
+    return { id:l.id, nombre:l.nombre, ha:l.ha, campoId:l.campoId, actividades:acts };
+  });
+
+  // CONTRATISTAS: terceros con rol 'contratista' -> {id, nombre}
+  var terc = PA.demo.listarTerceros(empresaId, 'contratista') || [];
+  state.contratistas = terc.map(function(t){ return { id:t.id, nombre:t.nombre }; });
+
+  // PROVEEDORES: terceros con rol 'proveedor' -> {id, nombre}. Cabecera de comprobantes de compra.
+  var provs = PA.demo.listarTerceros(empresaId, 'proveedor') || [];
+  state.proveedores = provs.map(function(t){ return { id:t.id, nombre:t.nombre }; });
+
+  // LABORES: lista global {id, nombre, precioRef}. El tablero separa LP (propias, con
+  // tarifaDefault) y LC (contratadas). Mapeamos la misma lista a ambas, preservando
+  // tarifaDefault desde precioRef en LP.
+  var labs = PA.demo.listarLabores() || [];
+  state.laboresLP = labs.map(function(l){ return { nombre:l.nombre, tarifaDefault:Number(l.precioRef)||0 }; });
+  state.laboresLC = labs.map(function(l){ return { nombre:l.nombre }; });
+
+  // INSUMOS (híbrido): la IDENTIDAD (nombre, categoría, unidad) viene de pa-core y es
+  // de solo lectura; los datos OPERATIVOS de stock (stockInicialPorDep, deposito, precio…)
+  // son propios del tablero y se preservan por id. El stock real surge de los movimientos.
+  var insPA = PA.demo.listarInsumos(empresaId) || [];
+  var unidades = PA.demo.listarUnidades() || [];
+  var unById={}; for(var u=0;u<unidades.length;u++){ unById[unidades[u].id]=unidades[u].sigla||unidades[u].nombre; }
+  // Indexar lo operativo previo por id para no perder stock cargado en esta empresa.
+  var opPrev={}; for(var p=0;p<(state.insumos||[]).length;p++){ opPrev[state.insumos[p].id]=state.insumos[p]; }
+  // Con contexto, las categorías (catInsumos) las MANDA pa-core: se reconstruyen desde cero
+  // con los 'tipo' de los insumos, sin los defaults plurales del tablero (evita duplicados
+  // singular/plural). El orden sigue el de aparición.
+  var catSet={}; state.catInsumos=[];
+  state.insumos = insPA.map(function(ins){
+    if(ins.activo===false) return null;
+    var prev = opPrev[ins.id] || {};
+    // La categoría del insumo (tipo) se asegura presente en catInsumos.
+    if(ins.tipo && !catSet[ins.tipo]){ state.catInsumos.push(ins.tipo); catSet[ins.tipo]=true; }
+    return {
+      id: ins.id,
+      nombre: ins.nombre,
+      cat: ins.tipo || prev.cat || (state.catInsumos[0]||'Varios'),
+      un: unById[ins.unidadId] || prev.un || 'Un',
+      // operativo (preservado o default). El stock inicial ya NO es atributo del insumo:
+      // es un movimiento 'Stock inicial'. Se conserva 'deposito' como sugerencia por default.
+      deposito: prev.deposito || ((state.depositos[0]&&state.depositos[0].nombre)||''),
+      stockMin: Number(prev.stockMin)||0,
+      precioUnitario: Number(prev.precioUnitario)||0,
+      moneda: prev.moneda || 'ARS'
+    };
+  }).filter(function(x){ return x; });
+
+  // CAMPAÑAS (global): etiqueta de gestión para OT/movimientos y filtros de vistas.
+  var camps = PA.demo.listarCampanias() || [];
+  state.campanias = camps.map(function(c){ return { id:c.id, nombre:c.nombre, orden:c.orden, activa:!!c.activa }; });
+  var ca = PA.demo.campaniaActiva();
+  state.campaniaActivaId = ca ? ca.id : (state.campanias.length ? state.campanias[state.campanias.length-1].id : '');
+}
+
+// Guard de solo lectura para catálogos compartidos. Si están en modo lectura
+// (origen contexto), avisa dónde se editan y corta la acción (devuelve true).
+// Los catálogos compartidos se gestionan en Plan de Uso del Suelo y Maestros (modelo §8).
+function bloqueadoSiReadOnly(queCatalogo){
+  if(state && state.catalogosReadOnly){
+    var donde = {
+      'campos':'Administración', 'lotes':'Plan de Uso del Suelo',
+      'actividades':'Maestros', 'contratistas':'Maestros',
+      'labores':'Maestros', 'insumos':'Maestros'
+    }[queCatalogo] || 'Maestros';
+    toast('Este catálogo es de solo lectura acá. Se edita en '+donde+'.');
+    return true;
+  }
+  return false;
+}
+
+// Deshabilita inputs/selects/botones de alta-baja dentro de #maestrosCard cuando los
+// catálogos son de solo lectura. Para los renders (campos/lotes/contratistas) que tienen
+// edición inline: muestra el dato pero impide mutarlo. Agrega un aviso de dónde se edita.
+function aplicarSoloLecturaMaestros(donde){
+  if(!state || !state.catalogosReadOnly) return;
+  var card=byId('maestrosCard'); if(!card) return;
+  var ctrls=card.querySelectorAll('input, select');
+  for(var i=0;i<ctrls.length;i++){ ctrls[i].setAttribute('disabled','disabled'); ctrls[i].style.opacity='.7'; ctrls[i].style.cursor='not-allowed'; }
+  var btns=card.querySelectorAll('button');
+  for(var b=0;b<btns.length;b++){
+    var oc=btns[b].getAttribute('onclick')||'';
+    // Solo neutralizamos botones de alta/baja (push/splice/add/del); dejamos los de orden.
+    if(/push|splice|add[A-Z]|del[A-Z]|remove[A-Z]/i.test(oc)){ btns[b].setAttribute('disabled','disabled'); btns[b].style.opacity='.5'; btns[b].style.cursor='not-allowed'; btns[b].onclick=null; }
+  }
+  var chd=card.querySelector('.chd');
+  if(chd && !card.querySelector('.ro-badge')){
+    var span=document.createElement('span');
+    span.className='bdg ro-badge'; span.style.background='#E8EDF2'; span.style.color='#475569';
+    span.textContent='Solo lectura';
+    chd.appendChild(span);
+  }
+}
+
 // Convierte OTs en formato viejo (1 lote: loteId/lineas/ha/aplicaciones) al modelo nuevo con destinos[]
 function migrarOTsADestinos(st){
   if(!st) return;
   if(!st.contratistas) st.contratistas=[];
-  // Migrar insumos: stockInicial+deposito (modelo viejo) -> stockInicialPorDep {dep: cant}
-  if(st.insumos){
-    for(var ii=0;ii<st.insumos.length;ii++){
-      var ins=st.insumos[ii];
-      if(!ins.stockInicialPorDep){
-        ins.stockInicialPorDep={};
-        if(ins.deposito && (Number(ins.stockInicial)||0)!==0){
-          ins.stockInicialPorDep[ins.deposito]=Number(ins.stockInicial)||0;
-        }
-        // ins.deposito se mantiene como "depósito principal/default"
-      }
+  if(!st.comprobantes) st.comprobantes=[];
+  // Asegurar tipo 'Stock inicial' en estados guardados antes de su incorporación al seed.
+  if(st.tiposMov){
+    var tieneSI=false; for(var ti=0;ti<st.tiposMov.length;ti++){ if(st.tiposMov[ti].nombre==='Stock inicial'){ tieneSI=true; break; } }
+    if(!tieneSI){ st.tiposMov.unshift({nombre:'Stock inicial',signo:1,requiereDestino:true,requiereOrigen:false}); }
+  }
+
+  // ── Migración a modelo comprobante+líneas (una sola vez) ──────────────
+  // 1) Movimientos viejos (fecha/tipo/comp/origen/destino en la propia línea) →
+  //    cada uno genera su comprobante (cabecera) y la línea queda con comprobanteId
+  //    + origenId/destinoId (resueltos por nombre). Se detecta "viejo" por: tiene
+  //    fecha/tipo en la línea y NO tiene comprobanteId.
+  var depByNom={}; for(var dn0=0;dn0<st.depositos.length;dn0++) depByNom[st.depositos[dn0].nombre]=st.depositos[dn0].id;
+  var migMov=false;
+  if(st.movtos){
+    for(var mm0=0;mm0<st.movtos.length;mm0++){
+      var m0=st.movtos[mm0];
+      if(m0.comprobanteId) continue; // ya migrado
+      // crear cabecera desde los campos viejos de la línea
+      var comp={
+        id:uid(), fecha:m0.fecha||'', tipo:m0.tipo||'', comp_tipo:m0.comp_tipo||'',
+        comp_nro:m0.comp_nro||'', proveedorId:'', campaniaId:m0.campaniaId||'',
+        obs:m0.obs||'', refOt:m0.refOt||'', refOtNum:m0.refOtNum||''
+      };
+      st.comprobantes.push(comp);
+      m0.comprobanteId=comp.id;
+      // resolver depósitos a id
+      if(m0.origenId===undefined) m0.origenId = m0.origen ? (depByNom[m0.origen]||'') : '';
+      if(m0.destinoId===undefined) m0.destinoId = m0.destino ? (depByNom[m0.destino]||'') : '';
+      // limpiar campos viejos de la línea (quedan en la cabecera)
+      delete m0.fecha; delete m0.tipo; delete m0.comp_tipo; delete m0.comp_nro;
+      delete m0.campaniaId; delete m0.obs; delete m0.origen; delete m0.destino;
+      // refOt/refOtNum se mantienen también en la cabecera; en la línea ya no hacen falta
+      delete m0.refOt; delete m0.refOtNum;
+      migMov=true;
     }
   }
+  // 2) Stock inicial del insumo (stockInicialPorDep / stockInicial+deposito) →
+  //    un único comprobante "Inventario inicial" con N líneas. Luego se limpia del insumo.
+  if(st.insumos){
+    var lineasIni=[];
+    for(var ii=0;ii<st.insumos.length;ii++){
+      var ins=st.insumos[ii];
+      var mapa=null;
+      if(ins.stockInicialPorDep && typeof ins.stockInicialPorDep==='object'){ mapa=ins.stockInicialPorDep; }
+      else if(ins.deposito && (Number(ins.stockInicial)||0)!==0){ mapa={}; mapa[ins.deposito]=Number(ins.stockInicial)||0; }
+      if(mapa){
+        for(var dnm in mapa){ if(mapa.hasOwnProperty(dnm)){
+          var cant=Number(mapa[dnm])||0;
+          if(cant!==0){ lineasIni.push({insumoId:ins.id, cant:cant, destId: depByNom[dnm]||'' , destNom:dnm}); }
+        }}
+      }
+      // limpiar del insumo (ya no es su atributo)
+      if(ins.stockInicialPorDep!==undefined) delete ins.stockInicialPorDep;
+      if(ins.stockInicial!==undefined) delete ins.stockInicial;
+    }
+    if(lineasIni.length){
+      var compIni={ id:uid(), fecha:'', tipo:'Stock inicial', comp_tipo:'', comp_nro:'',
+        proveedorId:'', campaniaId:(st.campaniaActivaId||''), obs:'Inventario inicial (migrado)', refOt:'', refOtNum:'' };
+      st.comprobantes.push(compIni);
+      for(var li=0;li<lineasIni.length;li++){
+        var L=lineasIni[li];
+        st.movtos.push({ id:uid(), comprobanteId:compIni.id, insumoId:L.insumoId, cant:L.cant,
+          origenId:'', destinoId:L.destId });
+      }
+      migMov=true;
+    }
+  }
+
   // Limpieza: Consumo OT / Baja por aplicación OT viejos guardaban el LOTE en "destino"
-  // (lo que generaba depósitos fantasma como "L1"). Si el destino no es un depósito real,
-  // se deja el destino vacío (el lote ya consta en la observación). Solo afecta movimientos refOt.
+  // (depósitos fantasma como "L1"). Si el destinoId no resuelve a depósito real, se vacía.
   var movLimpiados=false;
   if(st.movtos && st.depositos){
-    var depRealesMig={};
-    for(var dpm=0;dpm<st.depositos.length;dpm++) depRealesMig[st.depositos[dpm].nombre]=true;
+    var depRealById={};
+    for(var dpm=0;dpm<st.depositos.length;dpm++) depRealById[st.depositos[dpm].id]=true;
     for(var mm=0;mm<st.movtos.length;mm++){
       var mv=st.movtos[mm];
-      if(!mv.refOt) continue;                 // solo automáticos de OT
-      if(mv.destino && !depRealesMig[mv.destino]){
-        mv.destino='';
+      var cabmv=null; for(var ci=0;ci<st.comprobantes.length;ci++){ if(st.comprobantes[ci].id===mv.comprobanteId){ cabmv=st.comprobantes[ci]; break; } }
+      if(!cabmv || !cabmv.refOt) continue;     // solo automáticos de OT
+      if(mv.destinoId && !depRealById[mv.destinoId]){
+        mv.destinoId='';
         movLimpiados=true;
       }
     }
@@ -996,7 +1118,7 @@ function migrarOTsADestinos(st){
   if(!st.tcMensual || typeof st.tcMensual!=='object') st.tcMensual={};
   if(st.tcApertura===undefined) st.tcApertura=0;
   if(st.tcCierre===undefined) st.tcCierre=0;
-  if(!st.ots){ return movLimpiados; }
+  if(!st.ots){ return movLimpiados || migMov; }
   // Campos de facturación de contratista (default)
   for(var fi=0;fi<st.ots.length;fi++){
     var of=st.ots[fi];
@@ -1049,7 +1171,7 @@ function migrarOTsADestinos(st){
     if(o.estado!=='Cancelada') o.estado = aplicado ? 'Aplicada' : 'Pendiente';
   }
   if(cambió) saveRoot();
-  return movLimpiados || cambió;
+  return movLimpiados || cambió || migMov;
 }
 function save(){ saveRoot(); }
 
@@ -1097,68 +1219,89 @@ function marcarFiltrosActivos(ids, clearBtnId){
 }
 function toast(msg){ var t=byId('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(function(){ t.classList.remove('on'); }, 2000); }
 function getInsumo(id){ for(var i=0;i<state.insumos.length;i++) if(state.insumos[i].id===id) return state.insumos[i]; return null; }
+// Campañas: helpers de nombre y de <option>s (etiqueta de gestión, global).
+function getCampaniaNombre(id){ if(!id) return ''; var cs=state.campanias||[]; for(var i=0;i<cs.length;i++) if(cs[i].id===id) return cs[i].nombre; return id; }
+function campaniaOptions(selId, incluirTodas){
+  var cs=state.campanias||[]; var html='';
+  if(incluirTodas) html+='<option value="">Todas las campañas</option>';
+  for(var i=0;i<cs.length;i++){ html+='<option value="'+esc(cs[i].id)+'"'+(cs[i].id===selId?' selected':'')+'>'+esc(cs[i].nombre)+'</option>'; }
+  return html;
+}
 function getTipoMov(nombre){ for(var i=0;i<state.tiposMov.length;i++) if(state.tiposMov[i].nombre===nombre) return state.tiposMov[i]; return null; }
-function getLote(nombre){ for(var i=0;i<state.lotes.length;i++) if(state.lotes[i].nombre===nombre) return state.lotes[i]; return null; }
 function getCampo(id){ if(!id) return null; for(var i=0;i<state.campos.length;i++) if(state.campos[i].id===id) return state.campos[i]; return null; }
 function getCampoNombre(id){ var c=getCampo(id); return c?c.nombre:'— General —'; }
 function getLoteById(id){ for(var i=0;i<state.lotes.length;i++) if(state.lotes[i].id===id) return state.lotes[i]; return null; }
-function getLoteByNombreYCampo(nombre, campoId){ for(var i=0;i<state.lotes.length;i++) if(state.lotes[i].nombre===nombre && state.lotes[i].campoId===campoId) return state.lotes[i]; return null; }
 function getDepositoByNombre(nombre){ for(var i=0;i<state.depositos.length;i++) if(state.depositos[i].nombre===nombre) return state.depositos[i]; return null; }
-function getCampoIdByDeposito(nombre){ var d=getDepositoByNombre(nombre); return d?d.campoId:null; }
-function getCampoIdByInsumo(insumoId){ var ins=getInsumo(insumoId); if(!ins) return null; return getCampoIdByDeposito(ins.deposito); }
-function getLabor(arr, nombre){ for(var i=0;i<arr.length;i++) if(arr[i].nombre===nombre) return arr[i]; return null; }
+function getDepositoById(id){ if(!id) return null; for(var i=0;i<state.depositos.length;i++) if(state.depositos[i].id===id) return state.depositos[i]; return null; }
+function getDepositoNombreById(id){ var d=getDepositoById(id); return d?d.nombre:''; }
+// Comprobante (cabecera) de una línea de movimiento. Devuelve null si no lo encuentra.
+function compDe(mov){ if(!mov||!mov.comprobanteId) return null; for(var i=0;i<state.comprobantes.length;i++) if(state.comprobantes[i].id===mov.comprobanteId) return state.comprobantes[i]; return null; }
+function getComprobanteById(id){ if(!id) return null; for(var i=0;i<state.comprobantes.length;i++) if(state.comprobantes[i].id===id) return state.comprobantes[i]; return null; }
+// Elimina comprobantes que quedaron sin ninguna línea (p.ej. tras deshacer una aplicación de OT).
+function limpiarComprobantesHuerfanos(){
+  var conLineas={};
+  for(var i=0;i<state.movtos.length;i++){ conLineas[state.movtos[i].comprobanteId]=true; }
+  state.comprobantes=state.comprobantes.filter(function(c){ return conLineas[c.id]; });
+}
+// Acceso uniforme a campos que ANTES vivían en la línea y ahora en la cabecera.
+// Con fallback al valor viejo en la propia línea (para datos sin migrar / robustez).
+function movFecha(m){ var c=compDe(m); return (c&&c.fecha)||m.fecha||''; }
+function movTipo(m){ var c=compDe(m); return (c&&c.tipo)||m.tipo||''; }
+function movCampania(m){ var c=compDe(m); return (c&&c.campaniaId)||m.campaniaId||''; }
+// Depósito por id con fallback al nombre viejo (datos sin migrar).
+function movOrigenNom(m){ if(m.origenId) return getDepositoNombreById(m.origenId); return m.origen||''; }
+function movDestinoNom(m){ if(m.destinoId) return getDepositoNombreById(m.destinoId); return m.destino||''; }
 function todayISO(){ var d=new Date(); var m=String(d.getMonth()+1).padStart(2,'0'); var dd=String(d.getDate()).padStart(2,'0'); return d.getFullYear()+'-'+m+'-'+dd; }
-function inRange(fecha, desde, hasta){ if(!fecha) return false; if(desde && fecha<desde) return false; if(hasta && fecha>hasta) return false; return true; }
 
 /* ================================================================
-   STOCK - cálculo en base a movimientos
+   STOCK - cálculo en base a movimientos (líneas)
+   Modelo: cada línea tiene origenId/destinoId (id de depósito). El stock
+   inicial es ahora un movimiento más (tipo 'Stock inicial'), no un campo del
+   insumo. Helpers movOrigenNom/movDestinoNom dan fallback a datos sin migrar.
 ================================================================ */
-// Stock inicial de un insumo en un depósito (lee el mapa stockInicialPorDep; fallback al modelo viejo)
-function stockInicialDep(ins, depNombre){
-  if(!ins) return 0;
-  if(ins.stockInicialPorDep && ins.stockInicialPorDep.hasOwnProperty(depNombre)) return Number(ins.stockInicialPorDep[depNombre])||0;
-  // fallback modelo viejo: todo el stockInicial estaba en ins.deposito
-  if(ins.deposito===depNombre) return Number(ins.stockInicial)||0;
-  return 0;
-}
-// Stock de un insumo EN UN depósito: inicial + entradas a ese dep − salidas desde ese dep (traslados mueven entre deps)
-function calcStockDep(insumoId, depNombre){
-  var ins=getInsumo(insumoId);
-  if(!ins) return {ini:0,ent:0,sal:0,actual:0};
-  var ini=stockInicialDep(ins, depNombre), ent=0, sal=0;
+// Stock de un insumo EN UN depósito (por id): entradas a ese dep − salidas desde ese dep.
+function calcStockDepId(insumoId, depId){
+  var ent=0, sal=0;
   for(var i=0;i<state.movtos.length;i++){
     var m=state.movtos[i];
     if(m.insumoId!==insumoId) continue;
-    var t=getTipoMov(m.tipo);
+    var t=getTipoMov(movTipo(m));
     if(!t) continue;
     var c=Number(m.cant)||0;
+    var oId = m.origenId || (m.origen?(getDepositoByNombre(m.origen)||{}).id:'') || '';
+    var dId = m.destinoId || (m.destino?(getDepositoByNombre(m.destino)||{}).id:'') || '';
     if(t.signo===1){            // entrada: suma al destino
-      if((m.destino||'')===depNombre) ent+=c;
+      if(dId===depId) ent+=c;
     } else if(t.signo===-1){    // salida: resta del origen
-      if((m.origen||'')===depNombre) sal+=c;
-    } else if(t.signo===0){     // traslado: resta del origen, suma al destino
-      if((m.origen||'')===depNombre) sal+=c;
-      if((m.destino||'')===depNombre) ent+=c;
+      if(oId===depId) sal+=c;
+    } else if(t.signo===0){     // traslado: resta origen, suma destino
+      if(oId===depId) sal+=c;
+      if(dId===depId) ent+=c;
     }
   }
-  return {ini:ini, ent:ent, sal:sal, actual:ini+ent-sal};
+  return {ini:0, ent:ent, sal:sal, actual:ent-sal};
 }
-// Lista de depósitos REALES donde el insumo tiene stock inicial o algún movimiento.
-// Importante: solo cuenta nombres que existan en state.depositos. Los Consumo OT viejos
-// guardaban el lote en "destino", lo que generaba depósitos fantasma (ej: "L1"); se ignoran.
+// Compat: versión por nombre (resuelve a id y delega). Mantiene la firma usada en la UI.
+function calcStockDep(insumoId, depNombre){
+  var dep=getDepositoByNombre(depNombre);
+  if(!dep) return {ini:0,ent:0,sal:0,actual:0};
+  return calcStockDepId(insumoId, dep.id);
+}
+// Lista de depósitos REALES (por nombre, para la UI) donde el insumo tiene algún movimiento.
+// Ya no hay "stock inicial" del insumo: el inicial es un movimiento más. Solo cuenta
+// depósitos que existan en state.depositos (ignora referencias fantasma).
 function listDepositosConStock(insumoId){
   var ins=getInsumo(insumoId); if(!ins) return [];
-  var depReales={};
-  for(var dp=0;dp<state.depositos.length;dp++) depReales[state.depositos[dp].nombre]=true;
+  var depRealesById={}, depRealesByNom={};
+  for(var dp=0;dp<state.depositos.length;dp++){ depRealesById[state.depositos[dp].id]=state.depositos[dp].nombre; depRealesByNom[state.depositos[dp].nombre]=true; }
   var set={};
-  // depósitos con stock inicial > 0
-  if(ins.stockInicialPorDep){ for(var dn in ins.stockInicialPorDep){ if(ins.stockInicialPorDep.hasOwnProperty(dn) && (Number(ins.stockInicialPorDep[dn])||0)!==0 && depReales[dn]) set[dn]=true; } }
-  else if(ins.deposito && (Number(ins.stockInicial)||0)!==0 && depReales[ins.deposito]){ set[ins.deposito]=true; }
-  // depósitos tocados por movimientos (solo si son depósitos reales)
   for(var i=0;i<state.movtos.length;i++){
     var m=state.movtos[i]; if(m.insumoId!==insumoId) continue;
-    if(m.origen && depReales[m.origen]) set[m.origen]=true;
-    if(m.destino && depReales[m.destino]) set[m.destino]=true;
+    // resolver origen/destino a nombre real
+    var oNom = m.origenId ? depRealesById[m.origenId] : (depRealesByNom[m.origen]?m.origen:null);
+    var dNom = m.destinoId ? depRealesById[m.destinoId] : (depRealesByNom[m.destino]?m.destino:null);
+    if(oNom) set[oNom]=true;
+    if(dNom) set[dNom]=true;
   }
   var arr=[]; for(var k in set){ if(set.hasOwnProperty(k)) arr.push(k); }
   return arr;
@@ -1176,289 +1319,200 @@ function calcStockInsumo(insumoId){
    CIERRE / NUEVA CAMPAÑA
 ================================================================ */
 // Calcula el stock por insumo·depósito de un STATE dado, considerando solo movimientos
-// hasta la fecha de corte (inclusive). Devuelve { insumoId: { depNombre: saldo } }.
+// (líneas) hasta la fecha de corte inclusive. Devuelve { insumoId: { depNombre: saldo } }.
+// El stock inicial ya no es un campo del insumo: es un movimiento 'Stock inicial' más.
 function calcCierrePorFecha(st, fechaCorte){
   var tipos={}; for(var t=0;t<st.tiposMov.length;t++) tipos[st.tiposMov[t].nombre]=st.tiposMov[t];
+  // índices de depósito (id→nombre) y comprobantes (id→cab) del state dado
+  var depNom={}; for(var dd=0;dd<st.depositos.length;dd++) depNom[st.depositos[dd].id]=st.depositos[dd].nombre;
+  var compById={}; for(var cb=0;cb<(st.comprobantes||[]).length;cb++) compById[st.comprobantes[cb].id]=st.comprobantes[cb];
+  function nomDe(idOrName){ if(!idOrName) return ''; return depNom[idOrName] || idOrName; } // id→nombre, o nombre viejo tal cual
   var res={};
   function dep(insId){ if(!res[insId]) res[insId]={}; return res[insId]; }
-  // 1) stock inicial de cada insumo por depósito
-  for(var i=0;i<st.insumos.length;i++){
-    var ins=st.insumos[i];
-    var d=dep(ins.id);
-    if(ins.stockInicialPorDep){
-      for(var dn in ins.stockInicialPorDep){ if(ins.stockInicialPorDep.hasOwnProperty(dn)){ d[dn]=(d[dn]||0)+(Number(ins.stockInicialPorDep[dn])||0); } }
-    } else if(ins.deposito){
-      d[ins.deposito]=(d[ins.deposito]||0)+(Number(ins.stockInicial)||0);
-    }
-  }
-  // 2) aplicar movimientos hasta la fecha de corte
   for(var m=0;m<st.movtos.length;m++){
     var mv=st.movtos[m];
-    if(fechaCorte && (mv.fecha||'')>fechaCorte) continue; // ignora posteriores al corte
-    var tp=tipos[mv.tipo]; if(!tp) continue;
+    var cab=compById[mv.comprobanteId];
+    var fecha=(cab&&cab.fecha)||mv.fecha||'';
+    if(fechaCorte && fecha>fechaCorte) continue; // ignora posteriores al corte
+    var tipoNom=(cab&&cab.tipo)||mv.tipo||'';
+    var tp=tipos[tipoNom]; if(!tp) continue;
     var c=Number(mv.cant)||0;
     var d2=dep(mv.insumoId);
-    if(tp.signo===1){ if(mv.destino){ d2[mv.destino]=(d2[mv.destino]||0)+c; } }
-    else if(tp.signo===-1){ if(mv.origen){ d2[mv.origen]=(d2[mv.origen]||0)-c; } }
-    else if(tp.signo===0){ if(mv.origen){ d2[mv.origen]=(d2[mv.origen]||0)-c; } if(mv.destino){ d2[mv.destino]=(d2[mv.destino]||0)+c; } }
+    var oNom=nomDe(mv.origenId||mv.origen);
+    var dNom=nomDe(mv.destinoId||mv.destino);
+    if(tp.signo===1){ if(dNom){ d2[dNom]=(d2[dNom]||0)+c; } }
+    else if(tp.signo===-1){ if(oNom){ d2[oNom]=(d2[oNom]||0)-c; } }
+    else if(tp.signo===0){ if(oNom){ d2[oNom]=(d2[oNom]||0)-c; } if(dNom){ d2[dNom]=(d2[dNom]||0)+c; } }
   }
   return res;
 }
-// Clona los maestros de un state (sin movimientos ni OTs). Mantiene los mismos IDs para
-// que las OTs pendientes arrastradas sigan apuntando a los lotes/campos correctos.
-function clonarMaestros(st){
-  var clone=JSON.parse(JSON.stringify({
-    contexto:{empresa:st.contexto?st.contexto.empresa:'', campaña:''},
-    catInsumos:st.catInsumos, insumos:st.insumos, campos:st.campos, lotes:st.lotes,
-    depositos:st.depositos, actividades:st.actividades, laboresLP:st.laboresLP, laboresLC:st.laboresLC,
-    tiposMov:st.tiposMov, contratistas:st.contratistas
-  }));
-  // limpiar stock inicial de los insumos (se setea con el cierre)
-  for(var i=0;i<clone.insumos.length;i++){ clone.insumos[i].stockInicialPorDep={}; clone.insumos[i].stockInicial=0; }
-  clone.movtos=[];
-  clone.ots=[];
-  clone.nextOt=1;
-  return clone;
-}
-// Estado temporal del asistente de nueva campaña
-var nuevaCampTmp=null;
 function refreshWsSelect(){
   var sel=byId('wsSel');
   sel.innerHTML='';
-  var ids=Object.keys(root.espacios);
-  for(var i=0;i<ids.length;i++){
-    var id=ids[i];
-    sel.innerHTML+='<option value="'+id+'"'+(id===root.activoId?' selected':'')+'>'+esc(root.espacios[id].nombre)+'</option>';
+  // Con contexto: listar empresas disponibles del usuario. Sin contexto: el espacio local.
+  if(CTX && CTX.empresasDisponibles && CTX.empresasDisponibles.length){
+    for(var i=0;i<CTX.empresasDisponibles.length;i++){
+      var e=CTX.empresasDisponibles[i];
+      sel.innerHTML+='<option value="'+e.id+'"'+(e.id===root.activoId?' selected':'')+'>'+esc(e.razonSocial||e.nombre||e.id)+'</option>';
+    }
+  } else {
+    var ids=Object.keys(root.espacios);
+    for(var j=0;j<ids.length;j++){
+      var id=ids[j];
+      sel.innerHTML+='<option value="'+id+'"'+(id===root.activoId?' selected':'')+'>'+esc(root.espacios[id].nombre)+'</option>';
+    }
   }
 }
+// Cambia de empresa activa. Con contexto, recarga el CTX vía pa-core y sincroniza
+// el estado operativo de esa empresa; sin contexto, cae al modo espacio-local.
 function switchWs(id){
+  if(CTX && typeof PA!=='undefined'){
+    PA.setEmpresaActiva(id, function(err, ctx){
+      if(!err && ctx){ CTX=ctx; }
+      var emp=null;
+      for(var i=0;i<CTX.empresasDisponibles.length;i++){ if(CTX.empresasDisponibles[i].id===id){ emp=CTX.empresasDisponibles[i]; break; } }
+      syncRootConContexto(id, emp?(emp.razonSocial||emp.nombre):null);
+      refreshCtx();
+      setTab(currentTab, document.querySelector('.inst-btn[data-tab="'+currentTab+'"]'));
+      toast('Empresa: '+(emp?(emp.razonSocial||emp.nombre):id));
+    });
+    return;
+  }
+  // Fallback sin contexto
   if(!root.espacios[id]) return;
   root.activoId=id;
   state=root.espacios[id].state;
   saveRoot();
   refreshCtx();
-  // re-render del tab actual
   setTab(currentTab, document.querySelector('.inst-btn[data-tab="'+currentTab+'"]'));
-  toast('Espacio: '+root.espacios[id].nombre);
 }
-function openWsModal(){
-  var ids=Object.keys(root.espacios);
-  var rows='';
-  for(var i=0;i<ids.length;i++){
-    var id=ids[i], ws=root.espacios[id];
-    var st=ws.state;
-    var info=(st.contexto.empresa||'—')+' · '+(st.contexto.campaña?'Campaña '+st.contexto.campaña:'(sin campaña)')+' · '+(st.campos?st.campos.length:0)+' campo(s)';
-    var disableDel = ids.length===1 ? 'disabled title="No podés borrar el único espacio"' : '';
-    rows+='<tr>'+
-      '<td><input value="'+esc(ws.nombre)+'" oninput="root.espacios[\''+id+'\'].nombre=this.value;saveRoot();refreshWsSelect()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
-      '<td class="tdname" style="font-size:11px;color:var(--muted)">'+esc(info)+'</td>'+
-      '<td>'+(id===root.activoId?'<span class="bdg bg">Activo</span>':'<button class="btn btn-sm" onclick="switchWs(\''+id+'\');openWsModal()">Activar</button>')+'</td>'+
-      '<td><button class="btn btn-sm" onclick="duplicateWs(\''+id+'\')">Duplicar</button></td>'+
-      '<td><button class="btn btn-sm btn-danger" '+disableDel+' onclick="deleteWs(\''+id+'\')">✕</button></td>'+
-      '</tr>';
-  }
-  byId('modalContent').innerHTML=
-    '<h3>Espacios de trabajo</h3>'+
-    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Cada espacio tiene sus propios datos. Útil para manejar varios clientes / campañas. Cuando pasemos a servidor, cada espacio será una cuenta separada.</p>'+
-    '<div class="tw"><table><thead><tr><th>Nombre</th><th>Contexto</th><th>Estado</th><th></th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-    '<div class="fact" style="justify-content:space-between">'+
-      '<div style="display:flex;gap:8px">'+
-        '<button class="btn btn-primary" onclick="createWs()">+ Nuevo espacio</button>'+
-        '<button class="btn" onclick="openNuevaCampania()" title="Cerrar la campaña actual y arrancar una nueva con el stock final como inicial">🌱 Iniciar nueva campaña</button>'+
-      '</div>'+
-      '<button class="btn" onclick="closeModal()">Cerrar</button>'+
-    '</div>';
-  byId('modalBg').classList.add('on');
-}
-function createWs(){
-  byId('modalContent').innerHTML=
-    '<h3>Nuevo espacio</h3>'+
-    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Cada espacio representa un cliente con sus campos, lotes, insumos y movimientos.</p>'+
-    '<div class="form-row"><div class="fld fld-full"><label>Nombre del espacio</label><input id="newWsName" placeholder="Ej: Albor SA" autofocus></div></div>'+
-    '<div class="form-row"><div class="fld fld-full"><label>Contenido inicial</label>'+
-      '<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">'+
-        '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer"><input type="radio" name="newWsKind" value="empty" checked style="margin-top:3px"><span><strong>Vacío</strong> — un campo "Campo principal" y un depósito; sin lotes, insumos ni movimientos.</span></label>'+
-        '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer"><input type="radio" name="newWsKind" value="demo" style="margin-top:3px"><span><strong>Con datos demo</strong> — 2 campos (El Puntal y La Esperanza), 10 insumos típicos, 5 lotes por campo, tarifas demo.</span></label>'+
-      '</div>'+
-    '</div></div>'+
-    '<div class="fact">'+
-      '<button class="btn" onclick="openWsModal()">Volver</button>'+
-      '<button class="btn btn-primary" onclick="doCreateWs()">Crear</button>'+
-    '</div>';
-  byId('modalBg').classList.add('on');
-  setTimeout(function(){ byId('newWsName').focus(); },50);
-}
-function doCreateWs(){
-  var nombre=byId('newWsName').value.trim();
-  if(!nombre){ alert('Ingresá un nombre para el espacio.'); return; }
-  var kind='empty';
-  var radios=document.getElementsByName('newWsKind');
-  for(var i=0;i<radios.length;i++) if(radios[i].checked){ kind=radios[i].value; break; }
-  var id=uid();
-  root.espacios[id]={nombre:nombre, state: kind==='demo'?baseStateDemo():baseStateEmpty()};
-  saveRoot();
-  refreshWsSelect();
-  switchWs(id);
-  closeModal();
-  toast('Espacio creado: '+nombre);
-}
-function duplicateWs(id){
-  var orig=root.espacios[id]; if(!orig) return;
-  var nombre=prompt('Nombre del duplicado:', orig.nombre+' (copia)');
-  if(!nombre) return;
-  var newId=uid();
-  root.espacios[newId]={nombre:nombre, state: JSON.parse(JSON.stringify(orig.state))};
-  saveRoot();
-  refreshWsSelect();
-  openWsModal();
-  toast('Espacio duplicado');
-}
-/* ===== Asistente: Iniciar nueva campaña ===== */
-function openNuevaCampania(){
-  var campActual = (state.contexto && state.contexto.campaña) ? state.contexto.campaña : '';
-  // sugerir fecha de corte (30/6 del año en curso) y nombre de campaña siguiente
+/* ===== Cierre de stock de campaña (conciliación de inventario) =====
+   NO crea campañas ni espacios: la campaña como entidad se gestiona en Administración.
+   Este flujo solo CONCILIA: compara el stock teórico (saldo de movimientos al corte)
+   contra el conteo real, deja revisar precios para valuar, y registra UN movimiento de
+   ajuste por cada diferencia (tipos 'Ajuste inventario (+/-)' que ya existen).
+   El stock es continuo: el ajuste es un movimiento fechado más, y el saldo queda conciliado. */
+var cierreTmp=null; // { corte, filas:[{insumoId,insumo,un,dep,teorico,real,precio,moneda}] }
+
+function openCierreStock(){
+  var campActual = getCampaniaNombre(state.campaniaActivaId) || '';
+  // sugerir fecha de corte: 30/6 (fin de campaña agrícola típica)
   var hoy=new Date();
-  var anioCorte = hoy.getMonth()>=6 ? hoy.getFullYear() : hoy.getFullYear(); // sugerencia simple
-  var corteSug = anioCorte+'-06-30';
-  var nombreSug = sugerirCampaniaSiguiente(campActual);
+  var corteSug = hoy.getFullYear()+'-06-30';
   byId('modalContent').className='modal modal-lg';
   byId('modalContent').innerHTML=
-    '<h3>🌱 Iniciar nueva campaña</h3>'+
-    '<p style="font-size:12px;color:var(--muted);margin-bottom:14px">Se creará una <strong>campaña nueva</strong> copiando los maestros (campos, lotes, insumos, depósitos, contratistas, tarifas) y arrastrando el <strong>stock al cierre</strong> como stock inicial. Las OTs 100% pendientes se mueven a la nueva campaña. La campaña actual <strong>"'+esc(campActual||'actual')+'"</strong> queda intacta y accesible desde el selector.</p>'+
-    '<div class="form-row r3">'+
-      '<div class="fld"><label>Fecha de corte</label><input type="date" id="nc_corte" value="'+corteSug+'"></div>'+
-      '<div class="fld"><label>Nombre nueva campaña</label><input id="nc_nombre" value="'+esc(nombreSug)+'" placeholder="Ej: 25-26"></div>'+
-      '<div class="fld"><label>Nombre del espacio</label><input id="nc_ws" value="'+esc((state.contexto&&state.contexto.empresa?state.contexto.empresa:'Campaña')+' '+nombreSug)+'"></div>'+
+    '<h3>📋 Cerrar stock de campaña</h3>'+
+    '<p style="font-size:12px;color:var(--muted);margin-bottom:14px">Momento de control: se calcula el <strong>stock teórico</strong> a la fecha de corte (saldo de movimientos hasta ese día) y lo comparás con el <strong>conteo real</strong>. Por cada diferencia se registra un <strong>movimiento de ajuste</strong> fechado al corte. <strong>No se crea ninguna campaña</strong>: solo se concilia y valúa el inventario.</p>'+
+    '<div class="form-row r2">'+
+      '<div class="fld"><label>Fecha de corte</label><input type="date" id="cs_corte" value="'+corteSug+'"></div>'+
+      '<div class="fld"><label>Campaña que cierra</label><input id="cs_camp" value="'+esc(campActual)+'" placeholder="Ej: 24-25"></div>'+
     '</div>'+
     '<div class="fact">'+
-      '<button class="btn" onclick="openWsModal()">Cancelar</button>'+
-      '<button class="btn btn-primary" onclick="nuevaCampaniaPaso2()">Siguiente: revisar stock →</button>'+
+      '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="cierreStockPaso2()">Siguiente: conciliar stock →</button>'+
     '</div>';
   byId('modalBg').classList.add('on');
-  setTimeout(function(){ var e=byId('nc_corte'); if(e) e.focus(); },50);
+  setTimeout(function(){ var e=byId('cs_corte'); if(e) e.focus(); },50);
 }
-function sugerirCampaniaSiguiente(actual){
-  // intenta "24-25" -> "25-26"
-  var m=String(actual||'').match(/(\d{2})\s*[-/]\s*(\d{2})/);
-  if(m){ var a=parseInt(m[1],10), b=parseInt(m[2],10); return ('0'+((a+1)%100)).slice(-2)+'-'+('0'+((b+1)%100)).slice(-2); }
-  return '';
-}
-function nuevaCampaniaPaso2(){
-  var corte=byId('nc_corte').value;
-  var nombreCamp=byId('nc_nombre').value.trim();
-  var nombreWs=byId('nc_ws').value.trim();
+
+function cierreStockPaso2(){
+  var corte=byId('cs_corte').value;
+  var camp=byId('cs_camp').value.trim();
   if(!corte){ alert('Elegí una fecha de corte.'); return; }
-  if(!nombreWs){ alert('Poné un nombre para el espacio de la nueva campaña.'); return; }
-  // calcular cierre sobre el state actual
-  var cierre=calcCierrePorFecha(state, corte);
-  // armar filas editables: insumo · depósito · saldo
-  nuevaCampTmp={corte:corte, nombreCamp:nombreCamp, nombreWs:nombreWs, filas:[]};
+  // stock teórico por insumo×depósito al corte (reusa el cálculo de saldos existente)
+  var teor=calcCierrePorFecha(state, corte);
+  cierreTmp={corte:corte, camp:camp, filas:[]};
   for(var i=0;i<state.insumos.length;i++){
     var ins=state.insumos[i];
-    var deps=cierre[ins.id]||{};
+    var deps=teor[ins.id]||{};
     for(var dn in deps){ if(deps.hasOwnProperty(dn)){
-      var saldo=deps[dn];
-      if(Math.abs(saldo)<0.0001) continue; // omitir saldos en cero
-      nuevaCampTmp.filas.push({insumoId:ins.id, insumo:ins.nombre, un:ins.un, dep:dn, saldo:Math.round(saldo*1000)/1000});
+      var t=deps[dn];
+      if(Math.abs(t)<0.0001) continue; // omitir saldos en cero
+      cierreTmp.filas.push({
+        insumoId:ins.id, insumo:ins.nombre, un:ins.un, dep:dn,
+        teorico:Math.round(t*1000)/1000,
+        real:Math.round(t*1000)/1000, // default: real = teórico (solo ajustás lo que difiere)
+        precio:Number(ins.precioUnitario)||0,
+        moneda:ins.moneda||'ARS'
+      });
     }}
   }
-  // contar OTs 100% pendientes
-  var otsPend= otsCompletamentePendientes(state);
-  nuevaCampTmp.otsPendCount=otsPend.length;
-  renderNuevaCampaniaPaso2();
+  renderCierreStockPaso2();
 }
-function otsCompletamentePendientes(st){
-  var res=[];
-  for(var i=0;i<st.ots.length;i++){
-    var o=st.ots[i];
-    if(o.estado==='Cancelada') continue;
-    var dests=o.destinos||[];
-    if(!dests.length) continue;
-    var algoAplicado=false;
-    for(var d=0;d<dests.length;d++){ if(dests[d].estadoLote==='Aplicado'){ algoAplicado=true; break; } }
-    if(!algoAplicado) res.push(o);
-  }
-  return res;
-}
-function renderNuevaCampaniaPaso2(){
-  var t=nuevaCampTmp;
+
+function renderCierreStockPaso2(){
+  var t=cierreTmp;
   var rows='';
   for(var i=0;i<t.filas.length;i++){
     var fr=t.filas[i];
+    var dif=(Number(fr.real)||0)-(Number(fr.teorico)||0);
+    var difTxt = Math.abs(dif)<0.0001 ? '<span style="color:var(--muted)">0</span>' : (dif>0?'<span style="color:#3B5226">+'+f(dif,2)+'</span>':'<span style="color:#9B2226">'+f(dif,2)+'</span>');
     rows+='<tr>'+
       '<td class="tdname">'+esc(fr.insumo)+'</td>'+
       '<td>'+esc(fr.un)+'</td>'+
       '<td class="tdname">'+esc(fr.dep)+'</td>'+
-      '<td class="num"><input type="number" step="0.001" value="'+fr.saldo+'" onchange="nuevaCampTmp.filas['+i+'].saldo=Number(this.value)||0" style="width:110px;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 6px"></td>'+
+      '<td class="num" style="font-family:var(--mono)">'+f(fr.teorico,2)+'</td>'+
+      '<td class="num"><input type="number" step="0.001" value="'+fr.real+'" onchange="cierreTmp.filas['+i+'].real=Number(this.value)||0;renderCierreStockPaso2()" style="width:100px;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 6px"></td>'+
+      '<td class="num">'+difTxt+'</td>'+
+      '<td class="num"><input type="number" step="0.01" value="'+fr.precio+'" onchange="cierreTmp.filas['+i+'].precio=Number(this.value)||0;renderCierreStockPaso2()" style="width:90px;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 6px"></td>'+
+      '<td>'+esc(fr.moneda)+'</td>'+
+      '<td class="num" style="font-family:var(--mono)">'+f((Number(fr.real)||0)*(Number(fr.precio)||0),2)+'</td>'+
       '</tr>';
   }
-  if(!rows) rows='<tr><td colspan="4" class="empty">No hay stock con saldo al corte. La nueva campaña arrancará sin stock inicial.</td></tr>';
+  if(!rows) rows='<tr><td colspan="9" class="empty">No hay stock con saldo al corte. Nada para conciliar.</td></tr>';
+  // totales
+  var nAjustes=0, valTotal=0;
+  for(var k=0;k<t.filas.length;k++){
+    var d=(Number(t.filas[k].real)||0)-(Number(t.filas[k].teorico)||0);
+    if(Math.abs(d)>=0.0001) nAjustes++;
+    valTotal += (Number(t.filas[k].real)||0)*(Number(t.filas[k].precio)||0);
+  }
   byId('modalContent').className='modal modal-lg';
   byId('modalContent').innerHTML=
-    '<h3>🌱 Nueva campaña "'+esc(t.nombreCamp)+'" — revisar stock inicial</h3>'+
-    '<p style="font-size:12px;color:var(--muted);margin-bottom:6px">Stock al corte <strong>'+fd(t.corte)+'</strong> (calculado con los movimientos hasta esa fecha). Podés ajustar cualquier saldo antes de confirmar.</p>'+
-    '<p style="font-size:12px;color:#3B5226;margin-bottom:12px">Se moverán <strong>'+t.otsPendCount+' OT'+(t.otsPendCount===1?'':'s')+' 100% pendiente'+(t.otsPendCount===1?'':'s')+'</strong> a la nueva campaña (salen de la actual).</p>'+
-    '<div class="tw" style="max-height:380px;overflow-y:auto"><table><thead><tr><th>Insumo</th><th>Un.</th><th>Depósito</th><th class="num">Stock inicial nueva campaña</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<h3>📋 Conciliación de stock al '+fd(t.corte)+(t.camp?' — campaña '+esc(t.camp):'')+'</h3>'+
+    '<p style="font-size:12px;color:var(--muted);margin-bottom:4px">Ingresá el <strong>conteo real</strong> por insumo y depósito. La diferencia genera un movimiento de ajuste fechado al corte. Revisá el <strong>precio</strong> para valuar el inventario.</p>'+
+    '<p style="font-size:12px;color:#3B5226;margin-bottom:12px"><strong>'+nAjustes+'</strong> ajuste'+(nAjustes===1?'':'s')+' a registrar · Valor del inventario contado: <strong>$ '+f(valTotal,2)+'</strong></p>'+
+    '<div class="tw" style="max-height:420px;overflow-y:auto"><table><thead><tr>'+
+      '<th>Insumo</th><th>Un.</th><th>Depósito</th>'+
+      '<th class="num">Teórico</th><th class="num">Real (contado)</th><th class="num">Diferencia</th>'+
+      '<th class="num">Precio</th><th>Mon.</th><th class="num">Valor</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<div class="fact">'+
-      '<button class="btn" onclick="openNuevaCampania()">← Volver</button>'+
-      '<button class="btn btn-primary" onclick="confirmarNuevaCampania()">Crear campaña '+esc(t.nombreCamp)+'</button>'+
+      '<button class="btn" onclick="openCierreStock()">← Volver</button>'+
+      '<button class="btn btn-primary" onclick="confirmarCierreStock()">Registrar ajustes y cerrar</button>'+
     '</div>';
   byId('modalBg').classList.add('on');
 }
-function confirmarNuevaCampania(){
-  var t=nuevaCampTmp; if(!t) return;
-  // 1) clonar maestros del state actual
-  var nuevo=clonarMaestros(state);
-  nuevo.contexto.campaña=t.nombreCamp;
-  // 2) setear stock inicial por depósito a partir de las filas (editadas)
-  var porIns={};
+
+function confirmarCierreStock(){
+  var t=cierreTmp; if(!t) return;
+  var corte=t.corte;
+  var nota='Cierre de stock'+(t.camp?' · campaña '+t.camp:'')+' al '+fd(corte);
+  // Dos comprobantes (uno para ajustes +, otro para −), creados on-demand.
+  var compMas=null, compMenos=null;
+  function cabMas(){ if(!compMas){ compMas={id:uid(), fecha:corte, tipo:'Ajuste inventario (+)', comp_tipo:'Cierre', comp_nro:'', proveedorId:'', campaniaId:state.campaniaActivaId||'', obs:nota, refOt:'', refOtNum:''}; state.comprobantes.push(compMas); } return compMas; }
+  function cabMenos(){ if(!compMenos){ compMenos={id:uid(), fecha:corte, tipo:'Ajuste inventario (-)', comp_tipo:'Cierre', comp_nro:'', proveedorId:'', campaniaId:state.campaniaActivaId||'', obs:nota, refOt:'', refOtNum:''}; state.comprobantes.push(compMenos); } return compMenos; }
+  var ajustes=0;
   for(var i=0;i<t.filas.length;i++){
     var fr=t.filas[i];
-    if(!porIns[fr.insumoId]) porIns[fr.insumoId]={};
-    porIns[fr.insumoId][fr.dep]=fr.saldo;
+    var ins=getInsumo(fr.insumoId);
+    if(ins){ ins.precioUnitario=Number(fr.precio)||0; } // valuación
+    var dif=(Number(fr.real)||0)-(Number(fr.teorico)||0);
+    if(Math.abs(dif)<0.0001) continue;
+    var depId=(getDepositoByNombre(fr.dep)||{}).id||'';
+    if(dif>0){
+      state.movtos.push({id:uid(), comprobanteId:cabMas().id, insumoId:fr.insumoId, cant:Math.round(dif*1000)/1000, origenId:'', destinoId:depId});
+    } else {
+      state.movtos.push({id:uid(), comprobanteId:cabMenos().id, insumoId:fr.insumoId, cant:Math.round(-dif*1000)/1000, origenId:depId, destinoId:''});
+    }
+    ajustes++;
   }
-  for(var k=0;k<nuevo.insumos.length;k++){
-    var ins=nuevo.insumos[k];
-    if(porIns[ins.id]){ ins.stockInicialPorDep=porIns[ins.id]; }
-  }
-  // 3) mover OTs 100% pendientes desde el state actual
-  var pend=otsCompletamentePendientes(state);
-  var pendIds={};
-  var maxNum=0;
-  for(var p=0;p<pend.length;p++){
-    var oClone=JSON.parse(JSON.stringify(pend[p]));
-    pendIds[pend[p].id]=true;
-    nuevo.ots.push(oClone);
-    if(oClone.num>maxNum) maxNum=oClone.num;
-  }
-  nuevo.nextOt = maxNum+1 > 1 ? maxNum+1 : 1;
-  // sacar esas OTs de la campaña vieja
-  state.ots = state.ots.filter(function(o){ return !pendIds[o.id]; });
-  // 4) crear el espacio nuevo y persistir
-  var newId=uid();
-  root.espacios[newId]={nombre:t.nombreWs, state:nuevo};
-  saveRoot();
-  refreshWsSelect();
-  switchWs(newId);
-  nuevaCampTmp=null;
+  save();
+  cierreTmp=null;
   closeModal();
-  toast('Nueva campaña "'+t.nombreCamp+'" creada');
-}
-function deleteWs(id){
-  if(Object.keys(root.espacios).length===1){ alert('No podés borrar el único espacio.'); return; }
-  var ws=root.espacios[id]; if(!ws) return;
-  if(!confirm('¿Eliminar el espacio "'+ws.nombre+'" y todos sus datos? Esta acción no se puede deshacer.')) return;
-  delete root.espacios[id];
-  if(root.activoId===id){
-    root.activoId=Object.keys(root.espacios)[0];
-    state=root.espacios[root.activoId].state;
-  }
-  saveRoot();
-  refreshWsSelect();
-  refreshCtx();
-  openWsModal();
-  setTab(currentTab, document.querySelector('.inst-btn[data-tab="'+currentTab+'"]'));
-  toast('Espacio eliminado');
+  renderStock();
+  if(byId('maestrosCard') && currentTab==='maestros') renderMaestros();
+  toast(ajustes>0 ? (ajustes+' ajuste'+(ajustes===1?'':'s')+' de cierre registrado'+(ajustes===1?'':'s')) : 'Cierre conciliado sin diferencias');
 }
 
 /* ================================================================
@@ -1691,105 +1745,144 @@ function renderStock(){
 /* ================================================================
    MOVIMIENTOS
 ================================================================ */
+// Estado temporal de las líneas del form de alta de movimiento
+var movLineasTmp=[];
+
 function populateMovSelects(){
+  var sc=byId('m_campania');
+  if(sc){ var curC=sc.value||state.campaniaActivaId; sc.innerHTML=campaniaOptions(curC, false); }
   var sel=byId('m_tipo'); var cur=sel.value;
   sel.innerHTML='<option value="">— Seleccionar —</option>';
   for(var i=0;i<state.tiposMov.length;i++){
     var n=state.tiposMov[i].nombre;
-    // ocultar tipos internos en alta manual
-    if(n==='Consumo OT' || n==='Baja por aplicación OT') continue;
+    if(n==='Consumo OT' || n==='Baja por aplicación OT') continue; // internos de OT
     sel.innerHTML+='<option value="'+esc(n)+'"'+(n===cur?' selected':'')+'>'+esc(n)+'</option>';
   }
-  var si=byId('m_insumo'); var curI=si.value;
-  si.innerHTML='<option value="">— Seleccionar —</option>';
-  for(var j=0;j<state.insumos.length;j++){
-    si.innerHTML+='<option value="'+state.insumos[j].id+'"'+(state.insumos[j].id===curI?' selected':'')+'>'+esc(state.insumos[j].nombre)+' ('+esc(state.insumos[j].un)+')</option>';
+  // Proveedor (terceros rol proveedor, inyectados en state.proveedores)
+  var sp=byId('m_proveedor');
+  if(sp){ var curP=sp.value; sp.innerHTML='<option value="">— Sin proveedor —</option>';
+    var provs=state.proveedores||[];
+    for(var pp=0;pp<provs.length;pp++){ sp.innerHTML+='<option value="'+esc(provs[pp].id)+'"'+(provs[pp].id===curP?' selected':'')+'>'+esc(provs[pp].nombre)+'</option>'; }
   }
-  var so=byId('m_origen'), sd=byId('m_destino');
-  var curO=so.value, curD=sd.value;
-  so.innerHTML='<option value="">—</option>'; sd.innerHTML='<option value="">—</option>';
-  for(var k=0;k<state.depositos.length;k++){
-    var d=state.depositos[k];
-    var lbl=d.nombre + ' ('+ (d.campoId? getCampoNombre(d.campoId) : 'General') +')';
-    so.innerHTML+='<option value="'+esc(d.nombre)+'"'+(d.nombre===curO?' selected':'')+'>'+esc(lbl)+'</option>';
-    sd.innerHTML+='<option value="'+esc(d.nombre)+'"'+(d.nombre===curD?' selected':'')+'>'+esc(lbl)+'</option>';
-  }
+  // Filtros de la grilla (tipo, campo, campaña)
   var ft=byId('movTipoFilter'); var curF=ft.value;
   ft.innerHTML='<option value="">Todos los tipos</option>';
   for(var l=0;l<state.tiposMov.length;l++){
     ft.innerHTML+='<option value="'+esc(state.tiposMov[l].nombre)+'"'+(state.tiposMov[l].nombre===curF?' selected':'')+'>'+esc(state.tiposMov[l].nombre)+'</option>';
   }
-  // Filtro de campo
   var caf=byId('movCampoFilter'); var curCa=caf.value;
   caf.innerHTML='<option value="">Todos los campos</option><option value="__general__"'+(curCa==='__general__'?' selected':'')+'>— General del cliente —</option>';
   for(var m=0;m<state.campos.length;m++){
     caf.innerHTML+='<option value="'+state.campos[m].id+'"'+(state.campos[m].id===curCa?' selected':'')+'>'+esc(state.campos[m].nombre)+'</option>';
   }
+  var mcf=byId('movCampaniaFilter');
+  if(mcf){ var curMcf=mcf.value; mcf.innerHTML=campaniaOptions(curMcf, true); }
+  // (re)dibujar líneas
+  if(!movLineasTmp.length) movLineasTmp=[nuevaMovLinea()];
+  renderMovLineas();
 }
-function onMovInsumoChange(){
-  var id=byId('m_insumo').value; var ins=getInsumo(id);
-  byId('m_unidad').textContent= ins ? ins.un : '—';
+// Opciones <option> de insumos y depósitos (reutilizables por línea)
+function insumoOptions(selId){
+  var h='<option value="">— Insumo —</option>';
+  for(var j=0;j<state.insumos.length;j++){ var x=state.insumos[j]; h+='<option value="'+x.id+'"'+(x.id===selId?' selected':'')+'>'+esc(x.nombre)+'</option>'; }
+  return h;
 }
-function onMovTipoChange(){
+function depositoOptions(selId){
+  var h='<option value="">—</option>';
+  for(var k=0;k<state.depositos.length;k++){ var d=state.depositos[k];
+    var lbl=d.nombre+' ('+(d.campoId?getCampoNombre(d.campoId):'General')+')';
+    h+='<option value="'+esc(d.id)+'"'+(d.id===selId?' selected':'')+'>'+esc(lbl)+'</option>'; }
+  return h;
+}
+function nuevaMovLinea(){ return {insumoId:'', cant:'', origenId:'', destinoId:''}; }
+function addMovLinea(){ movLineasTmp.push(nuevaMovLinea()); renderMovLineas(); }
+function removeMovLinea(idx){ movLineasTmp.splice(idx,1); if(!movLineasTmp.length) movLineasTmp=[nuevaMovLinea()]; renderMovLineas(); }
+function syncMovLinea(idx, campo, val){ if(movLineasTmp[idx]) movLineasTmp[idx][campo]=val; }
+// Dibuja las filas de líneas según el tipo de movimiento (muestra origen/destino según requiera)
+function renderMovLineas(){
   var t=getTipoMov(byId('m_tipo').value);
-  var lblO=byId('m_origen_lbl'), lblD=byId('m_destino_lbl');
-  if(!t){
-    byId('m_signo_wrap').style.display='none';
-    if(lblO) lblO.innerHTML='Origen';
-    if(lblD) lblD.innerHTML='Destino';
-    return;
+  var showO = t ? !!t.requiereOrigen : false;
+  var showD = t ? !!t.requiereDestino : true;
+  // mostrar/ocultar columnas de cabecera de la tabla
+  var ths=document.querySelectorAll('#mlineasTbl .mcol-origen'); for(var a=0;a<ths.length;a++) ths[a].style.display=showO?'':'none';
+  var thd=document.querySelectorAll('#mlineasTbl .mcol-destino'); for(var b=0;b<thd.length;b++) thd[b].style.display=showD?'':'none';
+  // proveedor: relevante solo en entradas de compra
+  var pw=byId('m_prov_wrap'); if(pw) pw.style.display = (t && t.signo===1) ? '' : 'none';
+  var body=byId('mlineasBody'); var rows='';
+  var stiSel='width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)';
+  var stiNum='width:100%;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)';
+  for(var i=0;i<movLineasTmp.length;i++){
+    var ln=movLineasTmp[i]; var ins=getInsumo(ln.insumoId);
+    rows+='<tr>'+
+      '<td><select onchange="syncMovLinea('+i+',\'insumoId\',this.value);renderMovLineas()" style="'+stiSel+'">'+insumoOptions(ln.insumoId)+'</select></td>'+
+      '<td><input type="number" step="0.01" min="0" value="'+(ln.cant!==''?ln.cant:'')+'" oninput="syncMovLinea('+i+',\'cant\',this.value)" style="'+stiNum+'"></td>'+
+      '<td style="color:var(--muted);font-size:12px">'+(ins?esc(ins.un):'—')+'</td>'+
+      '<td class="mcol-origen" style="display:'+(showO?'':'none')+'"><select onchange="syncMovLinea('+i+',\'origenId\',this.value)" style="'+stiSel+'">'+depositoOptions(ln.origenId)+'</select></td>'+
+      '<td class="mcol-destino" style="display:'+(showD?'':'none')+'"><select onchange="syncMovLinea('+i+',\'destinoId\',this.value)" style="'+stiSel+'">'+depositoOptions(ln.destinoId)+'</select></td>'+
+      '<td style="text-align:center"><button type="button" class="btn btn-sm btn-danger" onclick="removeMovLinea('+i+')" title="Quitar línea">✕</button></td>'+
+      '</tr>';
   }
-  byId('m_signo_wrap').style.display='';
-  byId('m_signo').textContent = t.signo===1 ? 'Entrada (+)' : t.signo===-1 ? 'Salida (−)' : 'Neutro (traslado)';
-  // Marcar obligatoriedad visual
-  if(lblO) lblO.innerHTML='Origen'+(t.requiereOrigen?' <span style="color:var(--bad)">*</span>':'');
-  if(lblD) lblD.innerHTML='Destino'+(t.requiereDestino?' <span style="color:var(--bad)">*</span>':'');
+  body.innerHTML=rows;
 }
+function onMovTipoChange(){ renderMovLineas(); }
 function saveMov(e){
   e.preventDefault();
   var tipoNom=byId('m_tipo').value;
   var t=getTipoMov(tipoNom);
   if(!t){ alert('Seleccioná un tipo de movimiento.'); return; }
-  var origen=byId('m_origen').value, destino=byId('m_destino').value;
-  if(t.requiereOrigen && !origen){
-    alert('Este tipo de movimiento ("'+tipoNom+'") requiere depósito de ORIGEN.');
-    byId('m_origen').focus();
-    return;
+  // validar líneas
+  var lineasOK=[];
+  for(var i=0;i<movLineasTmp.length;i++){
+    var ln=movLineasTmp[i];
+    if(!ln.insumoId && !(ln.cant>0)) continue; // línea vacía: se ignora
+    if(!ln.insumoId){ alert('Hay una línea sin insumo seleccionado.'); return; }
+    var cant=Number(ln.cant);
+    if(!cant || cant<=0){ alert('La cantidad debe ser mayor a cero en todas las líneas.'); return; }
+    if(t.requiereOrigen && !ln.origenId){ alert('El tipo "'+tipoNom+'" requiere depósito de ORIGEN en cada línea.'); return; }
+    if(t.requiereDestino && !ln.destinoId){ alert('El tipo "'+tipoNom+'" requiere depósito de DESTINO en cada línea.'); return; }
+    if(tipoNom==='Traslado' && ln.origenId===ln.destinoId){ alert('En un traslado, origen y destino deben ser distintos.'); return; }
+    lineasOK.push({insumoId:ln.insumoId, cant:cant, origenId:t.requiereOrigen?ln.origenId:'', destinoId:t.requiereDestino?ln.destinoId:''});
   }
-  if(t.requiereDestino && !destino){
-    alert('Este tipo de movimiento ("'+tipoNom+'") requiere depósito de DESTINO.');
-    byId('m_destino').focus();
-    return;
+  if(!lineasOK.length){ alert('Agregá al menos una línea de insumo con cantidad.'); return; }
+  // crear comprobante (cabecera)
+  var comp={
+    id:uid(), fecha:byId('m_fecha').value, tipo:tipoNom,
+    comp_tipo:byId('m_comp_tipo').value, comp_nro:byId('m_comp_nro').value,
+    proveedorId:(byId('m_proveedor')&&t.signo===1)?byId('m_proveedor').value:'',
+    campaniaId:(byId('m_campania')?byId('m_campania').value:'')||state.campaniaActivaId,
+    obs:byId('m_obs').value, refOt:'', refOtNum:''
+  };
+  state.comprobantes.push(comp);
+  for(var k=0;k<lineasOK.length;k++){
+    var L=lineasOK[k];
+    state.movtos.push({id:uid(), comprobanteId:comp.id, insumoId:L.insumoId, cant:L.cant, origenId:L.origenId, destinoId:L.destinoId});
   }
-  if(tipoNom==='Traslado' && origen===destino){
-    alert('En un traslado, el depósito de origen y destino deben ser distintos.');
-    return;
-  }
-  var cant=Number(byId('m_cant').value);
-  if(!cant || cant<=0){ alert('La cantidad debe ser mayor a cero.'); byId('m_cant').focus(); return; }
-  if(!byId('m_insumo').value){ alert('Seleccioná un insumo.'); return; }
-  var m={id:uid(),fecha:byId('m_fecha').value,comp_tipo:byId('m_comp_tipo').value,comp_nro:byId('m_comp_nro').value,
-    insumoId:byId('m_insumo').value,cant:cant,tipo:tipoNom,
-    origen:origen,destino:destino,obs:byId('m_obs').value};
-  state.movtos.push(m);
-  save(); resetMovForm(); renderMovtos(); toast('Movimiento registrado');
+  save(); resetMovForm(); renderMovtos(); renderStock();
+  toast(lineasOK.length>1 ? ('Movimiento registrado ('+lineasOK.length+' líneas)') : 'Movimiento registrado');
 }
 function resetMovForm(){
   byId('movForm').reset();
   byId('m_fecha').value=todayISO();
-  byId('m_unidad').textContent='—';
-  byId('m_signo_wrap').style.display='none';
+  var sc=byId('m_campania'); if(sc) sc.value=state.campaniaActivaId;
+  movLineasTmp=[nuevaMovLinea()];
+  renderMovLineas();
 }
-function delMov(id){
-  var m=null; for(var i=0;i<state.movtos.length;i++) if(state.movtos[i].id===id){ m=state.movtos[i]; break; }
-  if(!m) return;
-  if(m.refOt){ alert('Este movimiento fue generado automáticamente por una OT. Para eliminarlo, modificá o eliminá la aplicación correspondiente.'); return; }
-  if(!confirm('¿Eliminar este movimiento?')) return;
-  state.movtos=state.movtos.filter(function(x){ return x.id!==id; });
-  save(); renderMovtos(); toast('Movimiento eliminado');
+function delMov(comprobanteId){
+  var cab=getComprobanteById(comprobanteId);
+  if(!cab){ // compat: por si llega un id de línea suelto
+    var ml=null; for(var i=0;i<state.movtos.length;i++) if(state.movtos[i].id===comprobanteId){ ml=state.movtos[i]; break; }
+    if(ml){ comprobanteId=ml.comprobanteId; cab=getComprobanteById(comprobanteId); }
+  }
+  if(cab && cab.refOt){ alert('Este comprobante fue generado automáticamente por una OT. Para eliminarlo, modificá o eliminá la aplicación correspondiente.'); return; }
+  var nLineas=0; for(var k=0;k<state.movtos.length;k++) if(state.movtos[k].comprobanteId===comprobanteId) nLineas++;
+  if(!confirm('¿Eliminar este comprobante'+(nLineas>1?' y sus '+nLineas+' líneas':'')+'?')) return;
+  state.movtos=state.movtos.filter(function(x){ return x.comprobanteId!==comprobanteId; });
+  state.comprobantes=state.comprobantes.filter(function(c){ return c.id!==comprobanteId; });
+  save(); renderMovtos(); renderStock(); toast('Comprobante eliminado');
 }
 function clearMovFilters(){
   byId('movSearch').value=''; byId('movTipoFilter').value=''; byId('movOrigenFilter').value=''; byId('movDesde').value=''; byId('movHasta').value=''; byId('movCampoFilter').value='';
+  var mcf=byId('movCampaniaFilter'); if(mcf) mcf.value='';
   renderMovtos();
 }
 function renderMovtos(){
@@ -1799,131 +1892,155 @@ function renderMovtos(){
   var fOrigen=byId('movOrigenFilter').value;
   var fd1=byId('movDesde').value, fh=byId('movHasta').value;
   var fcamp=byId('movCampoFilter').value;
-  var sorted=state.movtos.slice().sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
+  var fcampania=byId('movCampaniaFilter')?byId('movCampaniaFilter').value:'';
+  // ordenar por fecha (de la cabecera) desc
+  var sorted=state.movtos.slice().sort(function(a,b){ return (movFecha(b)||'').localeCompare(movFecha(a)||''); });
   var rows='';
   for(var i=0;i<sorted.length;i++){
-    var m=sorted[i], ins=getInsumo(m.insumoId);
-    if(ft && m.tipo!==ft) continue;
-    if(fOrigen==='auto' && !m.refOt) continue;
-    if(fOrigen==='manual' && m.refOt) continue;
-    if(fd1 && (m.fecha||'')<fd1) continue;
-    if(fh && (m.fecha||'')>fh) continue;
+    var m=sorted[i], ins=getInsumo(m.insumoId), cab=compDe(m);
+    var fechaM=movFecha(m), tipoM=movTipo(m), campM=movCampania(m);
+    var oNom=movOrigenNom(m), dNom=movDestinoNom(m);
+    var esAuto = !!(cab && cab.refOt) || !!m.refOt;
+    if(ft && tipoM!==ft) continue;
+    if(fcampania && campM!==fcampania) continue;
+    if(fOrigen==='auto' && !esAuto) continue;
+    if(fOrigen==='manual' && esAuto) continue;
+    if(fd1 && fechaM<fd1) continue;
+    if(fh && fechaM>fh) continue;
     if(fcamp){
-      // El movimiento pertenece al campo si origen o destino están en ese campo
-      var depO=getDepositoByNombre(m.origen||''), depD=getDepositoByNombre(m.destino||'');
+      var depO=getDepositoByNombre(oNom), depD=getDepositoByNombre(dNom);
       var caO=depO?depO.campoId:null, caD=depD?depD.campoId:null;
       if(fcamp==='__general__'){
         if(caO && caD) continue;
-        if((m.origen && caO) || (m.destino && caD)) continue;
+        if((oNom && caO) || (dNom && caD)) continue;
       } else {
         if(caO!==fcamp && caD!==fcamp) continue;
       }
     }
+    var compNro = cab ? (cab.comp_nro||'') : (m.comp_nro||'');
+    var compTipoTxt = cab ? (cab.comp_tipo||'') : (m.comp_tipo||'');
+    var obsM = (cab && cab.obs) || m.obs || '';
+    var provNom = (cab && cab.proveedorId) ? getProveedorNombre(cab.proveedorId) : '';
     if(q){
-      var hay=(ins?ins.nombre:'')+' '+m.tipo+' '+(m.comp_nro||'')+' '+(m.obs||'')+' '+(m.origen||'')+' '+(m.destino||'');
+      var hay=(ins?ins.nombre:'')+' '+tipoM+' '+compNro+' '+obsM+' '+oNom+' '+dNom+' '+provNom;
       if(hay.toLowerCase().indexOf(q)<0) continue;
     }
-    var t=getTipoMov(m.tipo);
+    var t=getTipoMov(tipoM);
     var sg=t? (t.signo===1?'bg':t.signo===-1?'br':'bb'):'bn';
     var sgTxt=t? (t.signo===1?'+':t.signo===-1?'−':'='):'';
-    if(m.refOt){
-      // Movimiento generado por OT: SOLO LECTURA
-      var obs = m.obs || ('Generado por OT #'+m.refOtNum) || '—';
-      var compTxt = m.comp_tipo ? esc(m.comp_tipo)+(m.comp_nro?' '+esc(m.comp_nro):'') : '<span class="bdg bv">OT #'+m.refOtNum+'</span>';
-      rows+='<tr style="background:rgba(15,25,35,.015)">'+
-        '<td>'+fd(m.fecha)+'</td>'+
-        '<td>'+compTxt+'</td>'+
-        '<td class="tdname">'+(ins?esc(ins.nombre):'—')+'</td>'+
-        '<td>'+(ins?esc(ins.un):'—')+'</td>'+
-        '<td class="num"><strong>'+sgTxt+f(m.cant,2)+'</strong></td>'+
-        '<td><span class="bdg '+sg+'">'+esc(m.tipo)+'</span></td>'+
-        '<td class="tdname">'+esc(m.origen||'—')+'</td>'+
-        '<td class="tdname">'+esc(m.destino||'—')+'</td>'+
-        '<td class="tdname">'+esc(obs)+'</td>'+
-        '<td><span class="bdg bn" title="Generado por OT — editá la aplicación para cambiarlo">auto</span></td>'+
-        '</tr>';
-    } else {
-      // Movimiento MANUAL: solo lectura + botón editar (modal)
-      var obsM = m.obs || '—';
-      var compTxtM = m.comp_tipo ? esc(m.comp_tipo)+(m.comp_nro?' '+esc(m.comp_nro):'') : '—';
-      rows+='<tr>'+
-        '<td>'+fd(m.fecha)+'</td>'+
-        '<td>'+compTxtM+'</td>'+
-        '<td class="tdname">'+(ins?esc(ins.nombre):'—')+'</td>'+
-        '<td>'+(ins?esc(ins.un):'—')+'</td>'+
-        '<td class="num"><strong>'+sgTxt+f(m.cant,2)+'</strong></td>'+
-        '<td><span class="bdg '+sg+'">'+esc(m.tipo)+'</span></td>'+
-        '<td class="tdname">'+esc(m.origen||'—')+'</td>'+
-        '<td class="tdname">'+esc(m.destino||'—')+'</td>'+
-        '<td class="tdname">'+esc(obsM)+'</td>'+
-        '<td style="white-space:nowrap"><button class="btn btn-sm" onclick="openMovEditModal(\''+m.id+'\')" title="Editar movimiento">✎</button> <button class="btn btn-sm btn-danger" onclick="delMov(\''+m.id+'\')">✕</button></td>'+
-        '</tr>';
-    }
+    var compTxt;
+    if(esAuto && !compNro){ compTxt='<span class="bdg bv">OT #'+((cab&&cab.refOtNum)||m.refOtNum||'')+'</span>'; }
+    else { compTxt = compTipoTxt ? (esc(compTipoTxt)+(compNro?' '+esc(compNro):'')) : (compNro?esc(compNro):'—'); }
+    var obsCell = obsM || (esAuto ? ('Generado por OT #'+((cab&&cab.refOtNum)||m.refOtNum||'')) : '—');
+    if(provNom) obsCell = (obsM?obsM+' · ':'')+'Prov: '+provNom;
+    var accion = esAuto
+      ? '<span class="bdg bn" title="Generado por OT — editá la aplicación para cambiarlo">auto</span>'
+      : '<button class="btn btn-sm" onclick="openMovEditModal(\''+m.comprobanteId+'\')" title="Editar comprobante">✎</button> <button class="btn btn-sm btn-danger" onclick="delMov(\''+m.comprobanteId+'\')" title="Eliminar comprobante">✕</button>';
+    rows+='<tr'+(esAuto?' style="background:rgba(15,25,35,.015)"':'')+'>'+
+      '<td>'+fd(fechaM)+'</td>'+
+      '<td>'+compTxt+'</td>'+
+      '<td class="tdname">'+(ins?esc(ins.nombre):'—')+'</td>'+
+      '<td>'+(ins?esc(ins.un):'—')+'</td>'+
+      '<td class="num"><strong>'+sgTxt+f(m.cant,2)+'</strong></td>'+
+      '<td><span class="bdg '+sg+'">'+esc(tipoM)+'</span></td>'+
+      '<td class="tdname">'+esc(oNom||'—')+'</td>'+
+      '<td class="tdname">'+esc(dNom||'—')+'</td>'+
+      '<td class="tdname">'+esc(obsCell)+'</td>'+
+      '<td style="white-space:nowrap">'+accion+'</td>'+
+      '</tr>';
   }
   byId('movBody').innerHTML=rows || '<tr><td colspan="10" class="empty">Sin movimientos registrados.</td></tr>';
   marcarFiltrosActivos(['movSearch','movCampoFilter','movTipoFilter','movOrigenFilter','movDesde','movHasta'],'movClearBtn');
 }
-function openMovEditModal(movId){
-  var m=null; for(var i=0;i<state.movtos.length;i++) if(state.movtos[i].id===movId){ m=state.movtos[i]; break; }
-  if(!m){ return; }
-  if(m.refOt){ alert('Este movimiento fue generado por una OT. Editá la aplicación correspondiente.'); return; }
-  var ins=getInsumo(m.insumoId);
-  var optsTipo='';
-  for(var t=0;t<state.tiposMov.length;t++){ optsTipo+='<option value="'+esc(state.tiposMov[t].nombre)+'"'+(state.tiposMov[t].nombre===m.tipo?' selected':'')+'>'+esc(state.tiposMov[t].nombre)+'</option>'; }
-  var optsDepO='<option value="">—</option>', optsDepD='<option value="">—</option>';
-  for(var dq=0;dq<state.depositos.length;dq++){
-    var dnm=state.depositos[dq].nombre;
-    optsDepO+='<option value="'+esc(dnm)+'"'+(dnm===m.origen?' selected':'')+'>'+esc(dnm)+'</option>';
-    optsDepD+='<option value="'+esc(dnm)+'"'+(dnm===m.destino?' selected':'')+'>'+esc(dnm)+'</option>';
+// Nombre de proveedor desde state.proveedores (inyectado de pa-core)
+function getProveedorNombre(id){ var ps=state.proveedores||[]; for(var i=0;i<ps.length;i++) if(ps[i].id===id) return ps[i].nombre; return ''; }
+function openMovEditModal(comprobanteId){
+  var cab=getComprobanteById(comprobanteId);
+  if(!cab){ // compat: id de línea
+    var ml0=null; for(var i0=0;i0<state.movtos.length;i0++) if(state.movtos[i0].id===comprobanteId){ ml0=state.movtos[i0]; break; }
+    if(ml0){ comprobanteId=ml0.comprobanteId; cab=getComprobanteById(comprobanteId); }
   }
+  if(!cab){ return; }
+  if(cab.refOt){ alert('Este comprobante fue generado por una OT. Editá la aplicación correspondiente.'); return; }
+  var t=getTipoMov(cab.tipo);
+  var lineas=[]; for(var i=0;i<state.movtos.length;i++) if(state.movtos[i].comprobanteId===comprobanteId) lineas.push(state.movtos[i]);
   var st='width:100%;font-size:13px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;background:var(--card)';
-  var mc=byId('modalContent');
-  mc.innerHTML='<h3>Editar movimiento — '+(ins?esc(ins.nombre):'')+'</h3>'+
+  // líneas (solo cantidad editable + origen/destino según tipo)
+  var showO=t?!!t.requiereOrigen:false, showD=t?!!t.requiereDestino:true;
+  var lineasHtml='';
+  for(var L=0;L<lineas.length;L++){
+    var ln=lineas[L], ins=getInsumo(ln.insumoId);
+    lineasHtml+='<tr>'+
+      '<td class="tdname">'+(ins?esc(ins.nombre):'—')+'</td>'+
+      '<td><input type="number" step="0.01" min="0" id="mel_cant_'+L+'" data-lid="'+ln.id+'" value="'+ln.cant+'" style="width:90px;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 6px"></td>'+
+      (showO?'<td><select id="mel_o_'+L+'" style="font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;background:var(--card)">'+depositoOptions(ln.origenId)+'</select></td>':'')+
+      (showD?'<td><select id="mel_d_'+L+'" style="font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;background:var(--card)">'+depositoOptions(ln.destinoId)+'</select></td>':'')+
+      '</tr>';
+  }
+  var optsCompTipo='';
+  var ct=['','Orden de compra','Remito externo','Remito interno','Factura','Parte trabajo','Otro'];
+  for(var c=0;c<ct.length;c++){ optsCompTipo+='<option'+(ct[c]===cab.comp_tipo?' selected':'')+'>'+(ct[c]||'—')+'</option>'; }
+  var optsProv='<option value="">— Sin proveedor —</option>'; var provs=state.proveedores||[];
+  for(var p=0;p<provs.length;p++){ optsProv+='<option value="'+esc(provs[p].id)+'"'+(provs[p].id===cab.proveedorId?' selected':'')+'>'+esc(provs[p].nombre)+'</option>'; }
+  var mc=byId('modalContent'); mc.className='modal modal-lg';
+  mc.innerHTML='<h3>Editar comprobante — '+esc(cab.tipo)+'</h3>'+
     '<div class="form-row r2" style="margin-top:8px">'+
-      '<div class="fld"><label>Fecha</label><input type="date" id="me_fecha" value="'+(m.fecha||'')+'" style="'+st+'"></div>'+
-      '<div class="fld"><label>Tipo</label><select id="me_tipo" style="'+st+'">'+optsTipo+'</select></div>'+
+      '<div class="fld"><label>Fecha</label><input type="date" id="me_fecha" value="'+(cab.fecha||'')+'" style="'+st+'"></div>'+
+      '<div class="fld"><label>Campaña</label><select id="me_campania" style="'+st+'">'+campaniaOptions(cab.campaniaId,false)+'</select></div>'+
     '</div>'+
-    '<div class="form-row r2">'+
-      '<div class="fld"><label>Cantidad</label><input type="number" step="0.01" min="0" id="me_cant" value="'+m.cant+'" style="'+st+';font-family:var(--mono);text-align:right"></div>'+
-      '<div class="fld"><label>Comprobante</label><input id="me_comp" value="'+esc((m.comp_tipo||'')+(m.comp_nro?' '+m.comp_nro:''))+'" placeholder="opcional" style="'+st+'"></div>'+
+    '<div class="form-row r3">'+
+      '<div class="fld"><label>Tipo comprob.</label><select id="me_comp_tipo" style="'+st+'">'+optsCompTipo+'</select></div>'+
+      '<div class="fld"><label>N° comprob.</label><input id="me_comp_nro" value="'+esc(cab.comp_nro||'')+'" style="'+st+'"></div>'+
+      '<div class="fld"'+(t&&t.signo===1?'':' style="display:none"')+'><label>Proveedor</label><select id="me_proveedor" style="'+st+'">'+optsProv+'</select></div>'+
     '</div>'+
-    '<div class="form-row r2">'+
-      '<div class="fld"><label>Origen</label><select id="me_origen" style="'+st+'">'+optsDepO+'</select></div>'+
-      '<div class="fld"><label>Destino</label><select id="me_destino" style="'+st+'">'+optsDepD+'</select></div>'+
-    '</div>'+
-    '<div class="form-row r1"><div class="fld fld-full"><label>Observaciones</label><input id="me_obs" value="'+esc(m.obs||'')+'" style="'+st+'"></div></div>'+
-    '<div class="fact"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveMovEditModal(\''+movId+'\')">Guardar cambios</button></div>';
+    '<div class="form-row r1"><div class="fld fld-full"><label>Observaciones</label><input id="me_obs" value="'+esc(cab.obs||'')+'" style="'+st+'"></div></div>'+
+    '<div style="margin:10px 0 4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Líneas</div>'+
+    '<div class="tw"><table><thead><tr><th>Insumo</th><th>Cantidad</th>'+(showO?'<th>Origen</th>':'')+(showD?'<th>Destino</th>':'')+'</tr></thead><tbody>'+lineasHtml+'</tbody></table></div>'+
+    '<div class="fact"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveMovEditModal(\''+comprobanteId+'\','+lineas.length+')">Guardar cambios</button></div>';
   byId('modalBg').classList.add('on');
 }
-function saveMovEditModal(movId){
-  var m=null; for(var i=0;i<state.movtos.length;i++) if(state.movtos[i].id===movId){ m=state.movtos[i]; break; }
-  if(!m || m.refOt) return;
-  var nuevoTipo=byId('me_tipo').value;
-  var t=getTipoMov(nuevoTipo);
-  var origen=byId('me_origen').value, destino=byId('me_destino').value;
-  if(t){
-    if(t.requiereOrigen && !origen){ alert('El tipo "'+nuevoTipo+'" requiere depósito de origen.'); return; }
-    if(t.requiereDestino && !destino){ alert('El tipo "'+nuevoTipo+'" requiere depósito de destino.'); return; }
-    if(nuevoTipo==='Traslado' && origen===destino){ alert('En un traslado, origen y destino deben ser distintos.'); return; }
+function saveMovEditModal(comprobanteId, nLineas){
+  var cab=getComprobanteById(comprobanteId);
+  if(!cab || cab.refOt) return;
+  var t=getTipoMov(cab.tipo);
+  var showO=t?!!t.requiereOrigen:false, showD=t?!!t.requiereDestino:true;
+  // validar y recolectar líneas
+  var cambios=[];
+  for(var L=0;L<nLineas;L++){
+    var inp=byId('mel_cant_'+L); if(!inp) continue;
+    var lid=inp.getAttribute('data-lid');
+    var cant=Number(inp.value);
+    if(!cant || cant<=0){ alert('La cantidad debe ser mayor a cero en todas las líneas.'); return; }
+    var oId=showO ? (byId('mel_o_'+L)?byId('mel_o_'+L).value:'') : '';
+    var dId=showD ? (byId('mel_d_'+L)?byId('mel_d_'+L).value:'') : '';
+    if(showO && !oId){ alert('Falta el depósito de origen en alguna línea.'); return; }
+    if(showD && !dId){ alert('Falta el depósito de destino en alguna línea.'); return; }
+    if(cab.tipo==='Traslado' && oId===dId){ alert('En un traslado, origen y destino deben ser distintos.'); return; }
+    cambios.push({lid:lid, cant:cant, origenId:oId, destinoId:dId});
   }
-  var cant=Number(byId('me_cant').value);
-  if(!cant || cant<=0){ alert('La cantidad debe ser mayor a cero.'); return; }
-  m.fecha=byId('me_fecha').value;
-  m.tipo=nuevoTipo;
-  m.cant=cant;
-  m.origen=origen;
-  m.destino=destino;
-  m.obs=byId('me_obs').value;
-  // comprobante: parsear "tipo nro" simple
-  var comp=byId('me_comp').value.trim();
-  if(comp){ var sp=comp.split(' '); m.comp_tipo=sp[0]; m.comp_nro=sp.slice(1).join(' '); }
-  else { m.comp_tipo=''; m.comp_nro=''; }
-  save(); closeModal(); renderMovtos(); renderStock(); toast('Movimiento actualizado');
+  // aplicar cabecera
+  cab.fecha=byId('me_fecha').value;
+  cab.campaniaId=byId('me_campania')?byId('me_campania').value:cab.campaniaId;
+  var ctv=byId('me_comp_tipo').value; cab.comp_tipo=(ctv==='—'?'':ctv);
+  cab.comp_nro=byId('me_comp_nro').value;
+  cab.proveedorId=(byId('me_proveedor')&&t&&t.signo===1)?byId('me_proveedor').value:'';
+  cab.obs=byId('me_obs').value;
+  // aplicar líneas
+  for(var c=0;c<cambios.length;c++){
+    var ch=cambios[c];
+    for(var i=0;i<state.movtos.length;i++){
+      if(state.movtos[i].id===ch.lid){ state.movtos[i].cant=ch.cant; state.movtos[i].origenId=ch.origenId; state.movtos[i].destinoId=ch.destinoId; break; }
+    }
+  }
+  save(); closeModal(); renderMovtos(); renderStock(); toast('Comprobante actualizado');
 }
 
 /* ================================================================
    ÓRDENES DE TRABAJO
 ================================================================ */function populateOtSelects(){
+  // Campaña (default: activa)
+  var soc=byId('o_campania');
+  if(soc){ var curOC=soc.value||state.campaniaActivaId; soc.innerHTML=campaniaOptions(curOC, false); }
   // Subactividad default según labor tipo
   populateSubactSelect();
   // Contratistas
@@ -1949,6 +2066,8 @@ function saveMovEditModal(movId){
   for(var l=0;l<state.campos.length;l++){
     fc.innerHTML+='<option value="'+state.campos[l].id+'"'+(state.campos[l].id===curFc?' selected':'')+'>'+esc(state.campos[l].nombre)+'</option>';
   }
+  var ocf=byId('otCampaniaFilter');
+  if(ocf){ var curOcf=ocf.value; ocf.innerHTML=campaniaOptions(curOcf, true); }
 }
 function populateSubactSelect(){
   var tipo=byId('o_labor_tipo').value;
@@ -2230,6 +2349,7 @@ function saveOT(e){
   var ot={
     id:uid(), num:state.nextOt++,
     fecha:byId('o_fecha').value,
+    campaniaId:(byId('o_campania')?byId('o_campania').value:'')||state.campaniaActivaId,
     laborTipo:byId('o_labor_tipo').value,
     contratistaId:byId('o_contratista').value||'',
     obs:byId('o_obs').value,
@@ -2255,6 +2375,7 @@ function startEditOT(id){
   byId('o_labor_tipo').value=o.laborTipo||'LP';
   byId('o_obs').value=o.obs||'';
   populateOtSelects();
+  var soc=byId('o_campania'); if(soc) soc.value=o.campaniaId||state.campaniaActivaId;
   byId('o_contratista').value=o.contratistaId||'';
   updateContratistaVis();
   // Precargar plantilla
@@ -2288,6 +2409,7 @@ function resetOtForm(){
   byId('otForm').reset();
   editOtId=null;
   byId('o_fecha').value=todayISO();
+  var soc=byId('o_campania'); if(soc) soc.value=state.campaniaActivaId;
   byId('o_labor_tipo').value='LP';
   plantillaTmp=[];
   destinosTmp=[];
@@ -2306,6 +2428,7 @@ function resetOtForm(){
 function clearOtFilters(){
   byId('otSearch').value=''; byId('otActFilter').value=''; byId('otEstadoFilter').value='';
   byId('otDesde').value=''; byId('otHasta').value=''; byId('otCampoFilter').value='';
+  var ocf=byId('otCampaniaFilter'); if(ocf) ocf.value='';
   renderOtList();
 }
 function renderOtList(){
@@ -2316,6 +2439,7 @@ function renderOtList(){
   var fa=byId('otActFilter').value;
   var fe=byId('otEstadoFilter').value;
   var fc=byId('otCampoFilter').value;
+  var fcampania=byId('otCampaniaFilter')?byId('otCampaniaFilter').value:'';
   var fd1=byId('otDesde').value, fh=byId('otHasta').value;
   var sorted=state.ots.slice().sort(function(a,b){ return b.num-a.num; });
   var rows='';
@@ -2333,6 +2457,7 @@ function renderOtList(){
     // filtros
     if(fa && !cultivos[fa]) continue;
     if(fe && o.estado!==fe) continue;
+    if(fcampania && (o.campaniaId||'')!==fcampania) continue;
     if(fc && !campos[fc]) continue;
     if(fd1 && (o.fecha||'')<fd1) continue;
     if(fh && (o.fecha||'')>fh) continue;
@@ -2376,8 +2501,10 @@ function delOT(id){
   var o=null; for(var i=0;i<state.ots.length;i++) if(state.ots[i].id===id){ o=state.ots[i]; break; }
   if(!o) return;
   if(!confirm('¿Eliminar la OT #'+o.num+'? Se eliminarán también todos los movimientos automáticos generados por sus aplicaciones.')) return;
-  // remover movimientos asociados
-  state.movtos=state.movtos.filter(function(m){ return m.refOt!==o.id; });
+  // remover comprobantes generados por la OT y sus líneas
+  var compsOT={}; for(var ci=0;ci<state.comprobantes.length;ci++){ if(state.comprobantes[ci].refOt===o.id) compsOT[state.comprobantes[ci].id]=true; }
+  state.movtos=state.movtos.filter(function(m){ return !compsOT[m.comprobanteId]; });
+  state.comprobantes=state.comprobantes.filter(function(c){ return c.refOt!==o.id; });
   state.ots=state.ots.filter(function(x){ return x.id!==id; });
   save(); renderOtList(); toast('OT eliminada');
 }
@@ -2445,7 +2572,7 @@ function viewOT(id){
       '<div class="ot-h">'+
         '<div class="ot-h-l">'+
           '<h2>Orden de Trabajo</h2>'+
-          '<p>'+esc(state.contexto.empresa||'—')+' · Campaña '+esc(state.contexto.campaña||'—')+'</p>'+
+          '<p>'+esc((root.espacios[root.activoId]&&root.espacios[root.activoId].nombre)||'—')+' · Campaña '+esc(getCampaniaNombre(o.campaniaId)||'—')+'</p>'+
         '</div>'+
         '<div class="ot-h-r">'+
           '<div class="ot-num">OT #'+o.num+'</div>'+
@@ -2815,6 +2942,10 @@ function cerrarTanda(otId){
     if(!confirm('⚠ Stock insuficiente en el depósito de origen para:\n\n'+faltantes.join('\n')+'\n\n¿Cerrar igual? (el stock quedará negativo)')) return;
   }
 
+  // Comprobante único para esta aplicación de OT (cabecera). Las líneas (consumo/baja) lo referencian.
+  var compOT={ id:uid(), fecha:fecha, tipo:'Consumo OT', comp_tipo:'OT', comp_nro:'#'+o.num,
+    proveedorId:'', campaniaId:o.campaniaId||'', obs:'Aplicación OT #'+o.num, refOt:o.id, refOtNum:o.num };
+  var compOTusado=false;
   // Aplicar a cada destino seleccionado
   for(var s=0;s<lotesSel.length;s++){
     var de=lotesSel[s];
@@ -2825,20 +2956,24 @@ function cerrarTanda(otId){
       ln.entregada=x.entregada; ln.usado=x.usado; ln.devStock=x.devStock; ln.devBaja=x.devBaja;
       var cIns=aplicTmp.consumos[ln.insumoId]||{};
       var depOrigen=cIns.deposito||'';
+      var depOrigenId=(getDepositoByNombre(depOrigen)||{}).id||'';
       ln.deposito=depOrigen; // guardar de qué depósito salió, para deshacer/trazar
       // Movimiento Consumo OT por lo usado
       if(ln.usado>0){
-        state.movtos.push({id:uid(), fecha:fecha, comp_tipo:'OT', comp_nro:'#'+o.num, insumoId:ln.insumoId, cant:ln.usado, tipo:'Consumo OT', origen:depOrigen, destino:'', obs:'Aplicación OT #'+o.num+' · '+getCampoNombre(de.campoId)+' · '+(getLoteById(de.loteId)?getLoteById(de.loteId).nombre:''), refOt:o.id, refOtNum:o.num, refDest:de.id});
+        state.movtos.push({id:uid(), comprobanteId:compOT.id, insumoId:ln.insumoId, cant:ln.usado, origenId:depOrigenId, destinoId:'', refDest:de.id});
+        compOTusado=true;
       }
       // Movimiento Baja por lo de devBaja
       if(ln.devBaja>0){
-        state.movtos.push({id:uid(), fecha:fecha, comp_tipo:'OT', comp_nro:'#'+o.num, insumoId:ln.insumoId, cant:ln.devBaja, tipo:'Baja por aplicación OT', origen:depOrigen, destino:'', obs:'Sobrante no apto · OT #'+o.num, refOt:o.id, refOtNum:o.num, refDest:de.id});
+        state.movtos.push({id:uid(), comprobanteId:compOT.id, insumoId:ln.insumoId, cant:ln.devBaja, origenId:depOrigenId, destinoId:'', refDest:de.id});
+        compOTusado=true;
       }
       // devStock: silencioso
     }
     de.estadoLote='Aplicado';
     de.fechaAplicReal=fecha;
   }
+  if(compOTusado) state.comprobantes.push(compOT);
   recalcEstadoOT(o);
   aplicTmp=null; // resetear para la próxima
   save();
@@ -2851,8 +2986,10 @@ function deshacerAplicLote(otId, destId){
   if(!o) return;
   var de=null; for(var d=0;d<o.destinos.length;d++) if(o.destinos[d].id===destId){ de=o.destinos[d]; break; }
   if(!de) return;
-  // borrar movimientos de ese destino
+  // borrar líneas de ese destino
   state.movtos=state.movtos.filter(function(m){ return m.refDest!==destId; });
+  // limpiar comprobantes de OT que quedaron sin líneas
+  limpiarComprobantesHuerfanos();
   // resetear líneas
   for(var j=0;j<de.lineas.length;j++){ de.lineas[j].entregada=0; de.lineas[j].usado=0; de.lineas[j].devStock=0; de.lineas[j].devBaja=0; }
   de.estadoLote='Pendiente'; de.fechaAplicReal='';
@@ -3327,11 +3464,6 @@ function updateContrEstado(otId, val){
   else if(val==='Sin facturar'){ o.montoFacturado=0; }
   save(); renderContratistas();
 }
-function updateContrMonto(otId, val){
-  var o=getOtById(otId); if(!o) return;
-  o.montoFacturado=Number(val)||0;
-  save(); renderContratistas();
-}
 function openMontoModal(otId){
   var o=getOtById(otId); if(!o) return;
   var haApl=otHaAplicada(o), tarifa=tarifaARSDeOt(o);
@@ -3386,15 +3518,10 @@ function setMTab(t,btn){
    COSTOS
 ================================================================ */
 function clearCostFilters(){
+  var ccmp=byId('costCampaniaFilter'); if(ccmp) ccmp.value='';
   byId('costCampoFilter').value=''; byId('costLoteFilter').value='';
   byId('costActFilter').value=''; byId('costCultFilter').value='';
   byId('costDesde').value=''; byId('costHasta').value='';
-  renderCostos();
-}
-function updateTC(val){
-  var v=Number(val)||0;
-  state.tcUSD = v>0 ? v : 1000;
-  save();
   renderCostos();
 }
 // Devuelve el TC (USD→ARS) aplicable a una fecha 'YYYY-MM-DD'.
@@ -3406,16 +3533,6 @@ function tcDeFecha(fecha){
   var tm=state.tcMensual||{};
   var v=Number(tm[ym])||0;
   return v>0 ? v : global;
-}
-// Convierte un importe entre monedas usando el TC de una fecha.
-// from/to ∈ {'ARS','USD'}. Devuelve número en la moneda 'to'.
-function convertirMoneda(monto, from, to, fecha){
-  monto=Number(monto)||0;
-  if(from===to) return monto;
-  var tc=tcDeFecha(fecha);
-  if(from==='USD' && to==='ARS') return monto*tc;
-  if(from==='ARS' && to==='USD') return tc>0 ? monto/tc : 0;
-  return monto;
 }
 // Valoriza una línea de insumo a ARS usando el TC del mes de la aplicación.
 // Devuelve {costo(ARS), precio, moneda, sinPrecio, tc}
@@ -3435,6 +3552,9 @@ function setCostMoneda(m){ window.costMoneda=(m==='USD'?'USD':'ARS'); renderCost
 
 function renderCostos(){
   // === Poblar selects de filtros ===
+  var ccmp=byId('costCampaniaFilter');
+  if(ccmp){ var curCmp=ccmp.value; ccmp.innerHTML=campaniaOptions(curCmp, true); }
+  var fcampania=ccmp?ccmp.value:'';
   var cc=byId('costCampoFilter'); var curCa=cc.value;
   cc.innerHTML='<option value="">Todos los campos</option>';
   for(var ca=0;ca<state.campos.length;ca++){
@@ -3451,6 +3571,7 @@ function renderCostos(){
   var cultSet={};
   for(var k0=0;k0<state.ots.length;k0++){
     var o0=state.ots[k0]; if(o0.estado==='Cancelada') continue;
+    if(fcampania && (o0.campaniaId||'')!==fcampania) continue;
     var ds0=o0.destinos||[];
     for(var d0=0;d0<ds0.length;d0++){ if(ds0[d0].estadoLote==='Aplicado' && ds0[d0].cultivo) cultSet[ds0[d0].cultivo]=true; }
   }
@@ -3492,6 +3613,7 @@ function renderCostos(){
 
   for(var k=0;k<state.ots.length;k++){
     var o=state.ots[k]; if(o.estado==='Cancelada') continue;
+    if(fcampania && (o.campaniaId||'')!==fcampania) continue;
     var esContratada = (o.laborTipo==='LC');
     var ds=o.destinos||[];
     for(var d=0;d<ds.length;d++){
@@ -3746,6 +3868,11 @@ function renderMaestros(){
   else if(curMTab==='categorias') renderMSimple('catInsumos','Categorías de insumo');
   else if(curMTab==='tc') renderMTC();
   else if(curMTab==='contratistas') renderMContratistas();
+  // Catálogos compartidos editables inline (campos/lotes/contratistas): si están en
+  // solo lectura, deshabilitar controles. (actividades/labores ya renderizan en modo RO.)
+  if(curMTab==='campos' || curMTab==='lotes' || curMTab==='contratistas'){
+    aplicarSoloLecturaMaestros(curMTab);
+  }
 }
 function renderMContratistas(){
   var rows='';
@@ -3761,8 +3888,9 @@ function renderMContratistas(){
     '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Listado de contratistas elegibles en las OT. La tarifa y la facturación se gestionarán en la sección Contratistas y Labores (próximamente).</p>'+
     '<div class="tw"><table><thead><tr><th>Nombre</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="2" class="empty">Sin contratistas. Cargá el primero.</td></tr>')+'</tbody></table></div>';
 }
-function addContratista(){ state.contratistas.push({id:uid(),nombre:'Nuevo contratista'}); save(); renderMContratistas(); }
+function addContratista(){ if(bloqueadoSiReadOnly('contratistas'))return; state.contratistas.push({id:uid(),nombre:'Nuevo contratista'}); save(); renderMContratistas(); }
 function delContratista(id){
+  if(bloqueadoSiReadOnly('contratistas'))return;
   if(!confirm('¿Eliminar este contratista? Las OT que lo referencian quedarán sin contratista asignado.')) return;
   state.contratistas=state.contratistas.filter(function(x){return x.id!==id;});
   save(); renderMContratistas();
@@ -3770,9 +3898,9 @@ function delContratista(id){
 function getContratistaNombre(id){ if(!id) return ''; for(var i=0;i<state.contratistas.length;i++) if(state.contratistas[i].id===id) return state.contratistas[i].nombre; return ''; }
 
 /* ===== Maestros: Tipo de cambio mensual (campaña julio→junio) ===== */
-// Deriva los años de la campaña a partir de contexto.campaña ("24-25" → 2024/2025).
+// Deriva los años de la campaña a partir de la campaña por defecto ("24-25" → 2024/2025).
 function aniosCampania(){
-  var camp=(state.contexto && state.contexto.campaña) ? String(state.contexto.campaña) : '';
+  var camp=getCampaniaNombre(state.campaniaActivaId) || '';
   var m=camp.match(/(\d{2,4})\s*[-\/]\s*(\d{2,4})/);
   var y1, y2;
   if(m){
@@ -3867,73 +3995,122 @@ function renderMInsumos(){
     return r*dir;
   });
   var rows='';
+  var roId = state.catalogosReadOnly; // identidad (nombre/cat/un) de solo lectura
   for(var s=0;s<sorted.length;s++){
     var x=sorted[s];
     var i=state.insumos.indexOf(x); // índice real en el array
     var optsC=''; for(var c2=0;c2<state.catInsumos.length;c2++){ optsC+='<option'+(state.catInsumos[c2]===x.cat?' selected':'')+'>'+esc(state.catInsumos[c2])+'</option>'; }
     var optsD=''; for(var d2=0;d2<state.depositos.length;d2++){ optsD+='<option'+(state.depositos[d2].nombre===x.deposito?' selected':'')+'>'+esc(state.depositos[d2].nombre)+'</option>'; }
     var optsMon='<option'+(x.moneda==='ARS'||!x.moneda?' selected':'')+'>ARS</option><option'+(x.moneda==='USD'?' selected':'')+'>USD</option>';
-    var totIni=0; if(x.stockInicialPorDep){ for(var dk in x.stockInicialPorDep){ if(x.stockInicialPorDep.hasOwnProperty(dk)) totIni+=Number(x.stockInicialPorDep[dk])||0; } } else { totIni=Number(x.stockInicial)||0; }
-    var nDeps=0; if(x.stockInicialPorDep){ for(var dk2 in x.stockInicialPorDep){ if(x.stockInicialPorDep.hasOwnProperty(dk2) && (Number(x.stockInicialPorDep[dk2])||0)!==0) nDeps++; } }
+    var iniInfo=stockInicialDeInsumo(x.id);
+    var totIni=iniInfo.total, nDeps=iniInfo.nDeps;
+    // Identidad: editable o texto plano según roId. Stock/depósito/precio: siempre editables (operativo).
+    var celNombre = roId ? '<td style="padding:4px 6px">'+esc(x.nombre)+'</td>'
+      : '<td><input value="'+esc(x.nombre)+'" onchange="state.insumos['+i+'].nombre=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>';
+    var celCat = roId ? '<td style="padding:4px 6px">'+esc(x.cat||'')+'</td>'
+      : '<td><select onchange="state.insumos['+i+'].cat=this.value;save();renderStock();renderMInsumos()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)">'+optsC+'</select></td>';
+    var celUn = roId ? '<td style="padding:4px 6px">'+esc(x.un||'')+'</td>'
+      : '<td><input value="'+esc(x.un)+'" onchange="state.insumos['+i+'].un=this.value;save()" style="width:55px;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>';
+    var celDel = roId ? '' : '<td><button class="btn btn-sm btn-danger" onclick="delInsumo(\''+x.id+'\')">✕</button></td>';
     rows+='<tr>'+
-      '<td><input value="'+esc(x.nombre)+'" onchange="state.insumos['+i+'].nombre=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
-      '<td><select onchange="state.insumos['+i+'].cat=this.value;save();renderStock();renderMInsumos()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)">'+optsC+'</select></td>'+
-      '<td><input value="'+esc(x.un)+'" onchange="state.insumos['+i+'].un=this.value;save()" style="width:55px;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
+      celNombre+ celCat+ celUn+
       '<td class="num"><button class="btn btn-sm" onclick="openStockInicialModal(\''+x.id+'\')" title="Editar stock inicial por depósito">'+f(totIni,2)+(nDeps>1?' ('+nDeps+' dep.)':'')+' ✎</button></td>'+
       '<td><select onchange="state.insumos['+i+'].deposito=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)" title="Depósito principal (default al aplicar)">'+optsD+'</select></td>'+
       '<td class="num"><input type="number" step="0.01" min="0" value="'+(x.precioUnitario||0)+'" onchange="state.insumos['+i+'].precioUnitario=Number(this.value);save()" style="width:90px;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;text-align:right"></td>'+
       '<td><select onchange="state.insumos['+i+'].moneda=this.value;save()" style="width:65px;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)">'+optsMon+'</select></td>'+
-      '<td><button class="btn btn-sm btn-danger" onclick="delInsumo(\''+x.id+'\')">✕</button></td>'+
+      celDel+
       '</tr>';
   }
+  var headBtn = roId
+    ? '<span class="bdg" style="background:#E8EDF2;color:#475569">Catálogo: solo lectura</span>'
+    : '<button class="btn btn-sm btn-primary" onclick="addInsumo()">+ Nuevo insumo</button>';
+  var ayuda = roId
+    ? 'El catálogo de insumos (nombre, categoría, unidad) se administra en Maestros. Acá cargás el stock inicial, depósito y precio de cada uno, que son datos operativos de esta empresa.'
+    : 'El stock inicial se carga por depósito (botón ✎). El "depósito principal" es el que se sugiere por default al aplicar una OT. Tocá un encabezado para ordenar.';
   byId('maestrosCard').innerHTML=
-    '<div class="chd"><span class="ct-lg">Insumos</span><button class="btn btn-sm btn-primary" onclick="addInsumo()">+ Nuevo insumo</button></div>'+
-    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">El stock inicial se carga por depósito (botón ✎). El "depósito principal" es el que se sugiere por default al aplicar una OT. Tocá un encabezado para ordenar.</p>'+
+    '<div class="chd"><span class="ct-lg">Insumos</span>'+headBtn+'</div>'+
+    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">'+ayuda+'</p>'+
     '<div class="tw"><table><thead><tr>'+
       '<th class="th-sort" onclick="setInsSort(\'nombre\')">Nombre '+insSortArrow('nombre')+'</th>'+
       '<th class="th-sort" onclick="setInsSort(\'cat\')">Categoría '+insSortArrow('cat')+'</th>'+
       '<th class="th-sort" onclick="setInsSort(\'un\')">Un. '+insSortArrow('un')+'</th>'+
       '<th class="num">Stock inicial</th><th>Depósito principal</th>'+
       '<th class="num th-sort" onclick="setInsSort(\'precio\')">Precio unit. '+insSortArrow('precio')+'</th>'+
-      '<th>Mon.</th><th></th>'+
-    '</tr></thead><tbody>'+(rows||'<tr><td colspan="8" class="empty">Sin insumos. Cargá el primero.</td></tr>')+'</tbody></table></div>';
+      '<th>Mon.</th>'+(roId?'':'<th></th>')+
+    '</tr></thead><tbody>'+(rows||'<tr><td colspan="'+(roId?7:8)+'" class="empty">Sin insumos. Cargá el primero.</td></tr>')+'</tbody></table></div>';
+}
+// Suma del stock inicial de un insumo (desde las líneas de comprobantes tipo 'Stock inicial').
+// Devuelve {total, nDeps, porDep:{depId:cant}}.
+function stockInicialDeInsumo(insId){
+  var porDep={}, total=0, nDeps=0;
+  for(var i=0;i<state.movtos.length;i++){
+    var m=state.movtos[i]; if(m.insumoId!==insId) continue;
+    var cab=compDe(m); if(!cab || cab.tipo!=='Stock inicial') continue;
+    var did=m.destinoId||'';
+    porDep[did]=(porDep[did]||0)+(Number(m.cant)||0);
+  }
+  for(var k in porDep){ if(porDep.hasOwnProperty(k)){ total+=porDep[k]; if(porDep[k]!==0) nDeps++; } }
+  return {total:total, nDeps:nDeps, porDep:porDep};
+}
+// Devuelve el comprobante "Inventario inicial" (único global). Lo crea si no existe.
+function getOrCreateCompInicial(fecha){
+  for(var i=0;i<state.comprobantes.length;i++){ if(state.comprobantes[i].tipo==='Stock inicial') { if(fecha) state.comprobantes[i].fecha=fecha; return state.comprobantes[i]; } }
+  var c={id:uid(), fecha:fecha||todayISO(), tipo:'Stock inicial', comp_tipo:'', comp_nro:'', proveedorId:'', campaniaId:state.campaniaActivaId||'', obs:'Inventario inicial', refOt:'', refOtNum:''};
+  state.comprobantes.push(c); return c;
 }
 function openStockInicialModal(insId){
   var ins=getInsumo(insId); if(!ins) return;
-  if(!ins.stockInicialPorDep) ins.stockInicialPorDep={};
+  var info=stockInicialDeInsumo(insId);
+  // fecha sugerida: la del comprobante inicial si existe, si no 1/7 del año en curso
+  var compIni=null; for(var ci=0;ci<state.comprobantes.length;ci++){ if(state.comprobantes[ci].tipo==='Stock inicial'){ compIni=state.comprobantes[ci]; break; } }
+  var fechaSug = compIni && compIni.fecha ? compIni.fecha : (new Date().getFullYear()+'-07-01');
   var rows='';
   for(var d=0;d<state.depositos.length;d++){
-    var dn=state.depositos[d].nombre;
-    var val=Number(ins.stockInicialPorDep[dn])||0;
-    rows+='<tr><td class="tdname">'+esc(dn)+'</td>'+
-      '<td class="num"><input type="number" step="0.01" id="simod_'+d+'" data-dep="'+esc(dn)+'" value="'+val+'" style="width:120px;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td></tr>';
+    var dep=state.depositos[d];
+    var val=Number(info.porDep[dep.id])||0;
+    rows+='<tr><td class="tdname">'+esc(dep.nombre)+'</td>'+
+      '<td class="num"><input type="number" step="0.01" id="simod_'+d+'" data-depid="'+esc(dep.id)+'" value="'+val+'" style="width:120px;text-align:right;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td></tr>';
   }
   var mc=byId('modalContent');
   mc.innerHTML='<h3>Stock inicial por depósito — '+esc(ins.nombre)+'</h3>'+
-    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Cargá el saldo inicial de este insumo en cada depósito. Lo que dejes en 0 no aparece en stock.</p>'+
+    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">El stock inicial se registra como un movimiento "Stock inicial". Cargá el saldo de arranque en cada depósito. Lo que dejes en 0 no genera movimiento.</p>'+
+    '<div class="form-row r2" style="margin-bottom:8px"><div class="fld"><label>Fecha del inventario inicial</label><input type="date" id="simod_fecha" value="'+fechaSug+'"></div></div>'+
     '<div class="tw" style="max-height:300px;overflow-y:auto"><table><thead><tr><th>Depósito</th><th class="num">Stock inicial</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<div class="fact"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveStockInicialModal(\''+insId+'\')">Guardar</button></div>';
   byId('modalBg').classList.add('on');
 }
 function saveStockInicialModal(insId){
   var ins=getInsumo(insId); if(!ins) return;
-  var nuevo={};
+  var fecha=byId('simod_fecha')?byId('simod_fecha').value:todayISO();
+  // borrar las líneas de stock inicial actuales de ESTE insumo
+  var compIniId=null;
+  for(var ci=0;ci<state.comprobantes.length;ci++){ if(state.comprobantes[ci].tipo==='Stock inicial'){ compIniId=state.comprobantes[ci].id; break; } }
+  if(compIniId){ state.movtos=state.movtos.filter(function(m){ return !(m.comprobanteId===compIniId && m.insumoId===insId); }); }
+  // crear nuevas líneas según lo cargado
+  var algo=false;
+  var nuevas=[];
   for(var d=0;d<state.depositos.length;d++){
     var inp=byId('simod_'+d); if(!inp) continue;
     var v=Number(inp.value)||0;
-    if(v!==0) nuevo[inp.getAttribute('data-dep')]=v;
+    if(v!==0){ nuevas.push({depId:inp.getAttribute('data-depid'), cant:v}); algo=true; }
   }
-  ins.stockInicialPorDep=nuevo;
-  // limpiar el viejo campo simple para evitar doble conteo (el fallback solo aplica si no hay stockInicialPorDep)
-  ins.stockInicial=0;
+  if(algo){
+    var comp=getOrCreateCompInicial(fecha); compIniId=comp.id;
+    for(var n=0;n<nuevas.length;n++){
+      state.movtos.push({id:uid(), comprobanteId:compIniId, insumoId:insId, cant:nuevas[n].cant, origenId:'', destinoId:nuevas[n].depId});
+    }
+  }
+  limpiarComprobantesHuerfanos();
   save(); closeModal(); renderMInsumos(); renderStock(); toast('Stock inicial actualizado');
 }
 function addInsumo(){
+  if(bloqueadoSiReadOnly('insumos'))return;
   var depDef=(state.depositos[0]&&state.depositos[0].nombre)||'';
-  state.insumos.push({id:uid(),nombre:'Nuevo insumo',cat:state.catInsumos[0]||'Varios',un:'Un',stockInicial:0,stockInicialPorDep:{},deposito:depDef,precioUnitario:0,moneda:'ARS'});
+  state.insumos.push({id:uid(),nombre:'Nuevo insumo',cat:state.catInsumos[0]||'Varios',un:'Un',deposito:depDef,stockMin:0,precioUnitario:0,moneda:'ARS'});
   save(); renderMInsumos();
 }
 function delInsumo(id){
+  if(bloqueadoSiReadOnly('insumos'))return;
   if(!confirm('¿Eliminar este insumo? Los movimientos y consumos asociados quedarán sin referencia.')) return;
   state.insumos=state.insumos.filter(function(x){ return x.id!==id; });
   save(); renderMInsumos(); renderStock();
@@ -3959,10 +4136,12 @@ function renderMCampos(){
     '<div class="tw"><table><thead><tr><th>Nombre</th><th>Localidad</th><th class="num">Lotes</th><th class="num">Depósitos</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="5" class="empty">Sin campos.</td></tr>')+'</tbody></table></div>';
 }
 function addCampo(){
+  if(bloqueadoSiReadOnly('campos'))return;
   state.campos.push({id:uid(),nombre:'Nuevo campo',localidad:''});
   save(); renderMCampos();
 }
 function delCampo(id){
+  if(bloqueadoSiReadOnly('campos'))return;
   // bloquear si tiene lotes o depósitos
   var nLotes=0,nDeps=0;
   for(var i=0;i<state.lotes.length;i++) if(state.lotes[i].campoId===id) nLotes++;
@@ -4042,52 +4221,57 @@ function renderMLotes(){
     '</tbody></table></div>';
 }
 function addLote(){
+  if(bloqueadoSiReadOnly('lotes'))return;
   if(!state.campos.length){ alert('Creá un campo primero.'); return; }
   state.lotes.push({id:uid(),nombre:'Nuevo lote',ha:0,campoId:state.campos[0].id,actividades:[]});
   save(); renderMLotes();
 }
 function addLoteAct(idx, act){
+  if(bloqueadoSiReadOnly('lotes'))return;
   if(!act) return;
   if(!state.lotes[idx].actividades) state.lotes[idx].actividades=[];
   if(state.lotes[idx].actividades.indexOf(act)<0){ state.lotes[idx].actividades.push(act); save(); renderMLotes(); }
 }
 function removeLoteAct(idx, ci){
+  if(bloqueadoSiReadOnly('lotes'))return;
   state.lotes[idx].actividades.splice(ci,1); save(); renderMLotes();
 }
 function renderMDepositos(){
+  var ro = !!state.catalogosReadOnly; // depósitos vienen de pa-core (Maestros): solo lectura con contexto
   var rows='';
   for(var i=0;i<state.depositos.length;i++){
     var x=state.depositos[i];
-    var optsCampo='<option value="">— General del cliente —</option>';
-    for(var ca=0;ca<state.campos.length;ca++){
-      optsCampo+='<option value="'+state.campos[ca].id+'"'+(state.campos[ca].id===x.campoId?' selected':'')+'>'+esc(state.campos[ca].nombre)+'</option>';
+    var campoNom = x.campoId ? getCampoNombre(x.campoId) : '— General del cliente —';
+    if(ro){
+      rows+='<tr>'+
+        '<td style="padding:6px 8px">'+esc(x.nombre)+'</td>'+
+        '<td style="padding:6px 8px">'+esc(campoNom)+'</td>'+
+        '</tr>';
+    } else {
+      var optsCampo='<option value="">— General del cliente —</option>';
+      for(var ca=0;ca<state.campos.length;ca++){
+        optsCampo+='<option value="'+state.campos[ca].id+'"'+(state.campos[ca].id===x.campoId?' selected':'')+'>'+esc(state.campos[ca].nombre)+'</option>';
+      }
+      rows+='<tr>'+
+        '<td><input value="'+esc(x.nombre)+'" oninput="onDepositoRename('+i+',this.value)" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
+        '<td><select onchange="state.depositos['+i+'].campoId=this.value;save();renderStock()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)">'+optsCampo+'</select></td>'+
+        '<td><button class="btn btn-sm btn-danger" onclick="delDeposito('+i+')">✕</button></td>'+
+        '</tr>';
     }
-    rows+='<tr>'+
-      '<td><input value="'+esc(x.nombre)+'" oninput="onDepositoRename('+i+',this.value)" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
-      '<td><select onchange="state.depositos['+i+'].campoId=this.value;save();renderStock()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--card)">'+optsCampo+'</select></td>'+
-      '<td><button class="btn btn-sm btn-danger" onclick="delDeposito('+i+')">✕</button></td>'+
-      '</tr>';
   }
+  var head = ro
+    ? '<div class="chd"><span class="ct-lg">Depósitos / Acopios</span><span class="bdg" style="background:#E8EDF2;color:#475569">Solo lectura</span></div>'+
+      '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Los depósitos se administran en Maestros (nivel empresa). Acá se muestran para usarlos en stock y movimientos.</p>'
+    : '<div class="chd"><span class="ct-lg">Depósitos / Acopios</span><button class="btn btn-sm btn-primary" onclick="state.depositos.push({id:uid(),nombre:\'Nuevo depósito\',campoId:\'\'});save();renderMDepositos()">+ Nuevo depósito</button></div>'+
+      '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Un depósito puede pertenecer a un campo específico, o ser <strong>general del cliente</strong> (compartido entre campos).</p>';
   byId('maestrosCard').innerHTML=
-    '<div class="chd"><span class="ct-lg">Depósitos</span><button class="btn btn-sm btn-primary" onclick="state.depositos.push({id:uid(),nombre:\'Nuevo depósito\',campoId:\'\'});save();renderMDepositos()">+ Nuevo depósito</button></div>'+
-    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Un depósito puede pertenecer a un campo específico, o ser <strong>general del cliente</strong> (compartido entre campos).</p>'+
-    '<div class="tw"><table><thead><tr><th>Nombre</th><th>Campo</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="3" class="empty">Sin depósitos.</td></tr>')+'</tbody></table></div>';
+    head+
+    '<div class="tw"><table><thead><tr><th>Nombre</th><th>Campo</th>'+(ro?'':'<th></th>')+'</tr></thead><tbody>'+(rows||'<tr><td colspan="'+(ro?2:3)+'" class="empty">Sin depósitos.</td></tr>')+'</tbody></table></div>';
 }
 function onDepositoRename(idx, newName){
-  var oldName=state.depositos[idx].nombre;
+  // Con el modelo por id, renombrar un depósito NO rompe nada: movimientos y stock
+  // referencian el depósito por id (no por nombre). Solo se actualiza la etiqueta.
   state.depositos[idx].nombre=newName;
-  // Propagar el cambio a insumos y movimientos que apuntan al nombre viejo
-  if(oldName && oldName!==newName){
-    for(var i=0;i<state.insumos.length;i++){
-      if(state.insumos[i].deposito===oldName) state.insumos[i].deposito=newName;
-      var sip=state.insumos[i].stockInicialPorDep;
-      if(sip && sip.hasOwnProperty(oldName)){ sip[newName]=sip[oldName]; delete sip[oldName]; }
-    }
-    for(var j=0;j<state.movtos.length;j++){
-      if(state.movtos[j].origen===oldName) state.movtos[j].origen=newName;
-      if(state.movtos[j].destino===oldName) state.movtos[j].destino=newName;
-    }
-  }
   save();
 }
 function delDeposito(idx){
@@ -4101,76 +4285,92 @@ function delDeposito(idx){
   save(); renderMDepositos();
 }
 function renderMSimple(key,titulo){
+  // 'actividades' y 'catInsumos' son catálogos que provienen de Maestros (nivel empresa):
+  // solo lectura cuando hay contexto. Se gestionan junto con los insumos en Maestros.
+  var ro = state.catalogosReadOnly && (key==='actividades' || key==='catInsumos');
   var rows='';
   for(var i=0;i<state[key].length;i++){
-    rows+='<tr>'+
-      '<td><input value="'+esc(state[key][i])+'" oninput="state.'+key+'['+i+']=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
-      '<td><button class="btn btn-sm btn-danger" onclick="state.'+key+'.splice('+i+',1);save();renderMaestros()">✕</button></td>'+
-      '</tr>';
+    if(ro){
+      rows+='<tr><td style="padding:6px 8px">'+esc(state[key][i])+'</td></tr>';
+    } else {
+      rows+='<tr>'+
+        '<td><input value="'+esc(state[key][i])+'" oninput="state.'+key+'['+i+']=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
+        '<td><button class="btn btn-sm btn-danger" onclick="state.'+key+'.splice('+i+',1);save();renderMaestros()">✕</button></td>'+
+        '</tr>';
+    }
   }
+  var cols = ro ? 1 : 2;
+  var head = ro
+    ? '<div class="chd"><span class="ct-lg">'+esc(titulo)+'</span><span class="bdg" style="background:#E8EDF2;color:#475569">Solo lectura</span></div>'+
+      '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">'+(key==='catInsumos'?'Las categorías se definen al cargar cada insumo en Maestros. Acá se muestran las que están en uso.':'Este catálogo se edita en Maestros (nivel empresa). Acá se muestra para usarlo en las OT.')+'</p>'
+    : '<div class="chd"><span class="ct-lg">'+esc(titulo)+'</span><button class="btn btn-sm btn-primary" onclick="state.'+key+'.push(\'Nuevo\');save();renderMaestros()">+ Nuevo</button></div>';
   byId('maestrosCard').innerHTML=
-    '<div class="chd"><span class="ct-lg">'+esc(titulo)+'</span><button class="btn btn-sm btn-primary" onclick="state.'+key+'.push(\'Nuevo\');save();renderMaestros()">+ Nuevo</button></div>'+
-    '<div class="tw"><table><thead><tr><th>Nombre</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="2" class="empty">Vacío.</td></tr>')+'</tbody></table></div>';
+    head+
+    '<div class="tw"><table><thead><tr><th>Nombre</th>'+(ro?'':'<th></th>')+'</tr></thead><tbody>'+(rows||'<tr><td colspan="'+cols+'" class="empty">Vacío.</td></tr>')+'</tbody></table></div>';
 }
 function renderMLabores(key, conTarifa){
+  var ro = state.catalogosReadOnly;
   var rows='';
   for(var i=0;i<state[key].length;i++){
     var x=state[key][i];
     // por compat, si viniera como string lo convertimos
     if(typeof x==='string'){ x={nombre:x}; state[key][i]=x; }
-    var tarifaCell = conTarifa
-      ? '<td class="num"><input type="number" step="0.01" min="0" value="'+(x.tarifaDefault||0)+'" oninput="state.'+key+'['+i+'].tarifaDefault=Number(this.value);save()" style="width:100px;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;text-align:right"></td>'
-      : '<td class="tdname" style="color:var(--muted);font-size:11px">se carga en cada OT</td>';
-    rows+='<tr>'+
-      '<td><input value="'+esc(x.nombre)+'" oninput="state.'+key+'['+i+'].nombre=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
-      tarifaCell+
-      '<td><button class="btn btn-sm btn-danger" onclick="state.'+key+'.splice('+i+',1);save();renderMaestros()">✕</button></td>'+
-      '</tr>';
+    if(ro){
+      var tCell = conTarifa
+        ? '<td class="num">'+f(x.tarifaDefault||0,2)+'</td>'
+        : '<td class="tdname" style="color:var(--muted);font-size:11px">se carga en cada OT</td>';
+      rows+='<tr><td style="padding:6px 8px">'+esc(x.nombre)+'</td>'+tCell+'</tr>';
+    } else {
+      var tarifaCell = conTarifa
+        ? '<td class="num"><input type="number" step="0.01" min="0" value="'+(x.tarifaDefault||0)+'" oninput="state.'+key+'['+i+'].tarifaDefault=Number(this.value);save()" style="width:100px;font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px;text-align:right"></td>'
+        : '<td class="tdname" style="color:var(--muted);font-size:11px">se carga en cada OT</td>';
+      rows+='<tr>'+
+        '<td><input value="'+esc(x.nombre)+'" oninput="state.'+key+'['+i+'].nombre=this.value;save()" style="width:100%;font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 6px"></td>'+
+        tarifaCell+
+        '<td><button class="btn btn-sm btn-danger" onclick="state.'+key+'.splice('+i+',1);save();renderMaestros()">✕</button></td>'+
+        '</tr>';
+    }
   }
   var titulo = key==='laboresLP' ? 'Labores propias' : 'Labores contratadas';
   var addObj = conTarifa ? "{nombre:'Nueva labor',tarifaDefault:0}" : "{nombre:'Nueva labor'}";
+  var head = ro
+    ? '<div class="chd"><span class="ct-lg">'+esc(titulo)+'</span><span class="bdg" style="background:#E8EDF2;color:#475569">Solo lectura</span></div>'+
+      '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Las labores se editan en Maestros (nivel empresa). Acá se muestran para usarlas en las OT.</p>'
+    : '<div class="chd"><span class="ct-lg">'+esc(titulo)+'</span><button class="btn btn-sm btn-primary" onclick="state.'+key+'.push('+addObj+');save();renderMaestros()">+ Nueva labor</button></div>'+
+      (conTarifa?'<p style="font-size:11px;color:var(--muted);margin-bottom:10px">La tarifa default se autocompleta al emitir la OT. Es editable en cada OT.</p>':'<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Las labores contratadas no tienen tarifa default: se define en cada OT.</p>');
   byId('maestrosCard').innerHTML=
-    '<div class="chd"><span class="ct-lg">'+esc(titulo)+'</span><button class="btn btn-sm btn-primary" onclick="state.'+key+'.push('+addObj+');save();renderMaestros()">+ Nueva labor</button></div>'+
-    (conTarifa?'<p style="font-size:11px;color:var(--muted);margin-bottom:10px">La tarifa default se autocompleta al emitir la OT. Es editable en cada OT.</p>':'<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Las labores contratadas no tienen tarifa default: se define en cada OT.</p>')+
-    '<div class="tw"><table><thead><tr><th>Nombre</th><th class="num">Tarifa $/ha</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="3" class="empty">Vacío.</td></tr>')+'</tbody></table></div>';
+    head+
+    '<div class="tw"><table><thead><tr><th>Nombre</th><th class="num">Tarifa $/ha</th>'+(ro?'':'<th></th>')+'</tr></thead><tbody>'+(rows||'<tr><td colspan="'+(ro?2:3)+'" class="empty">Vacío.</td></tr>')+'</tbody></table></div>';
 }
 
 /* ================================================================
    CONTEXTO
 ================================================================ */
 function refreshCtx(){
-  var c=state.contexto;
-  byId('hCtx').textContent= (c.empresa||'(sin empresa)')+' · Campaña '+(c.campaña||'(sin campaña)');
   refreshWsSelect();
+  // Poblar selector "Campaña por defecto" con las campañas; seleccionar la activa.
+  var sc=byId('campaniaDefSel');
+  if(sc){ sc.innerHTML=campaniaOptions(state.campaniaActivaId, false); }
 }
-function openCtxModal(){
-  var mc=byId('modalContent');
-  mc.innerHTML='<h3>Editar contexto del espacio activo</h3>'+
-    '<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Estos datos aparecen en el header y en la OT impresa. Los campos del cliente se administran en Maestros → Campos.</p>'+
-    '<div class="form-row r2">'+
-      '<div class="fld"><label>Empresa / Cliente</label><input id="ctxE" value="'+esc(state.contexto.empresa||'')+'"></div>'+
-      '<div class="fld"><label>Campaña</label><input id="ctxK" value="'+esc(state.contexto.campaña||'')+'"></div>'+
-    '</div>'+
-    '<div class="fact"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveCtx()">Guardar</button></div>';
-  byId('modalBg').classList.add('on');
+// Cambia la campaña por defecto (la sugerida al registrar OT/movimientos). No filtra
+// ni impone: en cada registro se puede elegir otra. Refresca los defaults de los forms.
+function setCampaniaDefecto(id){
+  state.campaniaActivaId=id;
+  save();
+  var mc=byId('m_campania'); if(mc) mc.value=id;
+  var oc=byId('o_campania'); if(oc) oc.value=id;
+  toast('Campaña por defecto: '+(getCampaniaNombre(id)||id));
 }
 function closeModal(){ byId('modalBg').classList.remove('on'); }
-function saveCtx(){
-  state.contexto.empresa=byId('ctxE').value;
-  state.contexto.campaña=byId('ctxK').value;
-  save(); refreshCtx(); closeModal(); toast('Contexto actualizado');
-}
 
 /* ================================================================
    EXPORT EXCEL
 ================================================================ */
 function exportExcel(){
   var wb=XLSX.utils.book_new();
-  var c=state.contexto;
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-    ['Espacio', root.espacios[root.activoId].nombre],
-    ['Empresa / Cliente', c.empresa||''],
-    ['Campaña', c.campaña||''],
+    ['Empresa', (root.espacios[root.activoId]&&root.espacios[root.activoId].nombre)||''],
+    ['Campaña por defecto', getCampaniaNombre(state.campaniaActivaId)||''],
     ['Cantidad de campos', state.campos.length],
     ['Fecha exportación', new Date().toLocaleString('es-AR')]
   ]), 'Contexto');
@@ -4190,35 +4390,38 @@ function exportExcel(){
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hIns),'Insumos');
 
-  var hMv=[['Fecha','Tipo comprobante','N° comprobante','Insumo','Unidad','Cantidad','Movimiento','Origen','Origen Campo','Destino','Destino Campo','Observaciones','OT ref']];
+  var hMv=[['Fecha','Campaña','Tipo comprobante','N° comprobante','Proveedor','Insumo','Unidad','Cantidad','Movimiento','Origen','Origen Campo','Destino','Destino Campo','Observaciones','OT ref']];
   for(var j=0;j<state.movtos.length;j++){
-    var m=state.movtos[j], ins=getInsumo(m.insumoId);
-    var dO=getDepositoByNombre(m.origen||''), dD=getDepositoByNombre(m.destino||'');
+    var m=state.movtos[j], ins=getInsumo(m.insumoId), cab=compDe(m);
+    var oNom=movOrigenNom(m), dNom=movDestinoNom(m);
+    var dO=getDepositoByNombre(oNom), dD=getDepositoByNombre(dNom);
     var caO = dO ? (dO.campoId?getCampoNombre(dO.campoId):'General') : '';
     var caD = dD ? (dD.campoId?getCampoNombre(dD.campoId):'General') : '';
-    hMv.push([m.fecha,m.comp_tipo||'',m.comp_nro||'',ins?ins.nombre:'',ins?ins.un:'',m.cant,m.tipo,m.origen||'',caO,m.destino||'',caD,m.obs||'',m.refOtNum||'']);
+    var prov = (cab&&cab.proveedorId)?getProveedorNombre(cab.proveedorId):'';
+    hMv.push([movFecha(m),getCampaniaNombre(movCampania(m))||'',(cab?cab.comp_tipo:'')||'',(cab?cab.comp_nro:'')||'',prov,ins?ins.nombre:'',ins?ins.un:'',m.cant,movTipo(m),oNom||'',caO,dNom||'',caD,(cab?cab.obs:'')||'',(cab?cab.refOtNum:'')||'']);
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hMv),'Movimientos');
 
-  var hOt=[['N° OT','Fecha','Tipo labor','Contratista','Lotes','Ha totales','Ha aplicadas','Estado','Observaciones']];
+  var hOt=[['N° OT','Fecha','Campaña','Tipo labor','Contratista','Lotes','Ha totales','Ha aplicadas','Estado','Observaciones']];
   for(var k=0;k<state.ots.length;k++){
     var o=state.ots[k]; var dests=o.destinos||[];
-    hOt.push([o.num,o.fecha,o.laborTipo==='LP'?'Labor propia':'Labor contratada',getContratistaNombre(o.contratistaId)||'',dests.length,otHaTotal(o),otHaAplicada(o),o.estado,o.obs||'']);
+    hOt.push([o.num,o.fecha,getCampaniaNombre(o.campaniaId)||'',o.laborTipo==='LP'?'Labor propia':'Labor contratada',getContratistaNombre(o.contratistaId)||'',dests.length,otHaTotal(o),otHaAplicada(o),o.estado,o.obs||'']);
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hOt),'OT');
 
-  var hOtL=[['N° OT','Fecha','Campo','Lote','Cultivo','Subactividad','Ha','Estado lote','Fecha aplic. real','Insumo','Unidad','Dosis/ha','Cant. prevista','Entregada','Usado','Dev. a stock','Dev. baja']];
+  var hOtL=[['N° OT','Fecha','Campaña','Campo','Lote','Cultivo','Subactividad','Ha','Estado lote','Fecha aplic. real','Insumo','Unidad','Dosis/ha','Cant. prevista','Entregada','Usado','Dev. a stock','Dev. baja']];
   for(var l=0;l<state.ots.length;l++){
     var o2=state.ots[l]; var ds2=o2.destinos||[];
     for(var di=0;di<ds2.length;di++){
       var de=ds2[di];
       var loN=getLoteById(de.loteId); loN=loN?loN.nombre:'';
       var caN=de.campoId?getCampoNombre(de.campoId):'';
+      var cmpN=getCampaniaNombre(o2.campaniaId)||'';
       var lns=de.lineas||[];
-      if(!lns.length){ hOtL.push([o2.num,o2.fecha,caN,loN,de.cultivo||'',de.subact||'',de.ha||0,de.estadoLote||'',de.fechaAplicReal||'','','','','','','','','']); continue; }
+      if(!lns.length){ hOtL.push([o2.num,o2.fecha,cmpN,caN,loN,de.cultivo||'',de.subact||'',de.ha||0,de.estadoLote||'',de.fechaAplicReal||'','','','','','','','','']); continue; }
       for(var p=0;p<lns.length;p++){
         var ln=lns[p], ins2=getInsumo(ln.insumoId);
-        hOtL.push([o2.num,o2.fecha,caN,loN,de.cultivo||'',de.subact||'',de.ha||0,de.estadoLote||'',de.fechaAplicReal||'',
+        hOtL.push([o2.num,o2.fecha,cmpN,caN,loN,de.cultivo||'',de.subact||'',de.ha||0,de.estadoLote||'',de.fechaAplicReal||'',
           ins2?ins2.nombre:'',ins2?ins2.un:'',ln.dosis,(Number(ln.dosis)||0)*(Number(de.ha)||0),
           Number(ln.entregada)||0,Number(ln.usado)||0,Number(ln.devStock)||0,Number(ln.devBaja)||0]);
       }
@@ -4288,6 +4491,36 @@ function confirmReset(){
 ================================================================ */
 function init(){
   loadRoot();
+  // Boot del contexto Puntal Agro. Si PA está, carga sesión/empresa; si no, modo local.
+  if(typeof PA!=='undefined'){
+    PA.init({}, function(){
+      var arrancar=function(){
+        PA.loadContext(null, function(err, ctx){
+          if(!err && ctx){ CTX=ctx; }
+          var nombreEmp=null;
+          if(CTX){
+            for(var i=0;i<CTX.empresasDisponibles.length;i++){
+              if(CTX.empresasDisponibles[i].id===CTX.empresaActivaId){ nombreEmp=CTX.empresasDisponibles[i].razonSocial||CTX.empresasDisponibles[i].nombre; break; }
+            }
+            syncRootConContexto(CTX.empresaActivaId, nombreEmp);
+          } else {
+            syncRootConContexto(null, null);
+          }
+          arrancarUI();
+        });
+      };
+      if(PA.haySesion && PA.haySesion()){ arrancar(); }
+      else if(PA.login){ PA.login('eduardo@doneduardo.com', function(){ arrancar(); }); }
+      else { arrancar(); }
+    });
+  } else {
+    // Fallback total sin pa-core.js
+    syncRootConContexto(null, null);
+    arrancarUI();
+  }
+}
+// Inicialización de la UI una vez que el estado/contexto están listos.
+function arrancarUI(){
   refreshWsSelect();
   refreshCtx();
   byId('m_fecha').value=todayISO();

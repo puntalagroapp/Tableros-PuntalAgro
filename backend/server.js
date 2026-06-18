@@ -76,6 +76,9 @@ const COLECCIONES = {
   'unidades':        { tabla: 'unidades',        porEmpresa: false },
   'modos-accion':    { tabla: 'modos_accion',    porEmpresa: false },
   'tipos-proveedor': { tabla: 'tipos_proveedor', porEmpresa: false },
+  'lotes':           { tabla: 'lotes',           porEmpresa: true  },
+  'actividades':     { tabla: 'actividades',     porEmpresa: true  },
+  'campanias':       { tabla: 'campanias',       porEmpresa: false },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -88,12 +91,13 @@ app.get('/api/globales', async (req, res) => {
   try {
     const sesion = await obtenerSesion(req);
 
-    const [labores, especies, unidades, modosAccion, tiposProveedor] = await Promise.all([
+    const [labores, especies, unidades, modosAccion, tiposProveedor, campanias] = await Promise.all([
       pool.query('SELECT id, nombre, precio_ref AS "precioRef", activo FROM labores WHERE activo = true ORDER BY nombre'),
       pool.query('SELECT id, nombre, sigla, activo FROM especies WHERE activo = true ORDER BY nombre'),
       pool.query('SELECT id, sigla, nombre, activo FROM unidades WHERE activo = true ORDER BY sigla'),
       pool.query('SELECT id, sistema, codigo, descripcion, activo FROM modos_accion WHERE activo = true ORDER BY sistema, codigo'),
       pool.query('SELECT id, nombre FROM tipos_proveedor ORDER BY nombre'),
+      pool.query('SELECT id, nombre, orden, activa FROM campanias ORDER BY orden'),
     ]);
 
     const payload = {
@@ -102,6 +106,7 @@ app.get('/api/globales', async (req, res) => {
       unidades:       unidades.rows,
       modosAccion:    modosAccion.rows,
       tiposProveedor: tiposProveedor.rows,
+      campanias:      campanias.rows,
       empresas:       [],
       sesion:         null,
     };
@@ -151,16 +156,18 @@ app.get('/api/maestros-empresa/:empresaId', async (req, res) => {
       if (!acceso.rows.length) return res.status(403).json({ error: 'Sin acceso a esta empresa' });
     }
 
-    const [campos, terceros, choferes, depositos, insumos, tiposActividad] = await Promise.all([
+    const [campos, terceros, choferes, depositos, insumos, tiposActividad, lotes, actividades] = await Promise.all([
       pool.query(
         'SELECT id, empresa_id AS "empresaId", nombre, localidad, partido, provincia, ha_totales AS "haTotales" FROM campos WHERE empresa_id = $1 ORDER BY nombre',
         [empresaId]
       ),
-      pool.query('SELECT datos FROM terceros       WHERE empresa_id = $1', [empresaId]),
-      pool.query('SELECT datos FROM choferes       WHERE empresa_id = $1', [empresaId]),
-      pool.query('SELECT datos FROM depositos      WHERE empresa_id = $1', [empresaId]),
-      pool.query('SELECT datos FROM insumos        WHERE empresa_id = $1', [empresaId]),
+      pool.query('SELECT datos FROM terceros        WHERE empresa_id = $1', [empresaId]),
+      pool.query('SELECT datos FROM choferes        WHERE empresa_id = $1', [empresaId]),
+      pool.query('SELECT datos FROM depositos       WHERE empresa_id = $1', [empresaId]),
+      pool.query('SELECT datos FROM insumos         WHERE empresa_id = $1', [empresaId]),
       pool.query('SELECT datos FROM tipos_actividad WHERE empresa_id = $1', [empresaId]),
+      pool.query('SELECT datos FROM lotes           WHERE empresa_id = $1', [empresaId]),
+      pool.query('SELECT datos FROM actividades     WHERE empresa_id = $1', [empresaId]),
     ]);
 
     res.json({
@@ -170,6 +177,8 @@ app.get('/api/maestros-empresa/:empresaId', async (req, res) => {
       depositos:      depositos.rows.map(r => r.datos),
       insumos:        insumos.rows.map(r => r.datos),
       tiposActividad: tiposActividad.rows.map(r => r.datos),
+      lotes:          lotes.rows.map(r => r.datos),
+      actividades:    actividades.rows.map(r => r.datos),
     });
   } catch (err) {
     console.error('/api/maestros-empresa error:', err);

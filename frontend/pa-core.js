@@ -57,6 +57,9 @@
   var K_ESPECIES   = 'pa_especies';
   var K_PERMISOS   = 'pa_permisos';
   var K_CLIENTES   = 'pa_clientes';
+  var K_LOTES      = 'pa_lotes';
+  var K_ACTIVIDADES = 'pa_actividades';
+  var K_CAMPANIAS  = 'pa_campanias';
   // Solo estas dos persisten en localStorage también en producción:
   var LS_SESION    = 'pa_sesion_activa';
   var LS_EMPACTIVA = 'pa_empresa_activa';
@@ -258,6 +261,10 @@
       { usuarioId: 'u_1', empresaId: 'e_1', campoIds: [], herramientas: [], nivel: 'administrar' },
       { usuarioId: 'u_1', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'administrar' }
     ]);
+    lsSet(K_CAMPANIAS, [
+      { id: 'camp_1', nombre: '24/25', orden: 1, activa: false },
+      { id: 'camp_2', nombre: '25/26', orden: 2, activa: true  }
+    ]);
     lsSet(LS_SEEDVER, SEED_VERSION);
   }
 
@@ -290,12 +297,13 @@
           return;
         }
         // Solo listas globales: pequeñas, fijas, no dependen de la empresa
-        if (data.labores)        _cache[K_LABORES]  = data.labores;
-        if (data.especies)       _cache[K_ESPECIES] = data.especies;
-        if (data.unidades)       _cache[K_UNIDADES] = data.unidades;
-        if (data.modosAccion)    _cache[K_MODOSACC] = data.modosAccion;
-        if (data.tiposProveedor) _cache[K_TIPOPROV] = data.tiposProveedor;
-        if (data.empresas)       _cache[K_EMPRESAS] = data.empresas;
+        if (data.labores)        _cache[K_LABORES]   = data.labores;
+        if (data.especies)       _cache[K_ESPECIES]  = data.especies;
+        if (data.unidades)       _cache[K_UNIDADES]  = data.unidades;
+        if (data.modosAccion)    _cache[K_MODOSACC]  = data.modosAccion;
+        if (data.tiposProveedor) _cache[K_TIPOPROV]  = data.tiposProveedor;
+        if (data.campanias)      _cache[K_CAMPANIAS] = data.campanias;
+        if (data.empresas)       _cache[K_EMPRESAS]  = data.empresas;
         if (data.sesion)         lsSet(LS_SESION, data.sesion);
         console.log('PA: globales listos');
         if (callback) callback(null);
@@ -379,12 +387,14 @@
             if (!err2 && mData) {
               // Cada colección llega filtrada por empresa; se mezcla con el caché
               // global (datos de otras empresas ya cargadas en la sesión).
-              if (mData.campos)         _cache[K_CAMPOS]    = mData.campos;
-              if (mData.terceros)       _cache[K_TERCEROS]  = mData.terceros;
-              if (mData.choferes)       _cache[K_CHOFERES]  = mData.choferes;
-              if (mData.depositos)      _cache[K_DEPOSITOS] = mData.depositos;
-              if (mData.insumos)        _cache[K_INSUMOS]   = mData.insumos;
-              if (mData.tiposActividad) _cache[K_TIPOACT]   = mData.tiposActividad;
+              if (mData.campos)         _cache[K_CAMPOS]     = mData.campos;
+              if (mData.terceros)       _cache[K_TERCEROS]   = mData.terceros;
+              if (mData.choferes)       _cache[K_CHOFERES]   = mData.choferes;
+              if (mData.depositos)      _cache[K_DEPOSITOS]  = mData.depositos;
+              if (mData.insumos)        _cache[K_INSUMOS]    = mData.insumos;
+              if (mData.tiposActividad) _cache[K_TIPOACT]    = mData.tiposActividad;
+              if (mData.lotes)          _cache[K_LOTES]      = mData.lotes;
+              if (mData.actividades)    _cache[K_ACTIVIDADES] = mData.actividades;
             }
             if (callback) callback(null, CTX);
           }
@@ -397,6 +407,8 @@
       if (CTX) CTX.empresaActivaId = empresaId;
       if (callback) callback(null, { status: 'ok' });
     },
+
+    ctx: function () { return CTX; },
 
     // ── Chequeo de permisos (síncrono, solo controla la UI) ──────────────────
     can: function (accion, opts) {
@@ -529,6 +541,47 @@
 
     // ── TIPOS DE PROVEEDOR (lista global) ────────────────────────────────────
     listarTiposProveedor: function () { return cacheGet(K_TIPOPROV, []); },
+
+    // ── LOTES (por empresa y campo) ───────────────────────────────────────────
+    listarLotes: function (empresaId, campoId) {
+      var lista = cacheGet(K_LOTES, []), out = [];
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].empresaId !== empresaId) continue;
+        if (campoId && lista[i].campoId !== campoId) continue;
+        out.push(lista[i]);
+      }
+      return out;
+    },
+    guardarLote: function (l) { return cacheGuardar(K_LOTES, 'lotes', l, 'lot'); },
+    borrarLote:  function (id) { cacheBorrar(K_LOTES, 'lotes', id); },
+
+    // ── ACTIVIDADES (lote + tipo actividad + campaña) ─────────────────────────
+    listarActividades: function (empresaId, campaniaId, loteId) {
+      var lista = cacheGet(K_ACTIVIDADES, []), out = [];
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].empresaId !== empresaId) continue;
+        if (campaniaId && lista[i].campaniaId !== campaniaId) continue;
+        if (loteId && lista[i].loteId !== loteId) continue;
+        out.push(lista[i]);
+      }
+      return out;
+    },
+    guardarActividad: function (a) { return cacheGuardar(K_ACTIVIDADES, 'actividades', a, 'act'); },
+    borrarActividad:  function (id) { cacheBorrar(K_ACTIVIDADES, 'actividades', id); },
+
+    // ── CAMPAÑAS (lista global) ───────────────────────────────────────────────
+    listarCampanias: function () {
+      var cs = cacheGet(K_CAMPANIAS, []).slice();
+      cs.sort(function (a, b) { return (a.orden || 0) - (b.orden || 0); });
+      return cs;
+    },
+    campaniaActiva: function () {
+      var cs = cacheGet(K_CAMPANIAS, []);
+      for (var i = 0; i < cs.length; i++) { if (cs[i].activa) return cs[i]; }
+      return cs.length ? cs[cs.length - 1] : null;
+    },
+    guardarCampania: function (c) { return cacheGuardar(K_CAMPANIAS, 'campanias', c, 'camp'); },
+    borrarCampania:  function (id) { cacheBorrar(K_CAMPANIAS, 'campanias', id); },
 
     // ── TABLERO COMPLETO (blob JSON para tableros con objeto root propio) ─────
     sincronizarTableroCompleto: function (claveRaiz, estructuraCompleta) {
