@@ -10,8 +10,10 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE TABLE campanias (
-    id       TEXT PRIMARY KEY,
-    nombre   TEXT NOT NULL
+    id      TEXT PRIMARY KEY,
+    nombre  TEXT NOT NULL,
+    orden   INT  NOT NULL DEFAULT 0,
+    activa  BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE TABLE especies (
@@ -268,10 +270,10 @@ CREATE TABLE tableros (
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Campañas
-INSERT INTO campanias (id, nombre) VALUES
-    ('camp_2324', '23/24'),
-    ('camp_2425', '24/25'),
-    ('camp_2526', '25/26');
+INSERT INTO campanias (id, nombre, orden, activa) VALUES
+    ('camp_2324', '23/24', 1, false),
+    ('camp_2425', '24/25', 2, false),
+    ('camp_2526', '25/26', 3, true);
 
 -- Especies / Granos
 INSERT INTO especies (id, nombre, sigla) VALUES
@@ -394,11 +396,16 @@ INSERT INTO lotes (id, campo_id, empresa_id, nombre, ha) VALUES
 
 -- Usuario admin demo (sin contraseña — para demo sin auth real)
 INSERT INTO usuarios (id, nombre, email, rol, cliente_id, activo) VALUES
-    ('u_admin', 'Admin Demo', 'demo@puntalagro.com', 'admin_general', null, true);
+    ('u_admin',        'Admin Demo',  'demo@puntalagro.com', 'admin_general', null, true),
+    ('u_admin_puntal', 'Admin Puntal','admin@puntal.com',    'admin_general', null, true),
+    ('u_maria',        'María Albor', 'maria@albor.com',     'usuario',       null, true);
 
 INSERT INTO permisos (usuario_id, empresa_id, campo_ids, herramientas, nivel) VALUES
-    ('u_admin', 'e_1', '{}', '{}', 'administrar'),
-    ('u_admin', 'e_2', '{}', '{}', 'administrar');
+    ('u_admin',        'e_1', '{}', '{}', 'administrar'),
+    ('u_admin',        'e_2', '{}', '{}', 'administrar'),
+    ('u_admin_puntal', 'e_1', '{}', '{}', 'administrar'),
+    ('u_admin_puntal', 'e_2', '{}', '{}', 'administrar'),
+    ('u_maria',        'e_1', '{}', '{}', 'ver');
 
 -- Sesión demo con token fijo (para desarrollo local sin login)
 INSERT INTO sesiones (token, usuario_id, expira_en) VALUES
