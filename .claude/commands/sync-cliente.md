@@ -2,6 +2,7 @@
 
 Workflow completo para incorporar actualizaciones del cliente desde su repo GitHub
 al proyecto 3 capas, preservando todas las adaptaciones de producción.
+Los cambios se trabajan en una rama separada para poder testear antes de mergear a main.
 
 ## Variables del proyecto
 - Repo cliente: https://github.com/Puntal-Agro/Herramientas-Puntal-Agro.git
@@ -10,7 +11,23 @@ al proyecto 3 capas, preservando todas las adaptaciones de producción.
 
 ## Pasos a ejecutar en orden
 
-### 1. Bajar el repo del cliente
+### 1. Asegurarse de estar en main y crear rama de trabajo
+
+```bash
+git checkout main
+git pull
+```
+
+Obtener la fecha actual para nombrar la rama:
+```bash
+fecha=$(date +%Y-%m-%d)
+git checkout -b "sync-cliente/$fecha"
+```
+
+Informar al usuario: "Trabajando en la rama sync-cliente/$fecha. Al terminar podrás
+probar los cambios y luego mergear a main con: git checkout main && git merge sync-cliente/$fecha"
+
+### 2. Bajar el repo del cliente
 
 ```bash
 if [ -d /tmp/cliente_repo ]; then
@@ -20,7 +37,7 @@ else
 fi
 ```
 
-### 2. Detectar qué HTML cambió
+### 3. Detectar qué HTML cambió
 
 Comparar cada .html del cliente con el nuestro. Listar los que son diferentes.
 
@@ -37,7 +54,7 @@ for f in /tmp/cliente_repo/*.html; do
 done
 ```
 
-### 3. Analizar diferencias en pa-core.js del cliente
+### 4. Analizar diferencias en pa-core.js del cliente
 
 ```bash
 diff /tmp/cliente_repo/pa-core.js frontend/pa-core.js
@@ -53,15 +70,15 @@ Revisar el diff buscando:
 relevantes a nuestro pa-core.js manteniendo la integración con la API
 (`cacheGuardar`, `apiSync`, `cacheGet`, `_cache`).
 
-### 4. Copiar los HTML que cambiaron
+### 5. Copiar los HTML que cambiaron
 
-Para cada HTML con diferencias detectado en el paso 2:
+Para cada HTML con diferencias detectado en el paso 3:
 
 ```bash
 cp /tmp/cliente_repo/NOMBRE.html frontend/NOMBRE.html
 ```
 
-### 5. Re-aplicar adaptaciones de producción en cada HTML copiado
+### 6. Re-aplicar adaptaciones de producción en cada HTML copiado
 
 Para cada HTML copiado, verificar que las siguientes adaptaciones siguen presentes.
 Si falta alguna, agregarla.
@@ -107,7 +124,7 @@ function saveRoot(){
 **Para cualquier HTML nuevo** que use datos de maestros o tablero:
 - Verificar que tiene `<script src="pa-core.js">` antes de su script principal
 
-### 6. Verificar si se necesitan nuevos endpoints
+### 7. Verificar si se necesitan nuevos endpoints
 
 Analizar nuestro pa-core.js actualizado buscando llamadas a `apiSync` o
 `cacheGuardar` con colecciones que NO estén en `COLECCIONES` de server.js:
@@ -124,7 +141,7 @@ Por cada colección nueva encontrada:
    docker exec pa_postgres_db psql -U postgres -d puntal_agro -c "CREATE TABLE ..."
    ```
 
-### 7. Reiniciar la API y verificar
+### 8. Reiniciar la API y verificar
 
 ```bash
 docker restart pa_express_api
@@ -137,18 +154,47 @@ Luego hacer un curl de verificación básica:
 curl -s -H "Authorization: Bearer token-demo" http://puntal.test:8080/api/maestros-empresa/e_1 | python3 -m json.tool | head -20
 ```
 
-### 8. Commitear los cambios
+### 9. Commitear los cambios en la rama
 
 ```bash
 git status
 git add frontend/ backend/server.js database/init.sql
 git commit -m "Sync cliente: <describir qué cambió en esta versión>"
+git push -u origin "sync-cliente/$(date +%Y-%m-%d)"
+```
+
+### 10. Informar al usuario cómo proceder
+
+Mostrar este resumen final:
+
+---
+**Cambios commiteados en la rama `sync-cliente/FECHA`.**
+
+Probá los cambios en http://puntal.test:8080
+
+**Si todo funciona → mergear a main:**
+```bash
+git checkout main
+git merge sync-cliente/FECHA
 git push
 ```
+
+**Si algo falla → descartar la rama y volver a main limpio:**
+```bash
+git checkout main
+git branch -D sync-cliente/FECHA
+```
+Y si hiciste cambios en la DB (CREATE TABLE, ALTER TABLE) que querés revertir:
+```bash
+docker compose down -v && docker compose up -d
+```
+(esto recrea la DB desde init.sql — borra todos los datos de prueba)
+---
 
 ## Reglas importantes
 
 - **Nunca** reemplazar `frontend/pa-core.js` con el del cliente directamente
+- **Nunca** commitear directo a main desde este skill
 - Los parches de producción (pre-carga, saveRoot, script tag) deben re-aplicarse
   cada vez que se copia un HTML del cliente
 - Si hay dudas sobre si un método nuevo del cliente necesita soporte de API,
