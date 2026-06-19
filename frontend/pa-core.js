@@ -60,10 +60,22 @@
   var K_LOTES      = 'pa_lotes';
   var K_ACTIVIDADES = 'pa_actividades';
   var K_CAMPANIAS  = 'pa_campanias';
+  var K_USUARIOS   = 'pa_usuarios';
   // Solo estas dos persisten en localStorage también en producción:
   var LS_SESION    = 'pa_sesion_activa';
   var LS_EMPACTIVA = 'pa_empresa_activa';
   var LS_SEEDVER   = 'pa_seed_version';
+
+  var HERRAMIENTAS_PROPIAS = [
+    { id: 'tablero_agro',       nombre: 'Tablero Comercial Agropecuario' },
+    { id: 'tablero_evolucion',  nombre: 'Evolución de Variables' },
+    { id: 'tablero_insumos_ot', nombre: 'Registro de Labores e Insumos' },
+    { id: 'tablero_uso_suelo',  nombre: 'Plan de Uso del Suelo' },
+    { id: 'ProgramaSiembra',    nombre: 'Programa de Siembra' },
+    { id: 'tablero_hacienda',   nombre: 'Tablero de Relaciones Ganaderas' },
+    { id: 'tablero_labores',    nombre: 'Precio de Labores y Fletes' },
+    { id: 'Fitosanitarios',     nombre: 'Fitosanitarios' }
+  ];
 
   // ── 3. ALMACENAMIENTO DUAL ───────────────────────────────────────────────
   // En local  → localStorage (persiste entre recargas, comodidad para el cliente)
@@ -257,9 +269,15 @@
       { id: 'moa_f04', sistema: 'FRAC', codigo: 'M',       descripcion: 'Químicos con actividad multisitio',                          activo: true },
       { id: 'moa_f05', sistema: 'FRAC', codigo: 'F-MOAD',  descripcion: 'Modo de acción desconocido (fungicida)',                     activo: true }
     ]);
+    lsSet(K_USUARIOS, [
+      { id: 'u_1', nombre: 'Admin Puntal',  email: 'admin@puntal.com',       rol: 'admin_general',  clienteId: null,       activo: true },
+      { id: 'u_2', nombre: 'Usuario Demo',  email: 'demo@puntalagro.com',    rol: 'admin_cliente',  clienteId: 'cli_demo', activo: true }
+    ]);
     lsSet(K_PERMISOS, [
       { usuarioId: 'u_1', empresaId: 'e_1', campoIds: [], herramientas: [], nivel: 'administrar' },
-      { usuarioId: 'u_1', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'administrar' }
+      { usuarioId: 'u_1', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'administrar' },
+      { usuarioId: 'u_2', empresaId: 'e_1', campoIds: [], herramientas: [], nivel: 'cargar' },
+      { usuarioId: 'u_2', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'cargar' }
     ]);
     lsSet(K_CAMPANIAS, [
       { id: 'camp_1', nombre: '24/25', orden: 1, activa: false },
@@ -610,10 +628,77 @@
       }
     },
 
+    // ── USUARIOS ─────────────────────────────────────────────────────────────
+    listarUsuarios: function () { return cacheGet(K_USUARIOS, []); },
+    usuariosVisibles: function () {
+      var ctx = PA.ctx ? PA.ctx() : null;
+      var us = cacheGet(K_USUARIOS, []);
+      if (!ctx || !ctx.usuario) return us;
+      if (ctx.usuario.rol === 'admin_general') return us;
+      if (ctx.usuario.rol === 'admin_cliente') {
+        var out = [], cid = ctx.clienteId;
+        for (var i = 0; i < us.length; i++) { if (us[i].clienteId === cid) out.push(us[i]); }
+        return out;
+      }
+      return [];
+    },
+    guardarUsuario: function (u) { return cacheGuardar(K_USUARIOS, 'usuarios', u, 'usr'); },
+    borrarUsuario: function (id) {
+      cacheBorrar(K_USUARIOS, 'usuarios', id);
+      var ps = cacheGet(K_PERMISOS, []), out = [];
+      for (var i = 0; i < ps.length; i++) { if (ps[i].usuarioId !== id) out.push(ps[i]); }
+      cacheSet(K_PERMISOS, out);
+    },
+
+    // ── PERMISOS (ABM directo) ────────────────────────────────────────────────
+    listarPermisos: function () { return cacheGet(K_PERMISOS, []); },
+    buscarPermiso: function (usuarioId, empresaId) {
+      var ps = cacheGet(K_PERMISOS, []);
+      for (var i = 0; i < ps.length; i++) {
+        if (ps[i].usuarioId === usuarioId && ps[i].empresaId === empresaId) return ps[i];
+      }
+      return null;
+    },
+    guardarPermiso: function (perm) {
+      var ps = cacheGet(K_PERMISOS, []), found = false;
+      for (var i = 0; i < ps.length; i++) {
+        if (ps[i].usuarioId === perm.usuarioId && ps[i].empresaId === perm.empresaId) {
+          ps[i] = perm; found = true; break;
+        }
+      }
+      if (!found) ps.push(perm);
+      cacheSet(K_PERMISOS, ps);
+      return perm;
+    },
+    borrarPermiso: function (usuarioId, empresaId) {
+      var ps = cacheGet(K_PERMISOS, []), out = [];
+      for (var i = 0; i < ps.length; i++) {
+        if (!(ps[i].usuarioId === usuarioId && ps[i].empresaId === empresaId)) out.push(ps[i]);
+      }
+      cacheSet(K_PERMISOS, out);
+    },
+
+    // ── CLIENTES / EMPRESAS VISIBLES ──────────────────────────────────────────
+    listarClientes: function () { return cacheGet(K_CLIENTES, []); },
+    empresasVisibles: function () {
+      var ctx = PA.ctx ? PA.ctx() : null;
+      var es = cacheGet(K_EMPRESAS, []);
+      if (!ctx || !ctx.usuario || ctx.usuario.rol === 'admin_general') return es;
+      if (ctx.usuario.rol === 'admin_cliente') {
+        var out = [], cid = ctx.clienteId;
+        for (var i = 0; i < es.length; i++) { if (es[i].clienteId === cid) out.push(es[i]); }
+        return out;
+      }
+      return [];
+    },
+
+    // ── HERRAMIENTAS PROPIAS ──────────────────────────────────────────────────
+    herramientasPropias: function () { return HERRAMIENTAS_PROPIAS.slice(); },
+
     // ── RESET DEMO (solo modo local) ─────────────────────────────────────────
     resetDemo: function () {
       var claves = [
-        K_CLIENTES, K_EMPRESAS, K_CAMPOS, K_PERMISOS,
+        K_CLIENTES, K_EMPRESAS, K_CAMPOS, K_PERMISOS, K_USUARIOS,
         LS_SESION, LS_SEEDVER, LS_EMPACTIVA,
         K_TERCEROS, K_CHOFERES, K_TIPOPROV,
         K_DEPOSITOS, K_LABORES, K_TIPOACT, K_MODOSACC,
