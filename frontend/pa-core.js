@@ -405,16 +405,28 @@
             if (!err2 && mData) {
               // Cada colección llega filtrada por empresa; se mezcla con el caché
               // global (datos de otras empresas ya cargadas en la sesión).
-              if (mData.campos)         _cache[K_CAMPOS]     = mData.campos;
-              if (mData.terceros)       _cache[K_TERCEROS]   = mData.terceros;
-              if (mData.choferes)       _cache[K_CHOFERES]   = mData.choferes;
-              if (mData.depositos)      _cache[K_DEPOSITOS]  = mData.depositos;
-              if (mData.insumos)        _cache[K_INSUMOS]    = mData.insumos;
-              if (mData.tiposActividad) _cache[K_TIPOACT]    = mData.tiposActividad;
-              if (mData.lotes)          _cache[K_LOTES]      = mData.lotes;
+              if (mData.campos)         _cache[K_CAMPOS]      = mData.campos;
+              if (mData.terceros)       _cache[K_TERCEROS]    = mData.terceros;
+              if (mData.choferes)       _cache[K_CHOFERES]    = mData.choferes;
+              if (mData.depositos)      _cache[K_DEPOSITOS]   = mData.depositos;
+              if (mData.insumos)        _cache[K_INSUMOS]     = mData.insumos;
+              if (mData.tiposActividad) _cache[K_TIPOACT]     = mData.tiposActividad;
+              if (mData.lotes)          _cache[K_LOTES]       = mData.lotes;
               if (mData.actividades)    _cache[K_ACTIVIDADES] = mData.actividades;
             }
-            if (callback) callback(null, CTX);
+            // Llamada 3: usuarios y permisos (solo para roles con acceso de gestión)
+            var rolActual = CTX.usuario ? CTX.usuario.rol : 'usuario';
+            if (rolActual === 'admin_general' || rolActual === 'admin_cliente') {
+              apiXHR('GET', '/api/usuarios', null, function (err3, users) {
+                if (!err3 && users) _cache[K_USUARIOS] = users;
+                apiXHR('GET', '/api/permisos', null, function (err4, perms) {
+                  if (!err4 && perms) _cache[K_PERMISOS] = perms;
+                  if (callback) callback(null, CTX);
+                });
+              });
+            } else {
+              if (callback) callback(null, CTX);
+            }
           }
         );
       });
@@ -642,12 +654,34 @@
       }
       return [];
     },
-    guardarUsuario: function (u) { return cacheGuardar(K_USUARIOS, 'usuarios', u, 'usr'); },
+    guardarUsuario: function (u) {
+      if (!usaApi()) return cacheGuardar(K_USUARIOS, 'usuarios', u, 'usr');
+      var esNuevo = !u.id;
+      if (esNuevo) u.id = uid('usr');
+      var lista = cacheGet(K_USUARIOS, []), encontrado = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === u.id) { lista[i] = u; encontrado = true; break; }
+      }
+      if (!encontrado) lista.push(u);
+      cacheSet(K_USUARIOS, lista);
+      var method = esNuevo ? 'POST' : 'PUT';
+      var url = esNuevo ? '/api/usuarios' : '/api/usuarios/' + encodeURIComponent(u.id);
+      apiXHR(method, url, u, function (err) {
+        if (err) console.error('PA sync usuarios:', err.msg || err.status);
+      });
+      return u;
+    },
     borrarUsuario: function (id) {
-      cacheBorrar(K_USUARIOS, 'usuarios', id);
-      var ps = cacheGet(K_PERMISOS, []), out = [];
-      for (var i = 0; i < ps.length; i++) { if (ps[i].usuarioId !== id) out.push(ps[i]); }
-      cacheSet(K_PERMISOS, out);
+      var lista = cacheGet(K_USUARIOS, []), out = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) out.push(lista[i]); }
+      cacheSet(K_USUARIOS, out);
+      var ps = cacheGet(K_PERMISOS, []), outp = [];
+      for (var i = 0; i < ps.length; i++) { if (ps[i].usuarioId !== id) outp.push(ps[i]); }
+      cacheSet(K_PERMISOS, outp);
+      if (!usaApi()) return;
+      apiXHR('DELETE', '/api/usuarios/' + encodeURIComponent(id), null, function (err) {
+        if (err) console.error('PA sync usuarios (borrar):', err.msg || err.status);
+      });
     },
 
     // ── PERMISOS (ABM directo) ────────────────────────────────────────────────
@@ -668,6 +702,10 @@
       }
       if (!found) ps.push(perm);
       cacheSet(K_PERMISOS, ps);
+      if (!usaApi()) return perm;
+      apiXHR('POST', '/api/permisos', perm, function (err) {
+        if (err) console.error('PA sync permisos:', err.msg || err.status);
+      });
       return perm;
     },
     borrarPermiso: function (usuarioId, empresaId) {
@@ -676,6 +714,10 @@
         if (!(ps[i].usuarioId === usuarioId && ps[i].empresaId === empresaId)) out.push(ps[i]);
       }
       cacheSet(K_PERMISOS, out);
+      if (!usaApi()) return;
+      apiXHR('DELETE', '/api/permisos/' + encodeURIComponent(usuarioId) + '/' + encodeURIComponent(empresaId), null, function (err) {
+        if (err) console.error('PA sync permisos (borrar):', err.msg || err.status);
+      });
     },
 
     // ── CLIENTES / EMPRESAS VISIBLES ──────────────────────────────────────────

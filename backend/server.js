@@ -415,6 +415,127 @@ app.delete('/api/maestros/:coleccion/:id', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GET  /api/usuarios         — lista (admin_general: todos; admin_cliente: su cliente)
+// POST /api/usuarios         — crear usuario
+// PUT  /api/usuarios/:id     — actualizar usuario
+// DELETE /api/usuarios/:id   — eliminar usuario + sus permisos en cascada
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/usuarios', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  try {
+    const q = sesion.rol === 'admin_general'
+      ? pool.query('SELECT id, nombre, email, rol, cliente_id AS "clienteId", activo FROM usuarios ORDER BY nombre')
+      : pool.query(
+          'SELECT id, nombre, email, rol, cliente_id AS "clienteId", activo FROM usuarios WHERE cliente_id = $1 ORDER BY nombre',
+          [sesion.cliente_id]
+        );
+    res.json((await q).rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/usuarios', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  const { id, nombre, email, rol, clienteId, activo } = req.body || {};
+  if (!id || !nombre || !email) return res.status(400).json({ error: 'Faltan campos obligatorios (id, nombre, email)' });
+  try {
+    await pool.query(
+      `INSERT INTO usuarios (id, nombre, email, rol, cliente_id, activo)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (id) DO UPDATE SET nombre=$2, email=$3, rol=$4, cliente_id=$5, activo=$6`,
+      [id, nombre, email, rol || 'usuario', clienteId || null, activo !== false]
+    );
+    res.status(201).json(req.body);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/usuarios/:id', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  const { nombre, email, rol, clienteId, activo } = req.body || {};
+  try {
+    await pool.query(
+      `UPDATE usuarios SET nombre=$2, email=$3, rol=$4, cliente_id=$5, activo=$6 WHERE id=$1`,
+      [req.params.id, nombre, email, rol || 'usuario', clienteId || null, activo !== false]
+    );
+    res.json({ ...req.body, id: req.params.id });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/usuarios/:id', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  try {
+    await pool.query('DELETE FROM permisos WHERE usuario_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [req.params.id]);
+    res.json({ status: 'ok' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET  /api/permisos                          — lista (filtrado por rol)
+// POST /api/permisos                          — upsert permiso {usuarioId, empresaId, …}
+// DELETE /api/permisos/:usuarioId/:empresaId  — eliminar permiso
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/permisos', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  try {
+    let q;
+    if (sesion.rol === 'admin_general') {
+      q = pool.query(
+        'SELECT usuario_id AS "usuarioId", empresa_id AS "empresaId", campo_ids AS "campoIds", herramientas, nivel FROM permisos'
+      );
+    } else {
+      q = pool.query(
+        `SELECT p.usuario_id AS "usuarioId", p.empresa_id AS "empresaId", p.campo_ids AS "campoIds", p.herramientas, p.nivel
+           FROM permisos p JOIN usuarios u ON u.id = p.usuario_id
+          WHERE u.cliente_id = $1`,
+        [sesion.cliente_id]
+      );
+    }
+    res.json((await q).rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/permisos', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  const { usuarioId, empresaId, campoIds, herramientas, nivel } = req.body || {};
+  if (!usuarioId || !empresaId) return res.status(400).json({ error: 'Faltan usuarioId o empresaId' });
+  try {
+    await pool.query(
+      `INSERT INTO permisos (usuario_id, empresa_id, campo_ids, herramientas, nivel)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (usuario_id, empresa_id) DO UPDATE
+         SET campo_ids=$3, herramientas=$4, nivel=$5`,
+      [usuarioId, empresaId, campoIds || [], herramientas || [], nivel || 'ver']
+    );
+    res.status(201).json(req.body);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/permisos/:usuarioId/:empresaId', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  try {
+    await pool.query(
+      'DELETE FROM permisos WHERE usuario_id = $1 AND empresa_id = $2',
+      [req.params.usuarioId, req.params.empresaId]
+    );
+    res.json({ status: 'ok' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers para tablas globales (columnas propias, no JSONB)
 // ─────────────────────────────────────────────────────────────────────────────
 async function _upsertGlobal(tabla, obj) {
