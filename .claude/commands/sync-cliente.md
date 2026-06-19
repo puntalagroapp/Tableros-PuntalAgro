@@ -124,7 +124,7 @@ function saveRoot(){
 **Para cualquier HTML nuevo** que use datos de maestros o tablero:
 - Verificar que tiene `<script src="pa-core.js">` antes de su script principal
 
-### 7. Verificar si se necesitan nuevos endpoints
+### 7. Verificar si se necesitan nuevos endpoints o tablas
 
 Analizar nuestro pa-core.js actualizado buscando llamadas a `apiSync` o
 `cacheGuardar` con colecciones que NO estén en `COLECCIONES` de server.js:
@@ -136,10 +136,39 @@ grep "COLECCIONES" backend/server.js -A 30
 
 Por cada colección nueva encontrada:
 1. Agregar entrada en `COLECCIONES` en `backend/server.js`
-2. Si la tabla no existe en `init.sql`, crearla y ejecutar el CREATE TABLE en la DB:
-   ```bash
-   docker exec pa_postgres_db psql -U postgres -d puntal_agro -c "CREATE TABLE ..."
-   ```
+2. Si la tabla no existe, crear un archivo de migración numerado:
+
+```bash
+# Determinar el próximo número de migración
+ultimo=$(ls database/migrations/*.sql 2>/dev/null | grep -oP '\d+' | sort -n | tail -1)
+siguiente=$(printf "%03d" $((${ultimo:-0} + 1)))
+archivo="database/migrations/${siguiente}_descripcion_del_cambio.sql"
+```
+
+Escribir el SQL en ese archivo usando CREATE TABLE IF NOT EXISTS o ALTER TABLE IF NOT EXISTS,
+con comentario de fecha y descripción. Ejemplo:
+```sql
+-- Migración 001: tabla ambientes (2026-06-18)
+CREATE TABLE IF NOT EXISTS ambientes (
+    id         TEXT NOT NULL,
+    empresa_id TEXT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+    datos      JSONB NOT NULL DEFAULT '{}',
+    PRIMARY KEY (id, empresa_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ambientes_empresa ON ambientes(empresa_id);
+```
+
+3. Aplicar la migración en la DB local:
+```bash
+docker exec pa_postgres_db psql -U postgres -d puntal_agro \
+  -f /docker-entrypoint-initdb.d/migrations/${archivo##*/}
+```
+
+4. Actualizar también `database/init.sql` para que refleje el esquema completo
+   (quien clone desde cero parte con todo ya incluido).
+
+**Importante**: usar siempre `IF NOT EXISTS` en las migraciones para que sean
+idempotentes — si se corren dos veces, no fallan.
 
 ### 8. Reiniciar la API y verificar
 
@@ -158,7 +187,7 @@ curl -s -H "Authorization: Bearer token-demo" http://puntal.test:8080/api/maestr
 
 ```bash
 git status
-git add frontend/ backend/server.js database/init.sql
+git add frontend/ backend/server.js database/init.sql database/migrations/
 git commit -m "Sync cliente: <describir qué cambió en esta versión>"
 git push -u origin "sync-cliente/$(date +%Y-%m-%d)"
 ```
@@ -184,11 +213,21 @@ git push
 git checkout main
 git branch -D sync-cliente/FECHA
 ```
-Y si hiciste cambios en la DB (CREATE TABLE, ALTER TABLE) que querés revertir:
+Y si aplicaste migraciones en la DB local que querés revertir:
 ```bash
 docker compose down -v && docker compose up -d
 ```
-(esto recrea la DB desde init.sql — borra todos los datos de prueba)
+(recrea la DB desde init.sql — borra datos de prueba, pero main queda intacto)
+
+**Para aplicar en producción** (después de mergear a main, en el servidor remoto):
+```bash
+git pull
+# Por cada migración nueva que vino en el sync:
+docker exec pa_postgres_db psql -U postgres -d puntal_agro \
+  -f /docker-entrypoint-initdb.d/migrations/001_nombre.sql
+docker restart pa_express_api
+```
+Las migraciones usan `IF NOT EXISTS` así que si por error se corren dos veces, no rompen nada.
 ---
 
 ## Reglas importantes
