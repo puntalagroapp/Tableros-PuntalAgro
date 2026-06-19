@@ -192,49 +192,73 @@ git commit -m "Sync cliente: <describir qué cambió en esta versión>"
 git push -u origin "sync-cliente/$(date +%Y-%m-%d)"
 ```
 
-### 10. Informar al usuario cómo proceder
+### 10. Crear Pull Request en GitHub
 
-Mostrar este resumen final:
+Armar un resumen de los cambios que entraron (HTMLs modificados, métodos nuevos
+en pa-core.js, migraciones aplicadas) y crear el PR:
 
----
-**Cambios commiteados en la rama `sync-cliente/FECHA`.**
-
-Probá los cambios en http://puntal.test:8080
-
-**Si todo funciona → mergear a main:**
 ```bash
-git checkout main
-git merge sync-cliente/FECHA
-git push
+rama="sync-cliente/$(date +%Y-%m-%d)"
+gh pr create \
+  --base main \
+  --head "$rama" \
+  --title "Sync cliente $rama" \
+  --body "$(cat <<'EOF'
+## Cambios del cliente incorporados
+
+### HTMLs actualizados
+- (listar los que cambiaron)
+
+### pa-core.js
+- (listar métodos nuevos o modificados)
+
+### Base de datos
+- (listar migraciones aplicadas, o "Sin cambios de esquema")
+
+## Checklist de pruebas
+- [ ] Login y selección de empresa funcionan
+- [ ] Maestros cargan correctamente
+- [ ] Los cambios del cliente se ven en la UI
+- [ ] No hay errores en `docker logs pa_express_api`
+
+## Para aplicar en producción (después de aprobar)
+```bash
+git pull
+# Por cada migración nueva:
+docker exec pa_postgres_db psql -U postgres -d puntal_agro \
+  -f /docker-entrypoint-initdb.d/migrations/NNN_nombre.sql
+docker restart pa_express_api
+```
+EOF
+)"
 ```
 
-**Si algo falla → descartar la rama y volver a main limpio:**
+### 11. Informar al usuario cómo proceder
+
+Mostrar este resumen final con la URL del PR:
+
+---
+**PR creado. Probá los cambios en http://puntal.test:8080**
+
+Cuando termines de testear:
+- ✅ **Todo funciona** → aprobá y mergeá el PR en GitHub, luego aplicá las migraciones en producción
+- ❌ **Algo falla** → cerrá el PR sin mergear y ejecutá:
+
 ```bash
 git checkout main
 git branch -D sync-cliente/FECHA
-```
-Y si aplicaste migraciones en la DB local que querés revertir:
-```bash
+# Si querés revertir también los cambios de DB local:
 docker compose down -v && docker compose up -d
 ```
-(recrea la DB desde init.sql — borra datos de prueba, pero main queda intacto)
-
-**Para aplicar en producción** (después de mergear a main, en el servidor remoto):
-```bash
-git pull
-# Por cada migración nueva que vino en el sync:
-docker exec pa_postgres_db psql -U postgres -d puntal_agro \
-  -f /docker-entrypoint-initdb.d/migrations/001_nombre.sql
-docker restart pa_express_api
-```
-Las migraciones usan `IF NOT EXISTS` así que si por error se corren dos veces, no rompen nada.
+---
 ---
 
 ## Reglas importantes
 
 - **Nunca** reemplazar `frontend/pa-core.js` con el del cliente directamente
-- **Nunca** commitear directo a main desde este skill
+- **Nunca** pushear directo a main — siempre PR con revisión
 - Los parches de producción (pre-carga, saveRoot, script tag) deben re-aplicarse
   cada vez que se copia un HTML del cliente
+- Las migraciones SQL siempre con `IF NOT EXISTS` para que sean re-ejecutables
 - Si hay dudas sobre si un método nuevo del cliente necesita soporte de API,
   preguntar antes de portarlo
