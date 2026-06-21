@@ -322,7 +322,14 @@
         if (data.tiposProveedor) _cache[K_TIPOPROV]  = data.tiposProveedor;
         if (data.campanias)      _cache[K_CAMPANIAS] = data.campanias;
         if (data.empresas)       _cache[K_EMPRESAS]  = data.empresas;
-        if (data.sesion)         lsSet(LS_SESION, data.sesion);
+        if (data.sesion) {
+          lsSet(LS_SESION, data.sesion);
+        } else {
+          // Token inválido o sesión expirada: limpiar para forzar login
+          localStorage.removeItem(LS_SESION);
+        }
+        if (data.clientes)      _cache[K_CLIENTES]  = data.clientes;
+        if (data.campos)        _cache[K_CAMPOS]    = data.campos;
         console.log('PA: globales listos');
         if (callback) callback(null);
       });
@@ -386,6 +393,8 @@
       // Llamada 1: contexto y permisos
       apiXHR('GET', '/api/context' + qs, null, function (err, ctxData) {
         if (err) {
+          // 401 = no autenticado → propagar para que el HTML redirija al login
+          if (err.status === 401) { if (callback) callback(err); return; }
           CTX = { usuario: sesion, empresaActivaId: empId, empresasDisponibles: emps, permiso: permiso };
           lsSet(LS_EMPACTIVA, empId);
           if (callback) callback(null, CTX);
@@ -405,7 +414,15 @@
             if (!err2 && mData) {
               // Cada colección llega filtrada por empresa; se mezcla con el caché
               // global (datos de otras empresas ya cargadas en la sesión).
-              if (mData.campos)         _cache[K_CAMPOS]      = mData.campos;
+              if (mData.campos) {
+                // Merge: conservar campos de otras empresas ya cargadas
+                var empId = CTX.empresaActivaId;
+                var otros = [], todos = cacheGet(K_CAMPOS, []);
+                for (var ci = 0; ci < todos.length; ci++) {
+                  if (todos[ci].empresaId !== empId) otros.push(todos[ci]);
+                }
+                _cache[K_CAMPOS] = otros.concat(mData.campos);
+              }
               if (mData.terceros)       _cache[K_TERCEROS]    = mData.terceros;
               if (mData.choferes)       _cache[K_CHOFERES]    = mData.choferes;
               if (mData.depositos)      _cache[K_DEPOSITOS]   = mData.depositos;
@@ -504,12 +521,42 @@
     guardarChofer: function (c) { return cacheGuardar(K_CHOFERES, 'choferes', c, 'cho'); },
     borrarChofer:  function (id) { cacheBorrar(K_CHOFERES, 'choferes', id); },
 
-    // ── CAMPOS (solo lectura; se crean en Administración) ────────────────────
+    // ── CAMPOS ────────────────────────────────────────────────────────────────
+    listarCampos: function () { return cacheGet(K_CAMPOS, []); },
     camposDeEmpresa: function (empresaId) {
       var lista = cacheGet(K_CAMPOS, []);
       var out   = [];
       for (var i = 0; i < lista.length; i++) { if (lista[i].empresaId === empresaId) out.push(lista[i]); }
       return out;
+    },
+    guardarCampo: function (k) {
+      var lista = cacheGet(K_CAMPOS, []);
+      var esNuevo = !k.id;
+      if (esNuevo) k.id = uid('cam');
+      var ok = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === k.id) { lista[i] = k; ok = true; break; }
+      }
+      if (!ok) lista.push(k);
+      cacheSet(K_CAMPOS, lista);
+      if (usaApi()) {
+        var method = esNuevo ? 'POST' : 'PUT';
+        var url = esNuevo ? '/api/campos' : '/api/campos/' + encodeURIComponent(k.id);
+        apiXHR(method, url, k, function (err) {
+          if (err) console.error('PA sync campos:', err.msg || err.status);
+        });
+      }
+      return k;
+    },
+    borrarCampo: function (id) {
+      var lista = cacheGet(K_CAMPOS, []), nueva = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) nueva.push(lista[i]); }
+      cacheSet(K_CAMPOS, nueva);
+      if (usaApi()) {
+        apiXHR('DELETE', '/api/campos/' + encodeURIComponent(id), null, function (err) {
+          if (err) console.error('PA sync campos (borrar):', err.msg || err.status);
+        });
+      }
     },
 
     // ── DEPÓSITOS ────────────────────────────────────────────────────────────
@@ -648,7 +695,7 @@
       if (!ctx || !ctx.usuario) return us;
       if (ctx.usuario.rol === 'admin_general') return us;
       if (ctx.usuario.rol === 'admin_cliente') {
-        var out = [], cid = ctx.clienteId;
+        var out = [], cid = ctx.usuario.clienteId;
         for (var i = 0; i < us.length; i++) { if (us[i].clienteId === cid) out.push(us[i]); }
         return out;
       }
@@ -720,8 +767,92 @@
       });
     },
 
-    // ── CLIENTES / EMPRESAS VISIBLES ──────────────────────────────────────────
+    // ── CLIENTES / EMPRESAS ───────────────────────────────────────────────────
     listarClientes: function () { return cacheGet(K_CLIENTES, []); },
+    listarEmpresas: function () { return cacheGet(K_EMPRESAS, []); },
+    empresasDeCliente: function (clienteId) {
+      var lista = cacheGet(K_EMPRESAS, []), out = [];
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].clienteId === clienteId) out.push(lista[i]);
+      }
+      return out;
+    },
+    guardarCliente: function (c) {
+      var lista = cacheGet(K_CLIENTES, []);
+      var esNuevo = !c.id;
+      if (esNuevo) c.id = uid('cli');
+      var ok = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === c.id) { lista[i] = c; ok = true; break; }
+      }
+      if (!ok) lista.push(c);
+      cacheSet(K_CLIENTES, lista);
+      if (usaApi()) {
+        var method = esNuevo ? 'POST' : 'PUT';
+        var url = esNuevo ? '/api/clientes' : '/api/clientes/' + encodeURIComponent(c.id);
+        apiXHR(method, url, c, function (err) {
+          if (err) console.error('PA sync clientes:', err.msg || err.status);
+        });
+      }
+      return c;
+    },
+    borrarCliente: function (id) {
+      // Cascada en caché: eliminar empresas y campos del cliente
+      var emps = cacheGet(K_EMPRESAS, []), empIds = [], keepEmps = [];
+      for (var i = 0; i < emps.length; i++) {
+        if (emps[i].clienteId === id) { empIds.push(emps[i].id); }
+        else { keepEmps.push(emps[i]); }
+      }
+      cacheSet(K_EMPRESAS, keepEmps);
+      var camps = cacheGet(K_CAMPOS, []), keepCamps = [];
+      for (var i = 0; i < camps.length; i++) {
+        var skip = false;
+        for (var j = 0; j < empIds.length; j++) { if (camps[i].empresaId === empIds[j]) { skip = true; break; } }
+        if (!skip) keepCamps.push(camps[i]);
+      }
+      cacheSet(K_CAMPOS, keepCamps);
+      var lista = cacheGet(K_CLIENTES, []), nueva = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) nueva.push(lista[i]); }
+      cacheSet(K_CLIENTES, nueva);
+      if (usaApi()) {
+        apiXHR('DELETE', '/api/clientes/' + encodeURIComponent(id), null, function (err) {
+          if (err) console.error('PA sync clientes (borrar):', err.msg || err.status);
+        });
+      }
+    },
+    guardarEmpresa: function (e) {
+      var lista = cacheGet(K_EMPRESAS, []);
+      var esNuevo = !e.id;
+      if (esNuevo) e.id = uid('emp');
+      var ok = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === e.id) { lista[i] = e; ok = true; break; }
+      }
+      if (!ok) lista.push(e);
+      cacheSet(K_EMPRESAS, lista);
+      if (usaApi()) {
+        var method = esNuevo ? 'POST' : 'PUT';
+        var url = esNuevo ? '/api/empresas' : '/api/empresas/' + encodeURIComponent(e.id);
+        apiXHR(method, url, e, function (err) {
+          if (err) console.error('PA sync empresas:', err.msg || err.status);
+        });
+      }
+      return e;
+    },
+    borrarEmpresa: function (id) {
+      // Cascada en caché: eliminar campos de la empresa
+      var camps = cacheGet(K_CAMPOS, []), keepCamps = [];
+      for (var i = 0; i < camps.length; i++) { if (camps[i].empresaId !== id) keepCamps.push(camps[i]); }
+      cacheSet(K_CAMPOS, keepCamps);
+      var lista = cacheGet(K_EMPRESAS, []), nueva = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) nueva.push(lista[i]); }
+      cacheSet(K_EMPRESAS, nueva);
+      if (usaApi()) {
+        apiXHR('DELETE', '/api/empresas/' + encodeURIComponent(id), null, function (err) {
+          if (err) console.error('PA sync empresas (borrar):', err.msg || err.status);
+        });
+      }
+    },
     empresasVisibles: function () {
       var ctx = PA.ctx ? PA.ctx() : null;
       var es = cacheGet(K_EMPRESAS, []);
