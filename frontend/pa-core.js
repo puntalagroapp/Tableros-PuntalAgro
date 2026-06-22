@@ -60,10 +60,22 @@
   var K_LOTES      = 'pa_lotes';
   var K_ACTIVIDADES = 'pa_actividades';
   var K_CAMPANIAS  = 'pa_campanias';
+  var K_USUARIOS   = 'pa_usuarios';
   // Solo estas dos persisten en localStorage también en producción:
   var LS_SESION    = 'pa_sesion_activa';
   var LS_EMPACTIVA = 'pa_empresa_activa';
   var LS_SEEDVER   = 'pa_seed_version';
+
+  var HERRAMIENTAS_PROPIAS = [
+    { id: 'tablero_agro',       nombre: 'Tablero Comercial Agropecuario' },
+    { id: 'tablero_evolucion',  nombre: 'Evolución de Variables' },
+    { id: 'tablero_insumos_ot', nombre: 'Registro de Labores e Insumos' },
+    { id: 'tablero_uso_suelo',  nombre: 'Plan de Uso del Suelo' },
+    { id: 'ProgramaSiembra',    nombre: 'Programa de Siembra' },
+    { id: 'tablero_hacienda',   nombre: 'Tablero de Relaciones Ganaderas' },
+    { id: 'tablero_labores',    nombre: 'Precio de Labores y Fletes' },
+    { id: 'Fitosanitarios',     nombre: 'Fitosanitarios' }
+  ];
 
   // ── 3. ALMACENAMIENTO DUAL ───────────────────────────────────────────────
   // En local  → localStorage (persiste entre recargas, comodidad para el cliente)
@@ -257,9 +269,15 @@
       { id: 'moa_f04', sistema: 'FRAC', codigo: 'M',       descripcion: 'Químicos con actividad multisitio',                          activo: true },
       { id: 'moa_f05', sistema: 'FRAC', codigo: 'F-MOAD',  descripcion: 'Modo de acción desconocido (fungicida)',                     activo: true }
     ]);
+    lsSet(K_USUARIOS, [
+      { id: 'u_1', nombre: 'Admin Puntal',  email: 'admin@puntal.com',       rol: 'admin_general',  clienteId: null,       activo: true },
+      { id: 'u_2', nombre: 'Usuario Demo',  email: 'demo@puntalagro.com',    rol: 'admin_cliente',  clienteId: 'cli_demo', activo: true }
+    ]);
     lsSet(K_PERMISOS, [
       { usuarioId: 'u_1', empresaId: 'e_1', campoIds: [], herramientas: [], nivel: 'administrar' },
-      { usuarioId: 'u_1', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'administrar' }
+      { usuarioId: 'u_1', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'administrar' },
+      { usuarioId: 'u_2', empresaId: 'e_1', campoIds: [], herramientas: [], nivel: 'cargar' },
+      { usuarioId: 'u_2', empresaId: 'e_2', campoIds: [], herramientas: [], nivel: 'cargar' }
     ]);
     lsSet(K_CAMPANIAS, [
       { id: 'camp_1', nombre: '24/25', orden: 1, activa: false },
@@ -304,7 +322,14 @@
         if (data.tiposProveedor) _cache[K_TIPOPROV]  = data.tiposProveedor;
         if (data.campanias)      _cache[K_CAMPANIAS] = data.campanias;
         if (data.empresas)       _cache[K_EMPRESAS]  = data.empresas;
-        if (data.sesion)         lsSet(LS_SESION, data.sesion);
+        if (data.sesion) {
+          lsSet(LS_SESION, data.sesion);
+        } else {
+          // Token inválido o sesión expirada: limpiar para forzar login
+          localStorage.removeItem(LS_SESION);
+        }
+        if (data.clientes)      _cache[K_CLIENTES]  = data.clientes;
+        if (data.campos)        _cache[K_CAMPOS]    = data.campos;
         console.log('PA: globales listos');
         if (callback) callback(null);
       });
@@ -368,6 +393,8 @@
       // Llamada 1: contexto y permisos
       apiXHR('GET', '/api/context' + qs, null, function (err, ctxData) {
         if (err) {
+          // 401 = no autenticado → propagar para que el HTML redirija al login
+          if (err.status === 401) { if (callback) callback(err); return; }
           CTX = { usuario: sesion, empresaActivaId: empId, empresasDisponibles: emps, permiso: permiso };
           lsSet(LS_EMPACTIVA, empId);
           if (callback) callback(null, CTX);
@@ -387,16 +414,36 @@
             if (!err2 && mData) {
               // Cada colección llega filtrada por empresa; se mezcla con el caché
               // global (datos de otras empresas ya cargadas en la sesión).
-              if (mData.campos)         _cache[K_CAMPOS]     = mData.campos;
-              if (mData.terceros)       _cache[K_TERCEROS]   = mData.terceros;
-              if (mData.choferes)       _cache[K_CHOFERES]   = mData.choferes;
-              if (mData.depositos)      _cache[K_DEPOSITOS]  = mData.depositos;
-              if (mData.insumos)        _cache[K_INSUMOS]    = mData.insumos;
-              if (mData.tiposActividad) _cache[K_TIPOACT]    = mData.tiposActividad;
-              if (mData.lotes)          _cache[K_LOTES]      = mData.lotes;
+              if (mData.campos) {
+                // Merge: conservar campos de otras empresas ya cargadas
+                var empId = CTX.empresaActivaId;
+                var otros = [], todos = cacheGet(K_CAMPOS, []);
+                for (var ci = 0; ci < todos.length; ci++) {
+                  if (todos[ci].empresaId !== empId) otros.push(todos[ci]);
+                }
+                _cache[K_CAMPOS] = otros.concat(mData.campos);
+              }
+              if (mData.terceros)       _cache[K_TERCEROS]    = mData.terceros;
+              if (mData.choferes)       _cache[K_CHOFERES]    = mData.choferes;
+              if (mData.depositos)      _cache[K_DEPOSITOS]   = mData.depositos;
+              if (mData.insumos)        _cache[K_INSUMOS]     = mData.insumos;
+              if (mData.tiposActividad) _cache[K_TIPOACT]     = mData.tiposActividad;
+              if (mData.lotes)          _cache[K_LOTES]       = mData.lotes;
               if (mData.actividades)    _cache[K_ACTIVIDADES] = mData.actividades;
             }
-            if (callback) callback(null, CTX);
+            // Llamada 3: usuarios y permisos (solo para roles con acceso de gestión)
+            var rolActual = CTX.usuario ? CTX.usuario.rol : 'usuario';
+            if (rolActual === 'admin_general' || rolActual === 'admin_cliente') {
+              apiXHR('GET', '/api/usuarios', null, function (err3, users) {
+                if (!err3 && users) _cache[K_USUARIOS] = users;
+                apiXHR('GET', '/api/permisos', null, function (err4, perms) {
+                  if (!err4 && perms) _cache[K_PERMISOS] = perms;
+                  if (callback) callback(null, CTX);
+                });
+              });
+            } else {
+              if (callback) callback(null, CTX);
+            }
           }
         );
       });
@@ -474,12 +521,42 @@
     guardarChofer: function (c) { return cacheGuardar(K_CHOFERES, 'choferes', c, 'cho'); },
     borrarChofer:  function (id) { cacheBorrar(K_CHOFERES, 'choferes', id); },
 
-    // ── CAMPOS (solo lectura; se crean en Administración) ────────────────────
+    // ── CAMPOS ────────────────────────────────────────────────────────────────
+    listarCampos: function () { return cacheGet(K_CAMPOS, []); },
     camposDeEmpresa: function (empresaId) {
       var lista = cacheGet(K_CAMPOS, []);
       var out   = [];
       for (var i = 0; i < lista.length; i++) { if (lista[i].empresaId === empresaId) out.push(lista[i]); }
       return out;
+    },
+    guardarCampo: function (k) {
+      var lista = cacheGet(K_CAMPOS, []);
+      var esNuevo = !k.id;
+      if (esNuevo) k.id = uid('cam');
+      var ok = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === k.id) { lista[i] = k; ok = true; break; }
+      }
+      if (!ok) lista.push(k);
+      cacheSet(K_CAMPOS, lista);
+      if (usaApi()) {
+        var method = esNuevo ? 'POST' : 'PUT';
+        var url = esNuevo ? '/api/campos' : '/api/campos/' + encodeURIComponent(k.id);
+        apiXHR(method, url, k, function (err) {
+          if (err) console.error('PA sync campos:', err.msg || err.status);
+        });
+      }
+      return k;
+    },
+    borrarCampo: function (id) {
+      var lista = cacheGet(K_CAMPOS, []), nueva = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) nueva.push(lista[i]); }
+      cacheSet(K_CAMPOS, nueva);
+      if (usaApi()) {
+        apiXHR('DELETE', '/api/campos/' + encodeURIComponent(id), null, function (err) {
+          if (err) console.error('PA sync campos (borrar):', err.msg || err.status);
+        });
+      }
     },
 
     // ── DEPÓSITOS ────────────────────────────────────────────────────────────
@@ -610,10 +687,191 @@
       }
     },
 
+    // ── USUARIOS ─────────────────────────────────────────────────────────────
+    listarUsuarios: function () { return cacheGet(K_USUARIOS, []); },
+    usuariosVisibles: function () {
+      var ctx = PA.ctx ? PA.ctx() : null;
+      var us = cacheGet(K_USUARIOS, []);
+      if (!ctx || !ctx.usuario) return us;
+      if (ctx.usuario.rol === 'admin_general') return us;
+      if (ctx.usuario.rol === 'admin_cliente') {
+        var out = [], cid = ctx.usuario.clienteId;
+        for (var i = 0; i < us.length; i++) { if (us[i].clienteId === cid) out.push(us[i]); }
+        return out;
+      }
+      return [];
+    },
+    guardarUsuario: function (u) {
+      if (!usaApi()) return cacheGuardar(K_USUARIOS, 'usuarios', u, 'usr');
+      var esNuevo = !u.id;
+      if (esNuevo) u.id = uid('usr');
+      var lista = cacheGet(K_USUARIOS, []), encontrado = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === u.id) { lista[i] = u; encontrado = true; break; }
+      }
+      if (!encontrado) lista.push(u);
+      cacheSet(K_USUARIOS, lista);
+      var method = esNuevo ? 'POST' : 'PUT';
+      var url = esNuevo ? '/api/usuarios' : '/api/usuarios/' + encodeURIComponent(u.id);
+      apiXHR(method, url, u, function (err) {
+        if (err) console.error('PA sync usuarios:', err.msg || err.status);
+      });
+      return u;
+    },
+    borrarUsuario: function (id) {
+      var lista = cacheGet(K_USUARIOS, []), out = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) out.push(lista[i]); }
+      cacheSet(K_USUARIOS, out);
+      var ps = cacheGet(K_PERMISOS, []), outp = [];
+      for (var i = 0; i < ps.length; i++) { if (ps[i].usuarioId !== id) outp.push(ps[i]); }
+      cacheSet(K_PERMISOS, outp);
+      if (!usaApi()) return;
+      apiXHR('DELETE', '/api/usuarios/' + encodeURIComponent(id), null, function (err) {
+        if (err) console.error('PA sync usuarios (borrar):', err.msg || err.status);
+      });
+    },
+
+    // ── PERMISOS (ABM directo) ────────────────────────────────────────────────
+    listarPermisos: function () { return cacheGet(K_PERMISOS, []); },
+    buscarPermiso: function (usuarioId, empresaId) {
+      var ps = cacheGet(K_PERMISOS, []);
+      for (var i = 0; i < ps.length; i++) {
+        if (ps[i].usuarioId === usuarioId && ps[i].empresaId === empresaId) return ps[i];
+      }
+      return null;
+    },
+    guardarPermiso: function (perm) {
+      var ps = cacheGet(K_PERMISOS, []), found = false;
+      for (var i = 0; i < ps.length; i++) {
+        if (ps[i].usuarioId === perm.usuarioId && ps[i].empresaId === perm.empresaId) {
+          ps[i] = perm; found = true; break;
+        }
+      }
+      if (!found) ps.push(perm);
+      cacheSet(K_PERMISOS, ps);
+      if (!usaApi()) return perm;
+      apiXHR('POST', '/api/permisos', perm, function (err) {
+        if (err) console.error('PA sync permisos:', err.msg || err.status);
+      });
+      return perm;
+    },
+    borrarPermiso: function (usuarioId, empresaId) {
+      var ps = cacheGet(K_PERMISOS, []), out = [];
+      for (var i = 0; i < ps.length; i++) {
+        if (!(ps[i].usuarioId === usuarioId && ps[i].empresaId === empresaId)) out.push(ps[i]);
+      }
+      cacheSet(K_PERMISOS, out);
+      if (!usaApi()) return;
+      apiXHR('DELETE', '/api/permisos/' + encodeURIComponent(usuarioId) + '/' + encodeURIComponent(empresaId), null, function (err) {
+        if (err) console.error('PA sync permisos (borrar):', err.msg || err.status);
+      });
+    },
+
+    // ── CLIENTES / EMPRESAS ───────────────────────────────────────────────────
+    listarClientes: function () { return cacheGet(K_CLIENTES, []); },
+    listarEmpresas: function () { return cacheGet(K_EMPRESAS, []); },
+    empresasDeCliente: function (clienteId) {
+      var lista = cacheGet(K_EMPRESAS, []), out = [];
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].clienteId === clienteId) out.push(lista[i]);
+      }
+      return out;
+    },
+    guardarCliente: function (c) {
+      var lista = cacheGet(K_CLIENTES, []);
+      var esNuevo = !c.id;
+      if (esNuevo) c.id = uid('cli');
+      var ok = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === c.id) { lista[i] = c; ok = true; break; }
+      }
+      if (!ok) lista.push(c);
+      cacheSet(K_CLIENTES, lista);
+      if (usaApi()) {
+        var method = esNuevo ? 'POST' : 'PUT';
+        var url = esNuevo ? '/api/clientes' : '/api/clientes/' + encodeURIComponent(c.id);
+        apiXHR(method, url, c, function (err) {
+          if (err) console.error('PA sync clientes:', err.msg || err.status);
+        });
+      }
+      return c;
+    },
+    borrarCliente: function (id) {
+      // Cascada en caché: eliminar empresas y campos del cliente
+      var emps = cacheGet(K_EMPRESAS, []), empIds = [], keepEmps = [];
+      for (var i = 0; i < emps.length; i++) {
+        if (emps[i].clienteId === id) { empIds.push(emps[i].id); }
+        else { keepEmps.push(emps[i]); }
+      }
+      cacheSet(K_EMPRESAS, keepEmps);
+      var camps = cacheGet(K_CAMPOS, []), keepCamps = [];
+      for (var i = 0; i < camps.length; i++) {
+        var skip = false;
+        for (var j = 0; j < empIds.length; j++) { if (camps[i].empresaId === empIds[j]) { skip = true; break; } }
+        if (!skip) keepCamps.push(camps[i]);
+      }
+      cacheSet(K_CAMPOS, keepCamps);
+      var lista = cacheGet(K_CLIENTES, []), nueva = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) nueva.push(lista[i]); }
+      cacheSet(K_CLIENTES, nueva);
+      if (usaApi()) {
+        apiXHR('DELETE', '/api/clientes/' + encodeURIComponent(id), null, function (err) {
+          if (err) console.error('PA sync clientes (borrar):', err.msg || err.status);
+        });
+      }
+    },
+    guardarEmpresa: function (e) {
+      var lista = cacheGet(K_EMPRESAS, []);
+      var esNuevo = !e.id;
+      if (esNuevo) e.id = uid('emp');
+      var ok = false;
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].id === e.id) { lista[i] = e; ok = true; break; }
+      }
+      if (!ok) lista.push(e);
+      cacheSet(K_EMPRESAS, lista);
+      if (usaApi()) {
+        var method = esNuevo ? 'POST' : 'PUT';
+        var url = esNuevo ? '/api/empresas' : '/api/empresas/' + encodeURIComponent(e.id);
+        apiXHR(method, url, e, function (err) {
+          if (err) console.error('PA sync empresas:', err.msg || err.status);
+        });
+      }
+      return e;
+    },
+    borrarEmpresa: function (id) {
+      // Cascada en caché: eliminar campos de la empresa
+      var camps = cacheGet(K_CAMPOS, []), keepCamps = [];
+      for (var i = 0; i < camps.length; i++) { if (camps[i].empresaId !== id) keepCamps.push(camps[i]); }
+      cacheSet(K_CAMPOS, keepCamps);
+      var lista = cacheGet(K_EMPRESAS, []), nueva = [];
+      for (var i = 0; i < lista.length; i++) { if (lista[i].id !== id) nueva.push(lista[i]); }
+      cacheSet(K_EMPRESAS, nueva);
+      if (usaApi()) {
+        apiXHR('DELETE', '/api/empresas/' + encodeURIComponent(id), null, function (err) {
+          if (err) console.error('PA sync empresas (borrar):', err.msg || err.status);
+        });
+      }
+    },
+    empresasVisibles: function () {
+      var ctx = PA.ctx ? PA.ctx() : null;
+      var es = cacheGet(K_EMPRESAS, []);
+      if (!ctx || !ctx.usuario || ctx.usuario.rol === 'admin_general') return es;
+      if (ctx.usuario.rol === 'admin_cliente') {
+        var out = [], cid = ctx.clienteId;
+        for (var i = 0; i < es.length; i++) { if (es[i].clienteId === cid) out.push(es[i]); }
+        return out;
+      }
+      return [];
+    },
+
+    // ── HERRAMIENTAS PROPIAS ──────────────────────────────────────────────────
+    herramientasPropias: function () { return HERRAMIENTAS_PROPIAS.slice(); },
+
     // ── RESET DEMO (solo modo local) ─────────────────────────────────────────
     resetDemo: function () {
       var claves = [
-        K_CLIENTES, K_EMPRESAS, K_CAMPOS, K_PERMISOS,
+        K_CLIENTES, K_EMPRESAS, K_CAMPOS, K_PERMISOS, K_USUARIOS,
         LS_SESION, LS_SEEDVER, LS_EMPACTIVA,
         K_TERCEROS, K_CHOFERES, K_TIPOPROV,
         K_DEPOSITOS, K_LABORES, K_TIPOACT, K_MODOSACC,

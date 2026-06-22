@@ -84,7 +84,7 @@ main{padding:16px 24px 28px;display:grid;grid-template-columns:340px 1fr;gap:16p
   <div class="tree">
     <div class="tree-head">
       <h2>Jerarquía</h2>
-      <span class="add-row" onclick="nuevoCliente()">+ Cliente</span>
+      <span class="add-row" id="btn-nuevo-cliente" onclick="nuevoCliente()">+ Cliente</span>
     </div>
     <div id="tree"></div>
   </div>
@@ -99,12 +99,17 @@ main{padding:16px 24px 28px;display:grid;grid-template-columns:340px 1fr;gap:16p
 <script>
 var sel = { kind:null, id:null };       // selección actual
 var expand = {};                          // nodos expandidos {id:true}
+var CTX = null;
 
 /* ---------------- ÁRBOL ---------------- */
 function renderTree(){
   var cont = document.getElementById('tree');
   cont.innerHTML='';
-  var clientes = PA.demo.listarClientes();
+  var todos = PA.demo.listarClientes();
+  // admin_cliente solo ve su propio cliente
+  var clientes = (CTX && CTX.usuario.rol === 'admin_cliente')
+    ? (function(){ var out=[]; for(var i=0;i<todos.length;i++){ if(todos[i].id===CTX.usuario.clienteId) out.push(todos[i]); } return out; })()
+    : todos;
   for (var i=0;i<clientes.length;i++){
     (function(cli){
       var node=document.createElement('div'); node.className='node';
@@ -297,9 +302,24 @@ function irAUsuarios(){ location.href='usuarios.html'; }
 function resetDemo(){ if(confirm('¿Reiniciar todos los datos demo?')){ PA.demo.resetDemo(); expand={}; sel={kind:null,id:null}; renderTree(); renderForm(); } }
 
 PA.init({ modo:'demo' }, function(){
-  // expandir el primer cliente por defecto
-  var cls=PA.demo.listarClientes(); if(cls.length) expand[cls[0].id]=true;
-  renderTree();
+  if (!PA.haySesion()) { location.href='login.html'; return; }
+  PA.loadContext(null, function(err, ctx){
+    if (err) { location.href='login.html'; return; }
+    CTX = ctx;
+    if (ctx.usuario.rol === 'usuario') { location.href='index.html'; return; }
+    // Ocultar "+ Cliente" para admin_cliente (no puede crear clientes nuevos)
+    if (ctx.usuario.rol === 'admin_cliente') {
+      document.getElementById('btn-nuevo-cliente').style.display = 'none';
+    }
+    var cls = PA.demo.listarClientes();
+    // expandir el primer cliente visible por defecto
+    if (ctx.usuario.rol === 'admin_cliente') {
+      if (ctx.usuario.clienteId) expand[ctx.usuario.clienteId] = true;
+    } else if (cls.length) {
+      expand[cls[0].id] = true;
+    }
+    renderTree();
+  });
 });
 </script>
 
