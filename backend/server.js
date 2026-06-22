@@ -337,13 +337,85 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /api/maestros/:coleccion    Crear registro
-// PUT  /api/maestros/:coleccion/:id  Actualizar registro
+// GET    /api/maestros/:coleccion    Listar registros
+// POST   /api/maestros/:coleccion    Crear registro
+// PUT    /api/maestros/:coleccion/:id  Actualizar registro
 // DELETE /api/maestros/:coleccion/:id  Eliminar registro
 //
 // Las tablas con porEmpresa=true almacenan el objeto completo en JSONB (datos).
 // Las tablas globales (labores, especies, unidades…) tienen columnas propias.
 // ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/maestros/:coleccion', async (req, res) => {
+  const cfg = COLECCIONES[req.params.coleccion];
+  if (!cfg) return res.status(404).json({ error: 'Colección desconocida' });
+
+  try {
+    const sesion = await obtenerSesion(req);
+    if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+
+    if (cfg.porEmpresa) {
+      const empresaId = req.query.empresaId;
+      if (!empresaId) return res.status(400).json({ error: 'Falta empresaId en query' });
+
+      // Verificar acceso a la empresa
+      if (sesion.rol !== 'admin_general') {
+        const acceso = await pool.query(
+          'SELECT 1 FROM permisos WHERE usuario_id = $1 AND empresa_id = $2',
+          [sesion.id, empresaId]
+        );
+        if (!acceso.rows.length) return res.status(403).json({ error: 'Sin acceso a esta empresa' });
+      }
+
+      let rows;
+      if (cfg.tabla === 'lotes') {
+        const r = await pool.query(
+          `SELECT jsonb_build_object('id',id,'campoId',campo_id,'empresaId',empresa_id,'nombre',nombre,'ha',ha) AS datos
+             FROM lotes WHERE empresa_id = $1 ORDER BY nombre`,
+          [empresaId]
+        );
+        rows = r.rows.map(r => r.datos);
+      } else if (cfg.tabla === 'actividades') {
+        const r = await pool.query(
+          `SELECT jsonb_build_object('id',id,'empresaId',empresa_id,'loteId',lote_id,'campaniaId',campania_id,
+                                     'tipoActividadId',tipo_actividad_id,'ha',ha,'esSegunda',es_segunda) AS datos
+             FROM actividades WHERE empresa_id = $1`,
+          [empresaId]
+        );
+        rows = r.rows.map(r => r.datos);
+      } else {
+        const r = await pool.query(
+          `SELECT datos FROM ${cfg.tabla} WHERE empresa_id = $1`,
+          [empresaId]
+        );
+        rows = r.rows.map(r => r.datos);
+      }
+      return res.json(rows);
+    }
+
+    // Colecciones globales
+    let q;
+    if (cfg.tabla === 'labores') {
+      q = pool.query('SELECT id, nombre, precio_ref AS "precioRef", activo FROM labores WHERE activo = true ORDER BY nombre');
+    } else if (cfg.tabla === 'especies') {
+      q = pool.query('SELECT id, nombre, sigla, activo FROM especies WHERE activo = true ORDER BY nombre');
+    } else if (cfg.tabla === 'unidades') {
+      q = pool.query('SELECT id, sigla, nombre, activo FROM unidades WHERE activo = true ORDER BY sigla');
+    } else if (cfg.tabla === 'modos_accion') {
+      q = pool.query('SELECT id, sistema, codigo, descripcion, activo FROM modos_accion WHERE activo = true ORDER BY sistema, codigo');
+    } else if (cfg.tabla === 'tipos_proveedor') {
+      q = pool.query('SELECT id, nombre FROM tipos_proveedor ORDER BY nombre');
+    } else if (cfg.tabla === 'campanias') {
+      q = pool.query('SELECT id, nombre, orden, activa FROM campanias ORDER BY orden');
+    } else {
+      return res.status(500).json({ error: 'Tabla global sin query definida' });
+    }
+    res.json((await q).rows);
+  } catch (err) {
+    console.error(`GET /api/maestros/${req.params.coleccion}:`, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/maestros/:coleccion', async (req, res) => {
   const cfg = COLECCIONES[req.params.coleccion];
   if (!cfg) return res.status(404).json({ error: 'Colección desconocida' });
@@ -646,6 +718,31 @@ async function clienteDeCampo(campoId) {
   return r.rows.length ? r.rows[0].cliente_id : null;
 }
 
+app.get('/api/clientes', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol === 'usuario') return res.status(403).json({ error: 'Sin permiso' });
+  try {
+    const q = sesion.rol === 'admin_general'
+      ? pool.query(`SELECT id, nombre, email, telefono, nombre_contacto AS "nombreContacto",
+                           razon_social AS "razonSocial", cuit, direccion,
+                           factura_centralizada AS "facturaCentralizada",
+                           activo, fecha_alta AS "fechaAlta" FROM clientes ORDER BY nombre`)
+      : pool.query(
+          `SELECT DISTINCT c.id, c.nombre, c.email, c.telefono,
+                  c.nombre_contacto AS "nombreContacto", c.razon_social AS "razonSocial",
+                  c.cuit, c.direccion, c.factura_centralizada AS "facturaCentralizada",
+                  c.activo, c.fecha_alta AS "fechaAlta"
+             FROM clientes c
+             JOIN empresas e ON e.cliente_id = c.id
+             JOIN permisos p ON p.empresa_id = e.id
+            WHERE p.usuario_id = $1 ORDER BY c.nombre`,
+          [sesion.id]
+        );
+    res.json((await q).rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/clientes', async (req, res) => {
   const sesion = await obtenerSesion(req);
   if (!sesion) return res.status(401).json({ error: 'No autenticado' });
@@ -698,6 +795,24 @@ app.delete('/api/clientes/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM clientes WHERE id=$1', [req.params.id]);
     res.json({ status: 'ok' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/empresas', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  try {
+    const q = sesion.rol === 'admin_general'
+      ? pool.query(`SELECT id, cliente_id AS "clienteId", razon_social AS "razonSocial", cuit,
+                           condicion_iva AS "condicionIVA", direccion, activo FROM empresas ORDER BY razon_social`)
+      : pool.query(
+          `SELECT e.id, e.cliente_id AS "clienteId", e.razon_social AS "razonSocial", e.cuit,
+                  e.condicion_iva AS "condicionIVA", e.direccion, e.activo
+             FROM empresas e JOIN permisos p ON p.empresa_id = e.id
+            WHERE p.usuario_id = $1 ORDER BY e.razon_social`,
+          [sesion.id]
+        );
+    res.json((await q).rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -755,6 +870,35 @@ app.delete('/api/empresas/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.get('/api/campos', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  try {
+    const empresaId = req.query.empresaId;
+    let q;
+    if (empresaId) {
+      q = pool.query(
+        `SELECT id, empresa_id AS "empresaId", nombre, localidad, partido, provincia,
+                ha_totales AS "haTotales" FROM campos WHERE empresa_id = $1 ORDER BY nombre`,
+        [empresaId]
+      );
+    } else if (sesion.rol === 'admin_general') {
+      q = pool.query(`SELECT id, empresa_id AS "empresaId", nombre, localidad, partido, provincia,
+                             ha_totales AS "haTotales" FROM campos ORDER BY nombre`);
+    } else {
+      q = pool.query(
+        `SELECT DISTINCT c.id, c.empresa_id AS "empresaId", c.nombre, c.localidad,
+                c.partido, c.provincia, c.ha_totales AS "haTotales"
+           FROM campos c
+           JOIN permisos p ON p.empresa_id = c.empresa_id
+          WHERE p.usuario_id = $1 ORDER BY c.nombre`,
+        [sesion.id]
+      );
+    }
+    res.json((await q).rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/campos', async (req, res) => {
   const sesion = await obtenerSesion(req);
   if (!sesion) return res.status(401).json({ error: 'No autenticado' });
@@ -807,6 +951,67 @@ app.delete('/api/campos/:id', async (req, res) => {
       if (cid !== sesion.cliente_id) return res.status(403).json({ error: 'Sin permiso sobre ese campo' });
     }
     await pool.query('DELETE FROM campos WHERE id=$1', [req.params.id]);
+    res.json({ status: 'ok' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CRUD: /api/herramientas
+// Lista de herramientas disponibles en el sistema (propias y externas).
+// admin_general puede crear/editar/eliminar; los demás solo leer.
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/herramientas', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  try {
+    const r = await pool.query(
+      'SELECT id, nombre, descripcion, tipo, url, dominio, activa, asignable FROM herramientas ORDER BY nombre'
+    );
+    res.json(r.rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/herramientas', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol !== 'admin_general') return res.status(403).json({ error: 'Sin permiso' });
+  const h = req.body;
+  if (!h.id || !h.nombre) return res.status(400).json({ error: 'Faltan id o nombre' });
+  try {
+    await pool.query(
+      `INSERT INTO herramientas (id, nombre, descripcion, tipo, url, dominio, activa, asignable)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       ON CONFLICT (id) DO UPDATE
+         SET nombre=$2, descripcion=$3, tipo=$4, url=$5, dominio=$6, activa=$7, asignable=$8`,
+      [h.id, h.nombre, h.descripcion||null, h.tipo||'propia', h.url||null,
+       h.dominio||null, h.activa !== false, h.asignable !== false]
+    );
+    res.status(201).json(h);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/herramientas/:id', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol !== 'admin_general') return res.status(403).json({ error: 'Sin permiso' });
+  const h = { ...req.body, id: req.params.id };
+  try {
+    await pool.query(
+      `UPDATE herramientas SET nombre=$2, descripcion=$3, tipo=$4, url=$5, dominio=$6, activa=$7, asignable=$8
+       WHERE id=$1`,
+      [h.id, h.nombre, h.descripcion||null, h.tipo||'propia', h.url||null,
+       h.dominio||null, h.activa !== false, h.asignable !== false]
+    );
+    res.json(h);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/herramientas/:id', async (req, res) => {
+  const sesion = await obtenerSesion(req);
+  if (!sesion) return res.status(401).json({ error: 'No autenticado' });
+  if (sesion.rol !== 'admin_general') return res.status(403).json({ error: 'Sin permiso' });
+  try {
+    await pool.query('DELETE FROM herramientas WHERE id=$1', [req.params.id]);
     res.json({ status: 'ok' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
